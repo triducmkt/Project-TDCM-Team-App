@@ -1,0 +1,2146 @@
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<link href="https://cdn.jsdelivr.net/npm/gridstack@8.2.1/dist/gridstack.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/gridstack@8.2.1/dist/gridstack-all.js"></script>
+
+<style>
+    /* KHUNG MODAL CHÍNH */
+    .dash-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 100000; opacity: 0; transition: opacity 0.3s; }
+    .dash-modal-overlay.show { opacity: 1; display: flex; }
+    .dash-container { width: 98%; max-width: 1600px; height: 95vh; background: #F4F6F8; border-radius: 24px; box-shadow: 0 24px 48px rgba(0,0,0,0.15); display: flex; overflow: hidden; position: relative; transform: scale(0.95) translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15); }
+    .dash-modal-overlay.show .dash-container { transform: scale(1) translateY(0); }
+    
+    .btn-close-dash { position: absolute; top: 16px; right: 24px; z-index: 1000; width: 40px; height: 40px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.05); color: #666; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .btn-close-dash:hover { background: #FF3B30; color: #FFF; transform: rotate(90deg); }
+
+    /* SIDEBAR BỘ LỌC */
+    .dash-sidebar { width: 300px; background: #FFF; border-right: 1px solid #E5E7EB; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex-shrink: 0; z-index: 10; }
+    .dash-sidebar::-webkit-scrollbar { width: 4px; } .dash-sidebar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
+    .dash-logo-title { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #1A4B9F 0%, #4285F4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2px;}
+
+    /* CỤM BỘ LỌC ĐA NĂNG */
+    .global-filter-box { background: #F9FAFB; padding: 14px; border-radius: 16px; border: 1px solid #E5E7EB; margin-bottom: 4px; display: flex; flex-direction: column; gap: 10px;}
+    .dash-filter-group { display: flex; flex-direction: column; gap: 6px; position: relative; }
+    .dash-filter-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800; color: #4285F4; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .custom-select-btn { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #D1D5DB; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #12151C; text-align: left; background: #FFF; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .custom-select-btn:hover { border-color: #4285F4; }
+    
+    /* DROPDOWN LỌC NHIỀU MỤC (MULTIPLE CHOICE) */
+    .custom-select-dropdown { position: absolute; top: calc(100% + 4px); left: 0; width: 100%; max-height: 250px; overflow-y: auto; background: #FFF; border: 1px solid #E5E7EB; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; display: none; flex-direction: column; padding: 8px; }
+    .custom-select-dropdown.show { display: flex; }
+    .custom-select-dropdown::-webkit-scrollbar { width: 4px; } .custom-select-dropdown::-webkit-scrollbar-thumb { background: #D1D5DB; }
+    .checkbox-label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 12.5px; font-weight: 500; color: #333; }
+    .checkbox-label:hover { background: #F3F4F6; }
+    .checkbox-label input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #4285F4; }
+    .checkbox-label.all-option { border-bottom: 1px dashed #E5E7EB; padding-bottom: 10px; margin-bottom: 4px; font-weight: 700; color: #1A73E8; }
+
+    .btn-add-widget { margin-top: auto; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #4285F4 0%, #2A64D2 100%); color: #FFF; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; box-shadow: 0 8px 20px rgba(66,133,244,0.3); }
+    .btn-add-widget:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(66,133,244,0.4); }
+
+    /* KHÔNG GIAN BÁO CÁO (GRIDSTACK) */
+    .dash-content-area { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
+    
+    /* 🚀 REQ 2 & 4: HIỆU ỨNG CLICK SELECT WIDGET */
+    .grid-stack-item-content { 
+        background: #FFF;
+        border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); 
+        border: 2px solid transparent;
+        display: flex; flex-direction: column;
+        position: relative; 
+        transition: box-shadow 0.2s ease, border-color 0.2s ease; /* 🚀 CHỈ ANMATION VIỀN/BÓNG, KHÔNG ANIMATION KÍCH THƯỚC */
+        overflow: hidden; cursor: pointer;
+    }
+    
+    .grid-stack-item-content:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+    
+    /* Trạng thái khi được Click Chọn (Active) */
+    .grid-stack-item-content.active-widget {
+        border-color: #4285F4;
+        box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.15), 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .widget-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; opacity: 0; transition: 0.2s; z-index: 10; }
+    .grid-stack-item-content:hover .widget-actions { opacity: 1; }
+    .w-btn { width: 26px; height: 26px; border-radius: 8px; background: #F3F4F6; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; color: #4B5563; }
+    .w-btn:hover { background: #E5E7EB; } .w-btn.edit:hover { color: #1A73E8; } .w-btn.delete:hover { background: #FCE8E6; color: #D93025; }
+
+    /* WIDGET NỘI DUNG */
+    .widget-kpi { padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; border-left: 5px solid #4285F4; }
+    .widget-kpi .kpi-title { font-size: 11.5px; font-weight: 800; color: #666; text-transform: uppercase; }
+    .widget-kpi .kpi-value { font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 900; color: #111; margin-top: 4px; line-height: 1; }
+
+    /* 🚀 REQ 1 & 3: TỰ AUTO SCALE VÀ CHẶN CUỘN CHUỘT TRỪ KHI ACTIVE */
+    .widget-chart { padding: 16px 20px; display: flex; flex-direction: column; height: 100%; width: 100%; box-sizing: border-box; }
+    .widget-chart .chart-title { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 800; color: #111; padding-bottom: 12px; border-bottom: 1px dashed #E5E7EB; margin-bottom: 8px; padding-right: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+    
+    .widget-chart .chart-body { 
+        flex: 1; min-height: 0; /* Ép Flexbox tự tính toán lấp đầy khoảng trống */
+        position: relative; width: 100%; 
+        pointer-events: none; /* Khóa tương tác biểu đồ để cho phép cuộn trang mượt mà */
+    }
+    
+    /* Khi Widget được chọn, mở khóa để xài Zoom In/Out bằng chuột */
+    .active-widget .widget-chart .chart-body { pointer-events: auto; }
+
+    /* CỬA SỔ CẤU HÌNH WIDGET (Z-INDEX CAO NHẤT) */
+    .widget-settings-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 450px; background: #FFF; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); border: 1px solid #E5E7EB; z-index: 100005; display: none; flex-direction: column; padding: 24px; opacity: 0; transition: 0.2s; }
+    .widget-settings-panel.show { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .ws-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #F3F4F6; }
+    .ws-title { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 800; color: #111; }
+    .ws-group { margin-bottom: 14px; }
+    .ws-label { font-size: 11.5px; font-weight: 700; color: #444; margin-bottom: 6px; display: block; }
+    .ws-select, .ws-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #DDD; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; background: #F9FAFB; box-sizing: border-box; }
+    .ws-select:focus, .ws-input:focus { border-color: #4285F4; background: #FFF; }
+    .ws-btn-save { margin-top: 10px; width: 100%; padding: 12px; background: linear-gradient(135deg, #4285F4 0%, #2A64D2 100%); color: #FFF; border: none; border-radius: 12px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+    
+    /* TOGGLE SO SÁNH THỜI GIAN */
+    .compare-toggle-box { background: #F0F4F8; padding: 12px; border-radius: 12px; border: 1px solid #D1E3F8; margin-bottom: 14px; }
+    .compare-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .compare-header span { font-weight: 700; font-size: 12.5px; color: #1A73E8; }
+    .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #4285F4; }
+    input:checked + .slider:before { transform: translateX(16px); }
+    .compare-body { display: none; margin-top: 12px; flex-direction: column; gap: 10px; }
+    .date-range-row { display: flex; align-items: center; gap: 8px; }
+    .date-range-row span { font-size: 11px; font-weight: bold; width: 50px; color: #666; }
+</style>
+
+<div id="dashboardModalOverlay" class="dash-modal-overlay">
+    <div class="dash-container" onclick="DashboardWidgetEngine.closeAllMultiSelects()">
+        <button class="btn-close-dash" onclick="closeDashboardModal()">×</button>
+
+        <div class="dash-sidebar" onclick="event.stopPropagation()">
+            <div style="text-align: center; margin-bottom: 8px;">                
+                <img id="dashTeamLogo" src="" style="height: 60px; max-width: 100%; object-fit: contain; margin: 0 auto 5px auto; display: none; transform: scale(1.8); transform-origin: center;">
+                <div class="dash-logo-title">ANALYTICS HUB</div>
+                <div style="font-size: 12px; color: #666; font-weight: 600;">Dashboard Báo cáo và Thống kê</div>
+            </div>
+
+            <div class="global-filter-box">
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Kỳ báo cáo</label>
+                    <select id="globalFilterTime" class="custom-select-btn" onchange="DashboardWidgetEngine.onSidebarChange()" style="appearance: auto;">
+                        <option value="this_month">Tháng này</option>
+                        <option value="last_month">Tháng trước</option>
+                        <option value="this_year">Năm nay</option>
+                        <option value="all">Toàn thời gian</option>
+                        <option value="last_1">Đợt 1 Tháng trước</option>
+                        <option value="last_2">Đợt 2 Tháng trước</option>
+                        <option value="this_1">Đợt 1 Tháng này</option>
+                        <option value="this_2">Đợt 2 Tháng này</option>
+                        <option value="custom">Tùy chọn khoảng ngày...</option>
+                    </select>
+                </div>
+                
+                <div id="globalCustomDateGroup" style="display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px dashed #D1D5DB; margin-top: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 11px; color: #666; font-weight: bold;">Từ:</span>
+                        <div style="position: relative; width: 80%;">
+                            <input type="text" id="dashDateFrom" placeholder="dd/mm/yyyy" oninput="DashboardWidgetEngine.formatDateMask(this); DashboardWidgetEngine.onSidebarChange();" class="custom-select-btn" style="width: 100%; padding: 6px 32px 6px 12px; box-sizing: border-box;">
+                            <input type="date" onchange="DashboardWidgetEngine.syncDatePicker(this, 'dashDateFrom')" style="position: absolute; right: 0; top: 0; width: 32px; height: 100%; opacity: 0; cursor: pointer; z-index: 2;">
+                            <svg style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 11px; color: #666; font-weight: bold;">Đến:</span>
+                        <div style="position: relative; width: 80%;">
+                            <input type="text" id="dashDateTo" placeholder="dd/mm/yyyy" oninput="DashboardWidgetEngine.formatDateMask(this); DashboardWidgetEngine.onSidebarChange();" class="custom-select-btn" style="width: 100%; padding: 6px 32px 6px 12px; box-sizing: border-box;">
+                            <input type="date" onchange="DashboardWidgetEngine.syncDatePicker(this, 'dashDateTo')" style="position: absolute; right: 0; top: 0; width: 32px; height: 100%; opacity: 0; cursor: pointer; z-index: 2;">
+                            <svg style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Dự án</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_project')">
+                        <span id="ms_project_label">Tất cả Dự án</span> <span>▼</span>
+                    </div>
+                    <div id="ms_project" class="custom-select-dropdown"></div>
+                </div>
+
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Nhân sự thực thi</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_assignee')">
+                        <span id="ms_assignee_label">Tất cả Nhân sự</span> <span>▼</span>
+                    </div>
+                    <div id="ms_assignee" class="custom-select-dropdown"></div>
+                </div>
+                
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Loại Content</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_type')">
+                        <span id="ms_type_label">Tất cả Loại Content</span> <span>▼</span>
+                    </div>
+                    <div id="ms_type" class="custom-select-dropdown"></div>
+                </div>
+
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Tiến độ TT (Nâng cao)</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_payment')">
+                        <span id="ms_payment_label">Tất cả</span> <span>▼</span>
+                    </div>
+                    <div id="ms_payment" class="custom-select-dropdown"></div>
+                </div>
+
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Loại Dịch vụ</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_service')">
+                        <span id="ms_service_label">Tất cả Dịch vụ</span> <span>▼</span>
+                    </div>
+                    <div id="ms_service" class="custom-select-dropdown"></div>
+                </div>
+                
+                <div class="dash-filter-group">
+                    <label class="dash-filter-label">Content Chuyển đổi</label>
+                    <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ms_converse')">
+                        <span id="ms_converse_label">Tất cả</span> <span>▼</span>
+                    </div>
+                    <div id="ms_converse" class="custom-select-dropdown"></div>
+                </div>                
+                
+                <div id="sidebar-other-group"></div>
+            </div>         
+
+            <button class="btn-add-widget" onclick="DashboardWidgetEngine.addNewWidget()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                THÊM BIỂU ĐỒ MỚI
+            </button>
+        </div>
+
+        <div class="dash-content-area" id="dashContentArea">
+            <div class="grid-stack" id="gridStackContainer"></div>
+        </div>
+    </div>
+</div>
+
+<div id="widgetSettingsOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:100004;" onclick="DashboardWidgetEngine.closeConfigurator()"></div>
+<div id="widgetSettingsPanel" class="widget-settings-panel">
+    <div class="ws-header">
+        <span class="ws-title">⚙️ Cấu hình Tùy chỉnh</span>
+        <button onclick="DashboardWidgetEngine.closeConfigurator()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#999; line-height:1;">×</button>
+    </div>
+    
+    <input type="hidden" id="ws_widgetId">
+    
+    <div class="ws-group">
+        <label class="ws-label">Tiêu đề (Tên biểu đồ)</label>
+        <input type="text" id="ws_title" class="ws-input" placeholder="Ví dụ: Doanh thu theo tháng...">
+    </div>
+
+    <div class="ws-group">
+        <label class="ws-label">Loại Widget / Biểu đồ <span id="star_chartType" class="err-star" style="color:red; font-size:14px; display:none;">*</span></label>
+        <select id="ws_chartType" class="ws-select" onchange="DashboardWidgetEngine.validateConfig()">
+            <option value="kpi">Thẻ Chỉ số Lớn (KPI Card)</option>
+            <option value="table_matrix" style="font-weight:bold; color:#1A73E8;">🧮 Bảng Ma Trận (Pivot Table)</option>
+            <optgroup label="Biểu đồ Thống kê">
+                <option value="column">Cột dọc (Theo dõi Tăng trưởng)</option>
+                <option value="bar">Cột ngang (Bảng Xếp Hạng)</option>
+                <option value="line">Đường kẻ (Xu hướng Trend)</option>
+                <option value="area">Vùng (Tổng quy mô)</option>
+                <option value="pie">Tròn (Tỷ trọng cơ cấu)</option>
+                <option value="donut">Vành khuyên (Tỷ trọng có số tổng)</option>
+            </optgroup>
+        </select>
+    </div>
+  
+    <div style="display: flex; gap: 12px; margin-bottom: 14px;">
+        <div style="flex: 1;">
+            <label class="ws-label">Dữ liệu (Lõi Chỉ số) <span id="star_metric" class="err-star" style="color:red; font-size:14px; display:none;">*</span></label>
+            <select id="ws_metric" class="ws-select" onchange="DashboardWidgetEngine.validateConfig()">
+                <option value="count">ĐƠN: Số lượng Task</option>
+                <option value="cost">ĐƠN: Tổng Tiền (Cột Đơn giá)</option>
+                <option value="cost_da">ĐƠN: Tổng Tiền (Cột DA)</option>                
+                <option value="actual_mkt_cost" style="font-weight:bold; color:#D97706;">ĐƠN: Tổng Thực chi MKT</option>
+                <option value="dual_metrics_cost" style="font-weight:bold; color:#D93025;">KÉP: Số lượng & Khối lượng Tiền (Theo Đơn giá)</option>
+                <option value="dual_metrics_cost_da" style="font-weight:bold; color:#EA4335;">KÉP: Số lượng & Khối lượng (Theo DA)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="ws_mkt_project_wrapper" class="ws-group" style="display: none; margin-bottom: 14px;">
+        <label class="ws-label" style="color: #D97706;">Chọn Dự án Đích danh <span style="color:red">*</span></label>
+        <select id="ws_mkt_project" class="ws-select" onchange="DashboardWidgetEngine.validateConfig()"></select>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-bottom: 14px;">
+        <div style="flex: 1;">
+            <label class="ws-label">Phân nhóm (Trục Y) <span id="star_row1" class="err-star" style="color:red; font-size:14px; display:none;">*</span></label>
+            <select id="ws_groupBy" class="ws-select" onchange="DashboardWidgetEngine.onGroup1Change(); DashboardWidgetEngine.validateConfig();">
+                <option value="none">Không (Dành cho KPI)</option>
+                <option value="date">Theo Thời gian (Kỳ Kế toán)</option>
+                <option value="month">Theo Tháng</option> <option value="mkt_total_cost">Theo Tổng Tiền Thực Chi</option> <option value="project">Theo Dự án</option>
+                <option value="assignee">Theo Nhân sự</option>
+                <option value="type">Theo Loại Content</option>
+                <option value="servicetype">Theo Dịch vụ</option>
+                <option value="payment_batch">Theo Đợt Thanh toán</option>
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label class="ws-label">Lọc đích danh (Cấp 2) <span id="star_row2" class="err-star" style="color:red; font-size:14px; display:none;">*</span></label>
+            <div class="dash-filter-group" style="margin-bottom:0;">
+                <div class="custom-select-btn" onclick="DashboardWidgetEngine.toggleMultiSelect('ws_groupBy2_dropdown', event)" style="background: #F9FAFB; border-color: #DDD; height: 38px;">
+                    <span id="ws_groupBy2_label">Tất cả</span> <span style="color:#999; font-size:10px;">▼</span>
+                </div>
+                <div id="ws_groupBy2_dropdown" class="custom-select-dropdown" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-bottom: 14px;">
+        <div style="flex: 1;">
+            <label class="ws-label">Dàn trải Cột (Trục X) <span id="star_col1" class="err-star" style="color:red; font-size:14px; display:none;">*</span></label>
+            <select id="ws_colGroup" class="ws-select" onchange="DashboardWidgetEngine.validateConfig()">
+                <option value="none">Không dàn cột (Chỉ xem Tổng)</option>
+                <option value="date">Theo Thời gian (Kỳ Kế toán)</option>
+                <option value="month">Theo Tháng</option> <option value="project">Theo Dự án</option>
+                <option value="type">Theo Loại Content</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="ws_mixDataWrapper" class="compare-toggle-box" style="margin-bottom: 14px; background: #FFF8F1; border-color: #FFDAB9; transition: all 0.3s ease;">
+        <div class="compare-header" onclick="if(!document.getElementById('ws_mixDataToggle').disabled) document.getElementById('ws_mixDataToggle').click()">
+            <span style="color:#D97706; font-weight: 700;">🔗 Bổ sung Chi phí MKT Khác <span id="star_mixData" class="err-star" style="color:red; font-size:14px; display:none;">*</span></span>
+            <label class="switch" style="pointer-events: none; margin: 0;">
+                <input type="checkbox" id="ws_mixDataToggle" onchange="DashboardWidgetEngine.validateConfig()">
+                <span class="slider" id="ws_mixDataSlider" style="background-color: #ccc; transition: 0.3s;"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="compare-toggle-box">
+        <div class="compare-header" onclick="document.getElementById('ws_compareToggle').click()">
+            <span>⏱️ Bật So sánh Hai Kỳ Thời Gian</span>
+            <label class="switch" onclick="event.stopPropagation()">
+                <input type="checkbox" id="ws_compareToggle" onchange="DashboardWidgetEngine.toggleCompareUI()">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div id="ws_compareBody" class="compare-body">
+            <div style="font-size: 11px; color: #666; font-style: italic; margin-bottom: 4px;">Vẽ 2 cột/đường để so sánh, bỏ qua Lọc Thời Gian chung.</div>
+            <div class="date-range-row">
+                <span>Kỳ 1 (Xanh):</span>
+                <input type="date" id="ws_d1_from" class="ws-input" style="padding: 6px;"> - <input type="date" id="ws_d1_to" class="ws-input" style="padding: 6px;">
+            </div>
+            <div class="date-range-row">
+                <span>Kỳ 2 (Xám):</span>
+                <input type="date" id="ws_d2_from" class="ws-input" style="padding: 6px;"> - <input type="date" id="ws_d2_to" class="ws-input" style="padding: 6px;">
+            </div>
+        </div>
+    </div>
+
+    <div id="ws_errorBox" style="display:none; margin-bottom: 14px; padding: 12px; background: #FEF2F2; border-radius: 8px; border-left: 4px solid #EF4444; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div id="ws_errText" style="color: #DC2626; font-size: 11.5px; font-style: italic; font-weight: 700; margin-bottom: 6px;"></div>
+        <div id="ws_errGuide" style="color: #2563EB; font-size: 11px; font-style: italic;"></div>
+    </div>
+
+    <button id="ws_btnSave" class="ws-btn-save" onclick="DashboardWidgetEngine.saveWidgetConfig()">LƯU & CẬP NHẬT BIỂU ĐỒ</button>
+</div>
+
+<div id="dashFullScreenLoader" style="display:none; position: fixed; top:0; left:0; right:0; bottom:0; z-index: 999999; background: #F9F9FB;"></div>
+
+<script>
+    // BẢN ĐỒ CHIỀU DỮ LIỆU ĐA NGUỒN (MULTI-SOURCE DIMENSION MAP)
+    const DASHBOARD_DIMENSION_MAP = {
+        // 🗄️ NGUỒN 1: SHEET "Công việc" (Chứa danh sách Task thực tế)
+        "Công việc": { 
+            frontendDataSource: "globalTasksData", // Biến RAM trên trình duyệt đang chứa data của sheet này
+            sourceLabel: "Báo cáo Công việc (Tasks)", 
+            dimensions: {
+                "project": {
+                    label: "Theo Dự án",
+                    frontendKey: "project",          // Soi vào cột Dự án của Sheet Công việc
+                    catalogKey: "projects",          // Lấy list xổ xuống từ Sheet Danh mục
+                },
+                "assignee": {
+                    label: "Theo Nhân sự",
+                    frontendKey: "assignee",         // Soi vào cột Người nhận của Sheet Công việc
+                    catalogKey: "assignees",         // Lấy list xổ xuống từ Sheet Nhân sự / Danh mục
+                },
+                "type": {
+                    label: "Theo Loại Content",
+                    frontendKey: "type",
+                    catalogKey: "types",
+                },
+                "servicetype": {
+                    label: "Theo Dịch vụ",
+                    frontendKey: "servicetype",
+                    catalogKey: "serviceTypes",
+                },
+                // 🚀 BỔ SUNG MỚI: THEO TIẾN ĐỘ THANH TOÁN (CỘT AI)
+                "payment_batch": {
+                    label: "Theo Đợt Thanh toán",
+                    frontendKey: "projchargedate",
+                    catalogKey: null // Không có ở sheet Danh mục, hệ thống sẽ tự động quét Data thực tế
+                }
+            }
+        },
+
+        // 🗄️ NGUỒN 2: SHEET "Dự án" (Chứa các dữ liệu tổng quan và Chi phí MKT / Extra Costs)
+        "Dự án": {
+            frontendDataSource: "globalExtraCostsData", // Giả định biến RAM chứa chi phí
+            sourceLabel: "Báo cáo Chi phí & Phân bổ",
+            dimensions: {
+                "project": {
+                    label: "Theo Dự án",
+                    frontendKey: "project",          // Lấy tên dự án ở Cột đầu tiên của sheet Dự án
+                    catalogKey: "projects",          // Vẫn dùng chung list dự án chuẩn từ Sheet Danh mục
+                },
+                "cost_category": {
+                    label: "Theo Hạng mục Chi phí",
+                    frontendKey: "note",             // Soi vào cột Ghi chú chi phí
+                    catalogKey: null,                // Cho phép null: Hệ thống sẽ tự động tự cào các giá trị duy nhất (Unique) từ thực tế
+                }
+            }
+        },
+
+        // 🗄️ NGUỒN 3: SHEET "Nhân sự" (Chứa KPIs, lương, thông tin nhân viên)
+        "Nhân sự": {
+            frontendDataSource: "globalPeopleData",
+            sourceLabel: "Báo cáo Năng suất Nhân sự",
+            dimensions: {
+                "role": {
+                    label: "Theo Vai trò/Vị trí",
+                    frontendKey: "role",
+                    catalogKey: null, 
+                }
+            }
+        }
+
+        /* 💡 LƯU Ý VỀ SHEET "Danh mục":
+          Sheet này KHÔNG nằm ở Cấp 1 để tạo báo cáo vì nó không chứa số liệu phát sinh. 
+          Nó đóng vai trò là "Từ điển" cung cấp dữ liệu cho các biến catalogKey (như "projects", "types") ở các Sheet trên!
+        */
+    };
+
+    // =========================================================================
+    // 🛡️ LỚP BẢO VỆ BIẾN TOÀN CỤC (CHỐNG SẬP TỪ TRANG HOME)
+    // =========================================================================
+    window.globalTasksData = window.globalTasksData || [];
+    window.globalDropdownData = window.globalDropdownData || null;
+    window.globalExtraCostsData = window.globalExtraCostsData || null; // 🚀 VÁ LỖI: Bổ sung RAM chứa Chi phí MKT
+    window.globalMktActualCostsData = window.globalMktActualCostsData || null; // 🚀 VÁ LỖI: Bổ sung RAM chứa Thực chi MKT
+    // =========================================================================
+    // 🧠 BỘ NÃO QUẢN LÝ GRIDSTACK & WIDGET (CHẠY ĐỘC LẬP TỪNG BIỂU ĐỒ)
+    // =========================================================================
+    var DashboardWidgetEngine = {
+        grid: null, config: null, activeChartInstances: {}, isSaving: false, saveTimer: null,
+        activeWidgetId: null, // Lưu ID của Biểu đồ đang được click chọn
+
+        // 🚀 TỰ ĐỘNG ĐIỀN DẤU GẠCH CHÉO CHO NGÀY THÁNG DD/MM/YYYY
+        formatDateMask: function(input) {
+            let v = input.value.replace(/[^0-9]/g, '');
+            if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+            if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5);
+            input.value = v.slice(0, 10);
+        },
+
+        // 🚀 ĐỒNG BỘ LỊCH CHỌN VÀO Ô TEXT DD/MM/YYYY
+        syncDatePicker: function(dateInput, textInputId) {
+            let val = dateInput.value; // Giá trị chọn từ lịch luôn tự động trả về yyyy-mm-dd
+            if (val) {
+                let pts = val.split('-');
+                if (pts.length === 3) {
+                    let textInput = document.getElementById(textInputId);
+                    if (textInput) {
+                        // Lật ngược lại thành dd/mm/yyyy và dán vào ô Text
+                        textInput.value = `${pts[2]}/${pts[1]}/${pts[0]}`;
+                        this.onSidebarChange(); // Kích hoạt vẽ lại biểu đồ
+                    }
+                }
+            }
+        },
+
+        // 🚀 BỌC THÉP: Hàm sinh cấu hình Bộ lọc an toàn 100%
+        getDefaultFilters: function() {
+            return { time: 'this_month', dateFrom: '', dateTo: '', project: ['ALL'], assignee: ['ALL'], type: ['ALL'], payment: ['ALL'], service: ['ALL'], converse: ['ALL'] };
+        },
+
+        // Cấu hình Biểu đồ mặc định khi User mới dùng lần đầu
+        getDefaultConfig: function() {
+            return {
+                widgets: [
+                    { id: 'k1', type: 'kpi', title: 'TỔNG SỐ TASK', metric: 'count', groupBy: 'none', color: 'blue', x: 0, y: 0, w: 3, h: 2, compare: false, filters: this.getDefaultFilters() },
+                    { id: 'k2', type: 'kpi', title: 'ĐÃ HOÀN THÀNH', metric: 'count_done', groupBy: 'none', color: 'green', x: 3, y: 0, w: 3, h: 2, compare: false, filters: this.getDefaultFilters() },
+                    { id: 'k3', type: 'kpi', title: 'TỔNG CHI PHÍ', metric: 'cost', groupBy: 'none', color: 'gold', x: 6, y: 0, w: 3, h: 2, compare: false, filters: this.getDefaultFilters() },
+                    { id: 'c1', type: 'chart', chartType: 'donut', title: 'Cơ cấu Content', metric: 'count', groupBy: 'type', x: 0, y: 2, w: 4, h: 4, compare: false, filters: this.getDefaultFilters() },
+                    { id: 'c2', type: 'chart', chartType: 'column', title: 'Hiệu suất Nhân sự', metric: 'count', groupBy: 'assignee', x: 4, y: 2, w: 8, h: 4, compare: false, filters: this.getDefaultFilters() }
+                ]
+            };
+        },
+
+        // --- 1. QUẢN LÝ GRIDSTACK UI & TƯƠNG TÁC CLICK CHỌN ---
+        // 🛡️ LƯỚI 1: BẮT BUG VÀ TRIỆT TIÊU INSTANCE MA KHI RESIZE
+        initGrid: function() {
+            if (this.grid) return;
+            this.grid = GridStack.init({ column: 12, cellHeight: 70, margin: 12, animate: true, float: false });
+            
+            this.grid.on('change', (event, items) => {
+                if(!items) return;
+                items.forEach(item => {
+                    let w = this.config.widgets.find(x => x.id === item.id);
+                    if (w) { w.x = item.x; w.y = item.y; w.w = item.w; w.h = item.h; }
+                });
+                this.triggerAutoSave();
+            });
+
+            // 🚀 BẮT ĐÚNG ĐIỂM RƠI AUTO-FIT: Dựng lại biểu đồ khi đã buông chuột
+            this.grid.on('resizestop', (event, el) => {
+                let id = el.getAttribute('gs-id');
+                if (!id) return;
+                
+                let w = this.config.widgets.find(x => x.id === id);
+                if (w) {
+                    // Nghỉ 50ms chờ GridStack chốt kích thước tĩnh -> Bơm data vẽ lại
+                    setTimeout(() => { this.runDataEngineSingle(w); }, 50);
+                }
+            });
+
+            this.renderAllWidgets();
+        },
+
+        renderAllWidgets: function() {
+            this.grid.removeAll();
+            this.config.widgets.forEach(w => {
+                let html = this.buildWidgetHTML(w);
+                this.grid.addWidget({ x: w.x, y: w.y, w: w.w, h: w.h, id: w.id, content: html });
+            });
+        },
+        
+        // 🚀 TỰ ĐỘNG ĐỔ CHECKBOX THỰC TẾ DỰA TRÊN BẢN ĐỒ
+        onGroup1Change: function() {
+            let g1 = document.getElementById('ws_groupBy').value;
+            let g2Dropdown = document.getElementById('ws_groupBy2_dropdown');
+            let g2Label = document.getElementById('ws_groupBy2_label');
+            if(!g2Dropdown) return;
+            
+            // Xóa cũ, in nút Tất cả có dính liền lệnh onchange
+            g2Dropdown.innerHTML = `<label class="checkbox-label all-option" onclick="event.stopPropagation()"><input type="checkbox" value="ALL" checked onchange="DashboardWidgetEngine.onMultiSelectCheck('ws_groupBy2_dropdown', 'ALL'); DashboardWidgetEngine.updateGroup2Label(); DashboardWidgetEngine.validateConfig();">Tất cả</label>`;
+            if(g2Label) g2Label.innerText = 'Tất cả';
+
+            if (g1 === 'none' || g1 === 'date') return;
+
+            let dimConfig = typeof DASHBOARD_DIMENSION_MAP !== 'undefined' && DASHBOARD_DIMENSION_MAP["Công việc"] ? DASHBOARD_DIMENSION_MAP["Công việc"].dimensions[g1] : null;
+            if (!dimConfig) return;
+
+            let items = [];
+            if (dimConfig.catalogKey && window.globalDropdownData && window.globalDropdownData[dimConfig.catalogKey]) {
+                items = window.globalDropdownData[dimConfig.catalogKey];
+            } else if (dimConfig.frontendKey && window.globalTasksData) {
+                items = [...new Set(window.globalTasksData.map(t => t ? t[dimConfig.frontendKey] : null).filter(String))];
+            }
+
+            // In danh sách Checkbox
+            items.forEach(item => {
+                if (item) {
+                    g2Dropdown.innerHTML += `<label class="checkbox-label" onclick="event.stopPropagation()"><input type="checkbox" value="${item}" class="cb-item" onchange="DashboardWidgetEngine.onMultiSelectCheck('ws_groupBy2_dropdown', 'ITEM'); DashboardWidgetEngine.updateGroup2Label(); DashboardWidgetEngine.validateConfig();">${item}</label>`;
+                }
+            });
+        },
+
+        // 🚀 HÀM CẬP NHẬT NHÃN HIỂN THỊ (VD: "Đã chọn (3)")
+        updateGroup2Label: function() {
+            let c = document.getElementById('ws_groupBy2_dropdown');
+            let l = document.getElementById('ws_groupBy2_label');
+            if(!c || !l) return;
+            
+            let allCb = c.querySelector('input[value="ALL"]');
+            if(allCb && allCb.checked) {
+                l.innerText = "Tất cả";
+            } else {
+                let checked = c.querySelectorAll('.cb-item:checked');
+                l.innerText = checked.length === 1 ? checked[0].value : `Đã chọn (${checked.length})`;
+            }
+        },
+
+        buildWidgetHTML: function(w) {
+            let actionsHTML = `
+                <div class="widget-actions">
+                    <button class="w-btn edit" onclick="DashboardWidgetEngine.openConfigurator('${w.id}', event)" title="Tùy chỉnh" style="font-size: 14px;">⚙️</button>
+                    <button class="w-btn delete" onclick="DashboardWidgetEngine.removeWidget('${w.id}', event)" title="Xóa"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                </div>
+            `;
+
+            // 🚀 XỬ LÝ TEXT H2: HIỂN THỊ ĐÍCH DANH (HỖ TRỢ MẢNG)
+            let subTitleText = "Tất cả";
+            let g2Arr = Array.isArray(w.groupBy2) ? w.groupBy2 : [w.groupBy2 || 'ALL'];
+            if (!g2Arr.includes('ALL') && g2Arr.length > 0) {
+                subTitleText = g2Arr.length === 1 ? g2Arr[0] : `Đã chọn (${g2Arr.length} mục)`;
+            }
+            
+            // Khối HTML thẻ H2 tối giản
+            let subTitleHTML = `<h2 style="font-size: 11.5px; font-weight: 700; margin: 0 0 8px 0; font-family: 'Inter', sans-serif; color: #4285F4;">${subTitleText}</h2>`;
+
+            let contentStr = '';
+            
+            // 🎨 RENDER CHO THẺ KPI LỚN
+            if (w.type === 'kpi') {
+                let colorHex = w.color === 'blue' ? '#4285F4' : (w.color === 'green' ? '#34A853' : (w.color === 'red' ? '#EA4335' : '#FBBC05'));
+                
+                contentStr = `${actionsHTML}
+                <div class="widget-kpi" style="border-left-color: ${colorHex};">
+                    <div class="kpi-title">${w.title}</div>
+                    ${subTitleHTML} <div class="kpi-value" id="val_${w.id}">0</div>
+                </div>`;
+            } 
+            // 🎨 RENDER CHO BIỂU ĐỒ (VÀ BẢNG TABLE TƯƠNG LAI)
+            else {
+                contentStr = `${actionsHTML}
+                <div class="widget-chart">
+                    <div class="chart-title" style="border-bottom: none; padding-bottom: 0; margin-bottom: 4px;">${w.title}</div>
+                    ${subTitleHTML} <div style="width: 100%; border-bottom: 1px dashed #E5E7EB; margin-bottom: 8px; padding-right: 60px;"></div>
+                    <div class="chart-body" id="chart_${w.id}"></div>
+                </div>`;
+            }
+
+            return `<div style="height:100%; width:100%;" onclick="DashboardWidgetEngine.selectWidget('${w.id}', event)">${contentStr}</div>`;
+        },
+
+        // 🚀 XỬ LÝ SỰ KIỆN CLICK CHỌN WIDGET
+        selectWidget: function(id, event) {
+            if(event) event.stopPropagation();
+            this.activeWidgetId = id;
+            
+            // Đóng khung Highlight xanh
+            document.querySelectorAll('.grid-stack-item-content').forEach(el => el.classList.remove('active-widget'));
+            let activeEl = document.querySelector(`[gs-id="${id}"] .grid-stack-item-content`);
+            if(activeEl) activeEl.classList.add('active-widget');
+
+            // Đồng bộ Sidebar sang cấu hình của riêng Widget này
+            this.syncSidebarWithActiveWidget();
+        },
+
+        deselectAllWidgets: function() {
+            this.activeWidgetId = null;
+            document.querySelectorAll('.grid-stack-item-content').forEach(el => el.classList.remove('active-widget'));
+            
+            // Xóa rỗng Sidebar để báo hiệu không có gì được chọn
+            document.getElementById('globalFilterTime').value = 'all';
+            document.getElementById('globalCustomDateGroup').style.display = 'none';
+            document.querySelectorAll('.custom-select-dropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
+            this.updateMultiSelectLabels();
+        },
+
+        syncSidebarWithActiveWidget: function() {
+            let w = this.config.widgets.find(x => x.id === this.activeWidgetId);
+            if (!w || !w.filters) return;
+
+            let f = w.filters;
+            document.getElementById('globalFilterTime').value = f.time || 'all';
+            document.getElementById('dashDateFrom').value = f.dateFrom || '';
+            document.getElementById('dashDateTo').value = f.dateTo || '';
+            document.getElementById('globalCustomDateGroup').style.display = (f.time === 'custom') ? 'flex' : 'none';
+
+            const checkCbs = (cid, arr) => {
+                if (!Array.isArray(arr)) arr = ['ALL'];
+                let c = document.getElementById(cid); if(!c) return;
+                let allCb = c.querySelector('input[value="ALL"]');
+                let itemCbs = c.querySelectorAll('.cb-item');
+                
+                if (arr.includes('ALL') || arr.length === 0) {
+                    if(allCb) allCb.checked = true;
+                    itemCbs.forEach(cb => cb.checked = false);
+                } else {
+                    if(allCb) allCb.checked = false;
+                    itemCbs.forEach(cb => cb.checked = arr.includes(cb.value));
+                }
+            };
+            checkCbs('ms_project', f.project); checkCbs('ms_assignee', f.assignee); checkCbs('ms_type', f.type);
+            checkCbs('ms_service', f.service); checkCbs('ms_converse', f.converse); checkCbs('ms_payment', f.payment);
+            
+            this.updateMultiSelectLabels();
+        },
+
+        addNewWidget: function() {
+            let selectEl = document.getElementById('customMetricSelect');
+            let metricId = selectEl ? selectEl.value : "";
+            
+            let newId = 'w_' + Date.now();
+            let newConfig = {};
+
+            if (metricId) {
+                // NẾU CÓ CHỌN "CHỈ SỐ KHÁC" -> TẠO THẺ KPI CHO CHỈ SỐ ĐÓ
+                let metricDef = DASHBOARD_METRICS_MAP.find(m => m.id === metricId);
+                newConfig = { 
+                    id: newId, type: 'kpi', title: metricDef.title, metric: metricId, 
+                    groupBy: 'none', groupBy2: 'none', color: metricDef.color === '#D93025' ? 'red' : (metricDef.color === '#1A73E8' ? 'blue' : 'green'), 
+                    x: 0, y: 100, w: 3, h: 2, compare: false, filters: this.getDefaultFilters() 
+                };
+                if(selectEl) selectEl.value = ""; // Reset lại Dropdown sau khi thêm
+            } else {
+                // NẾU KHÔNG CHỌN GÌ -> TẠO BIỂU ĐỒ CỘT MẶC ĐỊNH
+                newConfig = { 
+                    id: newId, type: 'chart', chartType: 'column', title: 'Biểu đồ Mới', metric: 'count', 
+                    groupBy: 'date', groupBy2: 'none', x: 0, y: 100, w: 6, h: 4, compare: false, filters: this.getDefaultFilters() 
+                };
+            }
+
+            // 1. Thêm cấu hình vào bộ nhớ
+            this.config.widgets.push(newConfig);
+            
+            // 2. Dựng HTML và ném cho GridStack vẽ
+            let html = this.buildWidgetHTML(newConfig);
+            this.grid.addWidget({ w: newConfig.w, h: newConfig.h, id: newId, content: html, autoPosition: true });
+            
+            this.triggerAutoSave();
+            
+            // 🚀 3. BỌC THÉP RACE CONDITION: Nghỉ 50ms chờ Gridstack vẽ HTML xong mới gọi ApexCharts
+            setTimeout(() => {
+                this.runDataEngineSingle(newConfig);
+                this.openConfigurator(newId, null); // Mở luôn cửa sổ cấu hình sau khi vẽ xong
+            }, 350);
+        },
+
+        // 🚀 TẠO WIDGET MỚI TỪ DROPDOWN "MỤC KHÁC"
+        addCustomMetricWidget: function() {
+            let selectEl = document.getElementById('customMetricSelect');
+            if(!selectEl || !selectEl.value) { alert("Vui lòng chọn 1 chỉ số từ Dropdown trước!"); return; }
+
+            let metricId = selectEl.value;
+            // Tìm cấu hình của chỉ số này trong MAP
+            let metricDef = DASHBOARD_METRICS_MAP.find(m => m.id === metricId);
+            if(!metricDef) return;
+
+            let newId = 'w_' + Date.now();
+            let newConfig = { 
+                id: newId, 
+                type: 'kpi', // Mặc định văng ra thẻ KPI trước
+                title: metricDef.title, 
+                metric: metricId, // 🚀 TRUYỀN ID CỦA MAP VÀO LÀM LÕI TÍNH TOÁN
+                groupBy: 'none', 
+                color: metricDef.color === '#D93025' ? 'red' : (metricDef.color === '#1A73E8' ? 'blue' : 'green'), 
+                x: 0, y: 100, w: 3, h: 2, compare: false, 
+                filters: this.getDefaultFilters() 
+            };
+            
+            this.config.widgets.push(newConfig);
+            let html = this.buildWidgetHTML(newConfig);
+            this.grid.addWidget({ w: newConfig.w, h: newConfig.h, id: newId, content: html, autoPosition: true });
+            
+            this.runDataEngineSingle(newConfig);
+            this.triggerAutoSave();
+            
+            // Reset Dropdown
+            selectEl.value = "";
+        },
+
+        removeWidget: function(id, event) {
+            if(event) event.stopPropagation();
+            if(confirm("Xóa khối dữ liệu này?")) {
+                this.config.widgets = this.config.widgets.filter(w => w.id !== id);
+                let el = document.querySelector(`.grid-stack-item[gs-id="${id}"]`);
+                if (el) this.grid.removeWidget(el);
+                if (this.activeChartInstances[id]) { this.activeChartInstances[id].destroy(); delete this.activeChartInstances[id]; }
+                if (this.activeWidgetId === id) this.deselectAllWidgets();
+                this.triggerAutoSave();
+            }
+        },
+
+        // --- 2. MULTI-SELECT & BỘ LỌC SIDEBAR ---
+        closeAllMultiSelects: function() { document.querySelectorAll('.custom-select-dropdown').forEach(el => el.classList.remove('show')); },
+        toggleMultiSelect: function(id, event) {
+            if(event) event.stopPropagation();
+            let el = document.getElementById(id);
+            let isShowing = el.classList.contains('show');
+            this.closeAllMultiSelects();
+            if (!isShowing) el.classList.add('show');
+        },
+
+        buildMultiSelects: function() {
+            let db = window.globalDropdownData; if (!db) return;
+            const createHTML = (cid, arr) => {
+                let c = document.getElementById(cid); if(!c) return;
+                let h = `<label class="checkbox-label all-option" onclick="event.stopPropagation()"><input type="checkbox" value="ALL" checked onchange="DashboardWidgetEngine.onMultiSelectCheck('${cid}', 'ALL')">Tất cả</label>`;
+                arr.forEach(opt => {
+                    if(!opt) return;
+                    h += `<label class="checkbox-label" onclick="event.stopPropagation()"><input type="checkbox" value="${opt}" class="cb-item" onchange="DashboardWidgetEngine.onMultiSelectCheck('${cid}', 'ITEM')">${opt}</label>`;
+                });
+                c.innerHTML = h;
+            };
+
+            let projs = db.projects || []; let users = db.assignees || []; let types = db.types || [];
+            let svcs = db.serviceTypes || []; let convs = db.converseTypes || [];
+            
+            // 🚀 BỌC LỖI: Kiểm tra t có tồn tại không trước khi đọc t.projcharge
+            let payments = [...new Set(window.globalTasksData.map(t => t ? t.projchargedate : null).filter(String))];
+
+            createHTML('ms_project', projs); createHTML('ms_assignee', users); createHTML('ms_type', types);
+            createHTML('ms_service', svcs); createHTML('ms_converse', convs); createHTML('ms_payment', payments);
+            this.updateMultiSelectLabels();
+        },
+
+        onMultiSelectCheck: function(cid, type) {
+            let c = document.getElementById(cid);
+            let allCb = c.querySelector('input[value="ALL"]');
+            let itemCbs = c.querySelectorAll('.cb-item');
+            if (type === 'ALL') {
+                let isChecked = allCb.checked;
+                itemCbs.forEach(cb => cb.checked = false);
+                if(!isChecked) allCb.checked = true; 
+            } else {
+                let anyChecked = Array.from(itemCbs).some(cb => cb.checked);
+                if (anyChecked) allCb.checked = false;
+                else allCb.checked = true;
+            }
+            this.updateMultiSelectLabels();
+            this.onSidebarChange();
+        },
+
+        updateMultiSelectLabels: function() {
+            ['ms_project', 'ms_assignee', 'ms_type', 'ms_service', 'ms_converse', 'ms_payment'].forEach(id => {
+                let l = document.getElementById(id + '_label'); if(!l) return;
+                let c = document.getElementById(id);
+                if(!c || !c.querySelector('input[value="ALL"]')) return;
+                if(c.querySelector('input[value="ALL"]').checked) l.innerText = "Tất cả";
+                else {
+                    let checked = c.querySelectorAll('.cb-item:checked');
+                    l.innerText = checked.length === 1 ? checked[0].value : `Đã chọn (${checked.length})`;
+                }
+            });
+        },
+
+        // 🚀 REQ 5: CHỈ UPDATE NẾU CÓ WIDGET ĐANG ĐƯỢC SELECT
+        onSidebarChange: function() {
+            if (!this.activeWidgetId) { return; } // Khóa bảo vệ: Không chọn Widget -> Không có tác dụng
+
+            let timeVal = document.getElementById('globalFilterTime').value;
+            let customGroup = document.getElementById('globalCustomDateGroup');
+            if (customGroup) customGroup.style.display = (timeVal === 'custom') ? 'flex' : 'none';
+            
+            const getVals = (cid) => {
+                let c = document.getElementById(cid);
+                if (!c) return ['ALL'];
+                let allCb = c.querySelector('input[value="ALL"]');
+                if (allCb && allCb.checked) return ['ALL'];
+                return Array.from(c.querySelectorAll('.cb-item:checked')).map(cb => cb.value);
+            };
+
+            let w = this.config.widgets.find(x => x.id === this.activeWidgetId);
+            
+            // 🚨 BỌC THÉP CHỐNG SẬP: Nếu Widget không tồn tại trong RAM (bị xóa/lỗi cache), dọn dẹp và chặn lệnh gán!
+            if (!w) {
+                this.activeWidgetId = null;
+                return; 
+            }
+
+            w.filters = {
+                time: timeVal,
+                dateFrom: document.getElementById('dashDateFrom').value,
+                dateTo: document.getElementById('dashDateTo').value,
+                project: getVals('ms_project'), 
+                assignee: getVals('ms_assignee'), 
+                type: getVals('ms_type'),
+                service: getVals('ms_service'), 
+                converse: getVals('ms_converse'), 
+                payment: getVals('ms_payment')
+            };
+
+            // Dùng Debounce bảo vệ để tick checkbox liên thanh không giật lag
+            if (this.renderTimer) clearTimeout(this.renderTimer);
+            this.renderTimer = setTimeout(() => {
+                this.runDataEngineSingle(w);
+                this.triggerAutoSave();
+            }, 150);
+        },
+
+        // --- 3. CỬA SỔ WIDGET CONFIGURATOR ---
+        openConfigurator: function(id, event) {
+            if(event) event.stopPropagation(); this.closeAllMultiSelects();
+            this.selectWidget(id, null); 
+
+            let w = this.config.widgets.find(x => x.id === id); if(!w) return;
+            
+            document.getElementById('ws_widgetId').value = w.id;
+            document.getElementById('ws_title').value = w.title;
+            document.getElementById('ws_chartType').value = w.type === 'kpi' ? 'kpi' : w.chartType;
+            document.getElementById('ws_metric').value = w.metric;
+
+            // 🚀 BƠM DỮ LIỆU VÀO DROPDOWN DỰ ÁN SINGLE CHOICE MKT
+            let mktProjSelect = document.getElementById('ws_mkt_project');
+            if (mktProjSelect && window.globalDropdownData && window.globalDropdownData.projects) {
+                mktProjSelect.innerHTML = '<option value="">-- Chọn Dự án Đích danh --</option>' + window.globalDropdownData.projects.map(p => `<option value="${p}">${p}</option>`).join('');
+                mktProjSelect.value = w.mktProject || '';
+            }
+
+            document.getElementById('ws_groupBy').value = w.groupBy;
+
+            // 🚀 Gọi hàm xổ danh sách (VD: AP, HV) dựa theo w.groupBy
+            this.onGroup1Change();             
+            
+            // 🚀 Gán giá trị MẢNG cũ user đã tick
+            let g2Arr = Array.isArray(w.groupBy2) ? w.groupBy2 : [w.groupBy2 || 'ALL'];
+            let c2 = document.getElementById('ws_groupBy2_dropdown');
+            if (c2) {
+                let allCb = c2.querySelector('input[value="ALL"]');
+                let itemCbs = c2.querySelectorAll('.cb-item');
+                if (g2Arr.includes('ALL') || g2Arr.length === 0) {
+                    if(allCb) allCb.checked = true;
+                    itemCbs.forEach(cb => cb.checked = false);
+                } else {
+                    if(allCb) allCb.checked = false;
+                    itemCbs.forEach(cb => cb.checked = g2Arr.includes(cb.value));
+                }
+                this.updateGroup2Label();
+            }
+
+            // 🚀 BỌC THÉP VÀ BỔ SUNG CÁC TRƯỜNG MỚI (TRỤC X & TRỘN DATA)
+            let colGroupEl = document.getElementById('ws_colGroup');
+            if (colGroupEl) colGroupEl.value = w.colGroup || 'none';
+
+            let mixDataEl = document.getElementById('ws_mixDataToggle');
+            if (mixDataEl) mixDataEl.checked = w.mixData || false;
+            
+            let compToggle = document.getElementById('ws_compareToggle');
+            if (compToggle) {
+                compToggle.checked = w.compare || false;
+                document.getElementById('ws_d1_from').value = w.d1_from || ''; 
+                document.getElementById('ws_d1_to').value = w.d1_to || '';
+                document.getElementById('ws_d2_from').value = w.d2_from || ''; 
+                document.getElementById('ws_d2_to').value = w.d2_to || '';
+                this.toggleCompareUI();
+            }
+
+            // 🚀 Bổ sung thêm dòng này để khởi chạy kiểm duyệt khi mở bảng
+            this.validateConfig();
+
+            document.getElementById('widgetSettingsOverlay').style.display = 'block';
+            document.getElementById('widgetSettingsPanel').classList.add('show');
+        },
+
+        // =======================================================
+        // 🚨 ĐỘNG CƠ KIỂM DUYỆT MÂU THUẪN (VALIDATION ENGINE)
+        // =======================================================
+        validateConfig: function() {
+            // 1. Thu thập cấu hình hiện tại (Gộp biến gọn gàng)
+            let chartType = document.getElementById('ws_chartType').value;
+            let metric = document.getElementById('ws_metric').value;
+            let row1 = document.getElementById('ws_groupBy').value; // Trục Y
+            let col1 = document.getElementById('ws_colGroup').value; // Trục X
+            let mixData = document.getElementById('ws_mixDataToggle') ? document.getElementById('ws_mixDataToggle').checked : false;
+
+            // 🚀 ĐIỀU KHIỂN ẨN/HIỆN DROPDOWN DỰ ÁN SINGLE CHOICE
+            let mktProjWrapper = document.getElementById('ws_mkt_project_wrapper');
+            if (mktProjWrapper) {
+                mktProjWrapper.style.display = (metric === 'actual_mkt_cost') ? 'block' : 'none';
+            }
+
+            // Các DOM giao diện lỗi
+            let btnSave = document.getElementById('ws_btnSave');
+            let errBox = document.getElementById('ws_errorBox');
+            let errText = document.getElementById('ws_errText');
+            let errGuide = document.getElementById('ws_errGuide');
+
+            // 2. Reset Toàn bộ UI Lỗi về trạng thái sạch sẽ
+            document.querySelectorAll('.err-star').forEach(el => el.style.display = 'none');
+            btnSave.disabled = false;
+            btnSave.style.opacity = '1';
+            btnSave.style.cursor = 'pointer';
+            errBox.style.display = 'none';
+
+            // 🚀 XỬ LÝ LOGIC UI CHO NÚT MIX DATA (Chỉ mở cho Kép DA)
+            let mixWrapper = document.getElementById('ws_mixDataWrapper');
+            let mixToggle = document.getElementById('ws_mixDataToggle');
+            let mixSlider = document.getElementById('ws_mixDataSlider');
+
+            if (mixToggle && mixWrapper && mixSlider) {
+                if (metric !== 'dual_metrics_cost_da') {
+                    mixToggle.checked = false;
+                    mixToggle.disabled = true; 
+                    mixWrapper.style.opacity = '0.4';
+                    mixWrapper.style.filter = 'grayscale(100%)';
+                    mixWrapper.style.pointerEvents = 'none';
+                    mixSlider.style.backgroundColor = '#E5E7EB';
+                } else {
+                    mixToggle.disabled = false;
+                    mixWrapper.style.opacity = '1';
+                    mixWrapper.style.filter = 'none';
+                    mixWrapper.style.pointerEvents = 'auto';
+                    mixSlider.style.backgroundColor = mixToggle.checked ? '#F59E0B' : '#ccc';
+                }
+            }
+
+            let isValid = true;
+            let errType = ''; 
+
+            // ⛔ LUẬT 1: Lỗi cấu trúc - Bỏ trống Trục Y nhưng lại dàn Trục X
+            if (row1 === 'none' && col1 !== 'none') {
+                isValid = false;
+                document.getElementById('star_row1').style.display = 'inline';
+                document.getElementById('star_col1').style.display = 'inline';
+                errText.innerHTML = "❌ Lỗi cấu trúc: Trục Y (Hàng dọc) đang bị bỏ trống trong khi Trục X (Cột ngang) lại có dữ liệu phân rã.";
+                errGuide.innerHTML = "👉 Hướng dẫn: Vui lòng chọn ít nhất 1 trường dữ liệu ở phân khu Trục Y (ví dụ: 'Theo Dự án') để làm tiêu đề hàng.";
+            }
+            // ⛔ LUẬT 2: Lỗi Dữ liệu - Trộn Chi phí MKT nhưng gộp theo Nhân sự
+            else if (mixData && (row1 === 'assignee' || col1 === 'assignee')) {
+                isValid = false;
+                document.getElementById('star_mixData').style.display = 'inline';
+                document.getElementById('star_row1').style.display = 'inline';
+                if(col1 === 'assignee') document.getElementById('star_col1').style.display = 'inline';
+                errText.innerHTML = "❌ Lỗi dữ liệu: Nhóm 'Nhân sự' không thể kết hợp với tính năng 'Trộn Chi phí MKT Khác'.";
+                errGuide.innerHTML = "👉 Hướng dẫn: Chi phí MKT không có thuộc tính Nhân sự. Vui lòng TẮT 'Trộn Chi phí' HOẶC đổi nhóm Trục Y/X thành 'Dự án'.";
+            }            
+            // 🟠 LUẬT 3: Cảnh báo Tối ưu - Biểu đồ Tròn + Lõi Kép (Dual Metrics)
+            else if ((chartType === 'pie' || chartType === 'donut') && (metric === 'dual_metrics_cost' || metric === 'dual_metrics_cost_da')) {
+                isValid = true;
+                errType = 'warning';
+                document.getElementById('star_chartType').style.display = 'inline';
+                document.getElementById('star_metric').style.display = 'inline';
+                
+                errBox.style.background = '#FFFBEB';
+                errBox.style.borderColor = '#F59E0B';
+                errBox.style.borderLeftWidth = '4px';
+                errText.style.color = '#D97706';
+                errText.innerHTML = "⚠️ Cảnh báo: Biểu đồ Tròn không hỗ trợ hiển thị Chỉ số Kép (Dual Metrics).";
+                errGuide.innerHTML = "👉 Gợi ý: Hệ thống sẽ tự động bóp dữ liệu, chỉ lấy 'Số lượng' để vẽ. Nếu muốn xem cả Tiền & Số lượng, hãy chuyển sang 'Bảng Ma Trận' hoặc 'Cột Dọc'.";
+            }
+
+            // 3. Thực thi Khóa/Mở giao diện
+            if (!isValid) {
+                btnSave.disabled = true;
+                btnSave.style.opacity = '0.4';
+                btnSave.style.cursor = 'not-allowed';
+                errBox.style.background = '#FEF2F2';
+                errBox.style.borderColor = '#EF4444';
+                errText.style.color = '#DC2626';
+                errBox.style.display = 'block';
+            } else if (errType === 'warning') {
+                errBox.style.display = 'block';
+            }
+        },
+
+        closeConfigurator: function() {
+            document.getElementById('widgetSettingsOverlay').style.display = 'none';
+            document.getElementById('widgetSettingsPanel').classList.remove('show');
+        },
+        toggleCompareUI: function() {
+            let isChecked = document.getElementById('ws_compareToggle').checked;
+            document.getElementById('ws_compareBody').style.display = isChecked ? 'flex' : 'none';
+        },
+
+        saveWidgetConfig: function() {
+            let id = document.getElementById('ws_widgetId').value;
+            let w = this.config.widgets.find(x => x.id === id);
+            if(w) {
+                let typeVal = document.getElementById('ws_chartType').value;
+                w.title = document.getElementById('ws_title').value;
+                w.metric = document.getElementById('ws_metric').value;
+
+                if (w.metric === 'actual_mkt_cost') {
+                    w.mktProject = document.getElementById('ws_mkt_project').value;
+                }
+
+                w.groupBy = document.getElementById('ws_groupBy').value;
+                // 🚀 Đọc mảng từ Checkbox Cấp 2
+                let c2 = document.getElementById('ws_groupBy2_dropdown');
+                if (c2) {
+                    let allCb = c2.querySelector('input[value="ALL"]');
+                    if (allCb && allCb.checked) w.groupBy2 = ['ALL'];
+                    else w.groupBy2 = Array.from(c2.querySelectorAll('.cb-item:checked')).map(cb => cb.value);
+                } else {
+                    w.groupBy2 = ['ALL'];
+                }
+
+                // 🚀 BỔ SUNG LẠI 2 DÒNG NÀY ĐỂ GHI NHẬN LOẠI BIỂU ĐỒ MỚI
+                if (typeVal === 'kpi') { w.type = 'kpi'; } 
+                else { w.type = 'chart'; w.chartType = typeVal; }
+
+                // 🚀 LƯU TRỤC X & TÙY CHỌN TRỘN DATA VÀO BỘ NHỚ
+                let colGroupEl = document.getElementById('ws_colGroup');
+                if (colGroupEl) w.colGroup = colGroupEl.value;
+
+                let mixDataEl = document.getElementById('ws_mixDataToggle');
+                if (mixDataEl) w.mixData = mixDataEl.checked;
+
+                // Lưu thiết lập So sánh
+                let compToggle = document.getElementById('ws_compareToggle');
+                if (compToggle) {
+                    w.compare = compToggle.checked;
+                    w.d1_from = document.getElementById('ws_d1_from').value; 
+                    w.d1_to = document.getElementById('ws_d1_to').value;
+                    w.d2_from = document.getElementById('ws_d2_from').value; 
+                    w.d2_to = document.getElementById('ws_d2_to').value;
+                }                
+
+                // 1. Phá hủy biểu đồ cũ
+                if (this.activeChartInstances[id]) { 
+                    this.activeChartInstances[id].destroy(); 
+                    delete this.activeChartInstances[id]; 
+                }
+                
+                // 2. Cập nhật lại HTML chuẩn (Đã xóa bỏ lớp div bọc thừa)
+                let el = document.querySelector(`.grid-stack-item[gs-id="${id}"] .grid-stack-item-content`);
+                if (el) {
+                    el.innerHTML = this.buildWidgetHTML(w); 
+                }
+
+                this.closeConfigurator();
+                this.triggerAutoSave();
+
+                // 🚀 3. BỌC THÉP RACE CONDITION: Nghỉ 50ms để DOM kịp load rồi mới vẽ biểu đồ
+                setTimeout(() => {
+                    this.runDataEngineSingle(w);
+                }, 50);
+            }
+        },
+
+        triggerAutoSave: function() {
+            if (this.saveTimer) clearTimeout(this.saveTimer);
+            this.saveTimer = setTimeout(() => {
+                this.isSaving = true;
+                google.script.run.withSuccessHandler(()=>{ this.isSaving = false; }).saveUserDashboardConfig(appUser, this.config);
+            }, 2000);
+        },
+
+        // --- 4. ĐỘNG CƠ TOÁN HỌC (TÍNH TOÁN RIÊNG CHO TỪNG WIDGET) ---
+        runDataEngineAll: function() {
+            if (window.globalTasksData.length === 0) return;
+            this.config.widgets.forEach(w => this.runDataEngineSingle(w));
+        },
+
+        runDataEngineSingle: function(w) {
+            // 🚀 BỌC THÉP LỖI CŨ: Khai báo đầy đủ mảng
+            let defF = this.getDefaultFilters();
+            let f = w.filters || defF;
+
+            let fProj = Array.isArray(f.project) ? f.project : ['ALL'];
+            let fAss  = Array.isArray(f.assignee) ? f.assignee : ['ALL'];
+            let fType = Array.isArray(f.type) ? f.type : ['ALL'];
+            let fSvc  = Array.isArray(f.service) ? f.service : ['ALL'];
+            let fConv = Array.isArray(f.converse) ? f.converse : ['ALL'];
+            let fPay  = Array.isArray(f.payment) ? f.payment : ['ALL'];
+            let fTime = f.time || 'all';
+
+            // 🚀 BYPASS: NẾU LÀ BIỂU ĐỒ THỰC CHI MKT -> RẼ SANG ĐỘNG CƠ XỬ LÝ RIÊNG
+            if (w.metric === 'actual_mkt_cost') {
+                this.processActualMktEngine(w);
+                return; // Dừng luồng xử lý Task bên dưới
+            }
+
+            // 1. LỌC ĐA CHIỀU THEO MULTI-SELECT
+            let baseTasks = window.globalTasksData.filter(t => {
+                if (!t) return false; // Tránh dòng rỗng từ GS
+                if (!fProj.includes('ALL') && !fProj.includes(t.project || '')) return false;
+                if (!fAss.includes('ALL') && !fAss.includes(t.assignee || '')) return false;
+                if (!fType.includes('ALL') && !fType.includes(t.type || '')) return false;
+                if (!fSvc.includes('ALL') && !fSvc.includes(t.servicetype || '')) return false;
+                if (!fConv.includes('ALL') && !fConv.includes(t.conversetype || '')) return false;
+                if (!fPay.includes('ALL') && !fPay.includes(t.projchargedate || '')) return false;
+                return true; 
+            });
+            
+            // 🚀 1.5 LỌC ĐÍCH DANH (MULTIPLE CHOICE) THEO DROPDOWN CẤP 2
+            let g2Arr = Array.isArray(w.groupBy2) ? w.groupBy2 : [w.groupBy2 || 'ALL'];
+            if (w.groupBy !== 'none' && w.groupBy !== 'date' && !g2Arr.includes('ALL') && g2Arr.length > 0) {
+                baseTasks = baseTasks.filter(t => g2Arr.includes(t[w.groupBy]));
+            }
+
+            // 2. LỌC THỜI GIAN & GỘP NHÓM
+            // 🚀 BƯỚC 3: BẺ LÁI SANG MA TRẬN PIVOT (NẾU LÀ BẢNG)
+            if (w.type === 'chart' && w.chartType === 'table_matrix') {
+                console.groupCollapsed(`🕵️ TRACKING WIDGET: [${w.title}]`);
+                console.log(`[Lưới 1 - Nguồn thô]: Tổng số Task trong RAM =`, window.globalTasksData.length);
+                console.log(`[Lưới 2 - Lọc Sidebar đa chiều]: Các task thỏa mãn cấu hình Sidebar =`, baseTasks.length, baseTasks);
+
+                // Lọc theo khung thời gian chung của Sidebar (CHẠY ĐỘNG CƠ 3 TRẠM MỚI)
+                let pivotTasks = this.filterTasksByGlobalTime(baseTasks, fTime, f.dateFrom, f.dateTo);
+                console.log(`[Lưới 3 - Lọc Thời gian]: Số task SỐNG SÓT qua Nút thắt thời gian (${fTime}) =`, pivotTasks.length, pivotTasks);
+                
+                // Gửi vào Động cơ Ma trận xử lý
+                let matrixObj = this.buildMatrixData(pivotTasks, w);
+                console.log(`[Lưới 5 - Output Ma Trận]: Khối dữ liệu sau khi gộp nhóm Pivot =`, matrixObj);
+                console.groupEnd();
+                
+                // Gửi kết quả sang Render Engine vẽ HTML
+                this.renderPivotTable(w, matrixObj); 
+                
+                return; // ⛔ LỆNH CHẶN
+            }
+
+            if (w.compare) {
+                let r1 = this.filterTasksByDateRange(baseTasks, w.d1_from, w.d1_to);
+                let r2 = this.filterTasksByDateRange(baseTasks, w.d2_from, w.d2_to);
+                
+                let map1 = this.aggregateData(r1, w.groupBy, w.metric);
+                let map2 = this.aggregateData(r2, w.groupBy, w.metric);
+                
+                let allKeys = [...new Set([...Object.keys(map1), ...Object.keys(map2)])];
+                if (w.groupBy === 'date') allKeys = this.sortDateKeys(allKeys);
+                else allKeys = allKeys.sort((a,b) => (map1[b]||0) - (map1[a]||0)).slice(0, 15);
+
+                let s1 = allKeys.map(k => map1[k] || 0);
+                let s2 = allKeys.map(k => map2[k] || 0);
+                
+                this.renderApexChart(w, allKeys, [{name: 'Kỳ 1', data: s1}, {name: 'Kỳ 2', data: s2}]);
+            } else {
+                let singleTasks = this.filterTasksByGlobalTime(baseTasks, fTime, f.dateFrom, f.dateTo);
+                let map = this.aggregateData(singleTasks, w.groupBy, w.metric);
+                
+                if (w.type === 'kpi') {
+                    let total = Object.values(map).reduce((a,b)=>a+b, 0);
+                    let el = document.getElementById('val_' + w.id);
+                    if(el) {
+                        // 🚀 ĐÃ SỬA: Thêm || w.metric === 'cost_da' vào lệnh in tiền
+                        if (w.metric === 'cost' || w.metric === 'cost_da') el.innerText = total.toLocaleString('vi-VN') + " đ";
+                        else if (w.metric === 'fix_count') el.innerText = (singleTasks.length > 0 ? Math.round((total / singleTasks.length) * 100) : 0) + "%";
+                        else el.innerText = total.toLocaleString('vi-VN');
+                    }
+                } else {
+                    let keys = Object.keys(map);
+                    if (w.groupBy === 'date') keys = this.sortDateKeys(keys);
+                    else keys = keys.sort((a,b) => map[b] - map[a]).slice(0, 15);
+                    
+                    let s = keys.map(k => map[k]);
+                    this.renderApexChart(w, keys, [{name: 'Chỉ số', data: s}]);
+                }
+            }
+        },
+
+        // =================================================================
+        // 🚀 ĐỘNG CƠ ĐẶC NHIỆM: XỬ LÝ DỮ LIỆU THỰC CHI MKT
+        // =================================================================
+        processActualMktEngine: function(w) {
+            let db = window.globalMktActualCostsData;
+            let proj = w.mktProject; // 🚀 LẤY ĐÚNG TỌA ĐỘ DỰ ÁN CHỌN TỪ DROPDOWN SINGLE CHOICE
+            
+            let elId = `#chart_${w.id}`;
+            let container = document.querySelector(elId);
+            if (!container) return;
+
+            if (!proj || !db || !db[proj]) {
+                container.innerHTML = `<div style="padding: 20px; text-align: center; color: #9CA3AF; font-size: 13.5px; font-style: italic; font-weight:600;">⚠️ Vui lòng bấm bánh răng ⚙️ cấu hình chọn một "Dự án Đích danh" để hiển thị biểu đồ Thực chi MKT.</div>`;
+                return;
+            }
+
+            let currY = new Date().getFullYear().toString(); 
+            let monthLabels = ["Tháng 01", "Tháng 02", "Tháng 03", "Tháng 04", "Tháng 05", "Tháng 06", "Tháng 07", "Tháng 08", "Tháng 09", "Tháng 10", "Tháng 11", "Tháng 12"];
+            let actualCosts = new Array(12).fill(0);
+            let limitCosts = new Array(12).fill(0);
+            let realLimitCosts = new Array(12).fill(0); // 🚀 KHAI BÁO THÊM ĐƯỜNG THỰC TẾ
+
+            if (db[proj] && db[proj][currY]) {
+                let monthsObj = db[proj][currY];
+                Object.keys(monthsObj).forEach(mStr => {
+                    let mIdx = parseInt(mStr, 10) - 1; 
+                    if (mIdx >= 0 && mIdx <= 11) {
+                        let payload = monthsObj[mStr];
+                        let totalChi = 0; let hanMuc = 0; let hanMucThucTe = 0;
+                                                
+                        Object.keys(payload).forEach(key => {
+                            // 🚀 BỌC THÉP TÍNH TỔNG: Phải loại trừ cả 4 thằng lõi ra khỏi Thực Chi
+                            if (key === 'han_muc') hanMuc += payload[key];
+                            else if (key === 'han_muc_thuc_te') hanMucThucTe += payload[key];
+                            else if (key === 'doanh_thu' || key === 'ti_le_phan_bo') { /* Bỏ qua Doanh thu và Tỉ lệ */ }
+                            else totalChi += payload[key]; 
+                        });
+                        
+                        actualCosts[mIdx] = totalChi;
+                        limitCosts[mIdx] = hanMuc;
+                        realLimitCosts[mIdx] = hanMucThucTe;
+                    }
+                });
+            }
+            
+            // 🚀 TÍNH TOÁN TRUNG BÌNH (CHỈ TÍNH ĐẾN THÁNG HIỆN TẠI - YTD)
+            let sumActual = 0;
+            let countActiveMonths = 0;
+            let currentMonthIdx = new Date().getMonth();
+
+            actualCosts.forEach((cost, index) => {
+                if (cost > 0 && index <= currentMonthIdx) { 
+                    sumActual += cost; countActiveMonths++; 
+                }
+            });
+            let avgActual = countActiveMonths > 0 ? (sumActual / countActiveMonths) : 0;
+
+            // 🚀 THUẬT TOÁN CHỐNG VA CHẠM & ĐÓNG NHÃN LABEL
+            let pointAnnotations = [];
+            
+            // 1. Tìm tháng đầu tiên có dữ liệu của từng đường
+            let planIdx = limitCosts.findIndex(v => v > 0);
+            let realIdx = realLimitCosts.findIndex(v => v > 0);
+
+            // Tọa độ lệch Y mặc định
+            let planOffsetY = -5;
+            let realOffsetY = -5;
+
+            // 2. Kịch bản va chạm: 2 Label xuất hiện ở cùng 1 tháng
+            if (planIdx !== -1 && realIdx !== -1 && planIdx === realIdx) {
+                let diff = Math.abs(limitCosts[planIdx] - realLimitCosts[realIdx]);
+                let maxVal = Math.max(limitCosts[planIdx], realLimitCosts[realIdx]);
+
+                // Nếu khoảng cách giữa 2 đường nhỏ hơn 20% so với giá trị lớn nhất -> Kích hoạt né đè
+                if (diff < maxVal * 0.2) {
+                    if (limitCosts[planIdx] >= realLimitCosts[realIdx]) {
+                        // Kế hoạch nằm trên -> Đẩy nhãn Kế hoạch lên, kéo nhãn Thực tế xuống
+                        planOffsetY = -18; 
+                        realOffsetY = 15;  
+                    } else {
+                        // Kế hoạch nằm dưới -> Kéo nhãn Kế hoạch xuống, đẩy nhãn Thực tế lên
+                        planOffsetY = 15;  
+                        realOffsetY = -18; 
+                    }
+                }
+            }
+
+            // 3. Vẽ Label Hạn mức Kế Hoạch (Màu Cam)
+            if (planIdx !== -1) {
+                pointAnnotations.push({
+                    x: monthLabels[planIdx], 
+                    y: limitCosts[planIdx],  
+                    marker: { size: 5, fillColor: '#fff', strokeColor: '#F59E0B', strokeWidth: 3 }, 
+                    label: {
+                        borderColor: '#F59E0B', offsetY: planOffsetY, offsetX: 35, 
+                        style: { color: '#fff', background: '#F59E0B', fontSize: '11px', fontWeight: 800, padding: {left: 8, right: 8, top: 4, bottom: 4} },
+                        text: '📉 Hạn mức Kế hoạch'
+                    }
+                });
+            }
+
+            // 4. Vẽ Label Hạn mức Thực Tế (Màu Đỏ Đậm)
+            if (realIdx !== -1) {
+                pointAnnotations.push({
+                    x: monthLabels[realIdx], 
+                    y: realLimitCosts[realIdx],  
+                    marker: { size: 5, fillColor: '#fff', strokeColor: '#991B1B', strokeWidth: 3 }, 
+                    label: {
+                        borderColor: '#991B1B', offsetY: realOffsetY, offsetX: 35, 
+                        style: { color: '#fff', background: '#991B1B', fontSize: '11px', fontWeight: 800, padding: {left: 8, right: 8, top: 4, bottom: 4} },
+                        text: '📈 Hạn mức Thực tế'
+                    }
+                });
+            }
+
+            let baseType = (w.chartType === 'area') ? 'area' : 'column';
+            let series = [
+                { name: 'Tổng Thực Chi MKT', type: baseType, data: actualCosts },
+                { name: 'Hạn Mức Chi (Kế hoạch)', type: 'line', data: limitCosts },
+                { name: 'Hạn Mức Chi (Thực tế)', type: 'line', data: realLimitCosts } // 🚀 ĐƯỜNG MỚI
+            ];
+            
+            let customOpts = {
+                // 🎨 Màu sắc: Xanh (Thực chi), Cam (Hạn mức KH), Đỏ đậm (Hạn mức Thực tế)
+                colors: ['#4285F4', '#F59E0B', '#991B1B'], 
+                stroke: { 
+                    // Độ dày: Cột/Vùng (3px/0px), Hạn mức KH (3px), Hạn mức TT (3px nét liền)
+                    width: [baseType === 'area' ? 3 : 0, 3, 3], 
+                    curve: 'smooth',
+                    // 🚀 Ép Nét Đứt: [Thực chi nét đứt 4px, Hạn mức KH nét đứt 4px, Hạn mức TT nét liền 0px]
+                    dashArray: [4, 4, 0] 
+                },
+                annotations: {
+                    yaxis: [{
+                        y: avgActual,
+                        borderColor: '#059669', // Đường kẻ ngang màu Xanh lá cây đậm
+                        strokeDashArray: 0,
+                        borderWidth: 2,
+                        label: {
+                            borderColor: '#059669',
+                            style: { color: '#fff', background: '#059669', fontSize: '11px', fontWeight: 800 },
+                            text: 'TB Năm: ' + Math.round(avgActual).toLocaleString('vi-VN') + ' đ'
+                        }
+                    }],
+                    points: pointAnnotations // 🚀 BƠM NHÃN TỌA ĐỘ VÀO ĐÂY
+                }
+            };
+
+            this.renderApexChart(w, monthLabels, series, customOpts);
+        },
+
+        // --- HÀM PHỤ TRỢ (CHỈ DÙNG NGÀY HOÀN THÀNH) ---
+        filterTasksByDateRange: function(tasks, fromStr, toStr) {
+            let dF = (fromStr && fromStr !== "") ? new Date(fromStr).setHours(0,0,0,0) : null;
+            let dT = (toStr && toStr !== "") ? new Date(toStr).setHours(23,59,59,999) : null;
+            return tasks.filter(t => {
+                if (!t.complete || t.complete === '-') return false; 
+                let pts = t.complete.split('/'); if(pts.length !== 3) return false;
+                let dTask = new Date(pts[2], pts[1]-1, pts[0]).getTime();
+                if (dF && dTask < dF) return false;
+                if (dT && dTask > dT) return false;
+                return true;
+            });
+        },
+
+        filterTasksByGlobalTime: function(tasks, timeType, customFrom, customTo) {
+            console.log(`   ⏳ Đang chạy Bộ lọc thời gian với Kỳ = ${timeType}`);
+            if (timeType === 'all') return tasks;
+            
+            let now = new Date(); 
+            let currM = now.getMonth() + 1; 
+            let currY = now.getFullYear();
+            let currD = now.getDate();
+
+            // 🏛️ TRẠM 1: ĐỘNG CƠ ĐỊNH CHUẨN NGÀY THAM CHIẾU (Đã siết kỷ luật Kế toán)
+            const resolveTaskTargetDate = (t) => {
+                const parseVN = (str) => {
+                    if (!str || typeof str !== 'string') return null;
+                    let p = str.split('/');
+                    if (p.length === 3) {
+                        let d = parseInt(p[0], 10), m = parseInt(p[1], 10), y = parseInt(p[2], 10);
+                        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return { day: d, month: m, year: y, str: str };
+                    }
+                    return null;
+                };
+
+                let isDone = (t.status || "").toLowerCase().includes("hoàn thành");
+                let payStr = (t.projchargedate || "").toString().trim();
+
+                // 🚀 ƯU TIÊN 1: Xét cột Tiến độ Thanh toán (Phải chuẩn xxyyzzzz)
+                if (payStr !== "" && payStr !== "-") {
+                    // Regex kiểm tra đúng 8 số: 01 hoặc 02 (Đợt) + 01 đến 12 (Tháng) + 4 số (Năm)
+                    let match = payStr.match(/^(01|02)(0[1-9]|1[0-2])(\d{4})$/);
+                    if (match) {
+                        let batch = match[1];
+                        let m = parseInt(match[2], 10);
+                        let y = parseInt(match[3], 10);
+                        // Gán ngày đại diện để Trạm 2 tự động hiểu (Đợt 1 -> quy về ngày 10, Đợt 2 -> quy về ngày 25)
+                        let d = (batch === "01") ? 10 : 25;
+                        return { day: d, month: m, year: y, str: payStr, source: 'Payment' };
+                    } else {
+                        // Khác rỗng nhưng SAI CHUẨN -> Loại ngay lập tức bằng mã lỗi đặc biệt
+                        return { error: 'INVALID_PAY_FORMAT' };
+                    }
+                }
+
+                // NẾU RỖNG -> QUA ƯU TIÊN 2
+                let aDate = parseVN(t.airdate);
+
+                // Ưu tiên 2: Hoàn thành + Ngày Air
+                if (isDone && aDate) return { ...aDate, source: 'Air' };
+
+                // Ưu tiên 3: Hoàn thành + Trống Thanh Toán + Trống Air -> Tự Dự phóng
+                if (isDone && !payStr && !aDate) {
+                    let forecastD = (currD <= 10 || currD > 25) ? 10 : 25;
+                    let str = `${forecastD.toString().padStart(2, '0')}/${currM.toString().padStart(2, '0')}/${currY}`;
+                    return { day: forecastD, month: currM, year: currY, str: str, source: 'Forecast' };
+                }
+
+                // Không lọt mốc nào -> Bỏ qua
+                return null;
+            };
+
+            // 🏛️ TRẠM 2: QUY ĐỔI KỲ KẾ TOÁN (Financial Batch)
+            const calculateFinancialPeriod = (target) => {
+                let b = 1, fM = target.month, fY = target.year;
+                if (target.day >= 11 && target.day <= 25) {
+                    b = 2; // Đợt 2 trong tháng
+                } else if (target.day >= 26 && target.day <= 31) {
+                    b = 1; // Đợt 1 tháng sau
+                    fM++;
+                    if (fM > 12) { fM = 1; fY++; }
+                } else if (target.day >= 1 && target.day <= 10) {
+                    b = 1; // Đợt 1 trong tháng
+                }
+                return { batch: b, financialMonth: fM, financialYear: fY };
+            };
+
+            // 🏛️ TRẠM 3: BỘ ĐIỀU KHIỂN LỌC CHÍNH VÀ LƯỚI TRACKING
+            let dropped = { no_target: 0, out_range: 0, invalid_pay_format: 0 };
+            
+            const parseCustomToNum = (str) => {
+                if (!str || str.length !== 10) return 0;
+                let p = str.split('/');
+                return p.length === 3 ? parseInt(`${p[2]}${p[1]}${p[0]}`, 10) : 0;
+            };
+            let cFromNum = parseCustomToNum(customFrom);
+            let cToNum = parseCustomToNum(customTo);
+
+            let result = tasks.filter(t => {
+                let isTarget = (t.project === "AP CAR CARE" && t.type === "Thiết kế");
+                
+                // Cửa 1: Lấy mốc chuẩn
+                let targetDate = resolveTaskTargetDate(t);
+                
+                // Nếu bị loại (Vì sai format xxyyzzzz hoặc không đủ ĐK)
+                if (!targetDate || targetDate.error) {
+                    if (targetDate && targetDate.error === 'INVALID_PAY_FORMAT') {
+                        dropped.invalid_pay_format++;
+                        if(isTarget) console.warn(`   🚨 [RỚT TASK]: "AP CAR CARE" rớt vì cột Thanh toán KHÔNG ĐÚNG CHUẨN xxyyzzzz (Đang là: "${t.projchargedate}")`, t);
+                    } else {
+                        dropped.no_target++;
+                        if(isTarget) console.warn(`   🚨 [RỚT TASK]: "AP CAR CARE" rớt vì không lọt vào 3 Ưu tiên mốc thời gian. (Status: ${t.status}, Air: ${t.airdate}, Pay: ${t.projchargedate})`, t);
+                    }
+                    return false;
+                }
+
+                let isPass = false;
+
+                // Cửa 2: So khớp Sidebar
+                if (timeType === 'custom') {
+                    let dNum = parseInt(`${targetDate.year}${targetDate.month.toString().padStart(2,'0')}${targetDate.day.toString().padStart(2,'0')}`, 10);
+                    isPass = true;
+                    if (cFromNum > 0 && dNum < cFromNum) isPass = false;
+                    if (cToNum > 0 && dNum > cToNum) isPass = false;
+                } 
+                else if (timeType === 'this_month' || timeType === 'last_month' || timeType === 'this_year') {
+                    let lastM = currM - 1; let lastY = currY; if(lastM === 0){lastM = 12; lastY--;}
+                    if (timeType === 'this_month') isPass = (targetDate.month === currM && targetDate.year === currY);
+                    else if (timeType === 'last_month') isPass = (targetDate.month === lastM && targetDate.year === lastY);
+                    else if (timeType === 'this_year') isPass = (targetDate.year === currY);
+                } 
+                else {
+                    let fin = calculateFinancialPeriod(targetDate);
+                    let lastM = currM - 1; let lastY = currY; if(lastM === 0){lastM = 12; lastY--;}
+
+                    if (timeType === 'this_1') isPass = (fin.batch === 1 && fin.financialMonth === currM && fin.financialYear === currY);
+                    else if (timeType === 'this_2') isPass = (fin.batch === 2 && fin.financialMonth === currM && fin.financialYear === currY);
+                    else if (timeType === 'last_1') isPass = (fin.batch === 1 && fin.financialMonth === lastM && fin.financialYear === lastY);
+                    else if (timeType === 'last_2') isPass = (fin.batch === 2 && fin.financialMonth === lastM && fin.financialYear === lastY);
+                }
+
+                if (!isPass) {
+                    dropped.out_range++;
+                    if(isTarget) console.warn(`   🚨 [RỚT TASK]: "AP CAR CARE" rớt. Mốc chọn: ${targetDate.str} (Nguồn: ${targetDate.source}) bị lệch khỏi kỳ kế toán ${timeType}`, t);
+                } else {
+                    if(isTarget) console.log(`   ✅ [THÀNH CÔNG]: "AP CAR CARE". Mốc chọn: ${targetDate.str} (Nguồn: ${targetDate.source}) ĐÃ VƯỢT QUA lưới lọc kỳ ${timeType}!`, t);
+                }
+
+                return isPass;
+            });
+
+            console.log(`   📊 [Thống kê lọc]: Rớt ${dropped.no_target + dropped.out_range + dropped.invalid_pay_format} task. (Sai Format Kế toán: ${dropped.invalid_pay_format} | Không đủ 3 ĐK Ưu tiên: ${dropped.no_target} | Lệch kỳ Sidebar: ${dropped.out_range})`);
+            return result;
+        },
+
+        aggregateData: function(tasks, groupBy, metric) {
+            let map = {};
+            let customDef = typeof DASHBOARD_METRICS_MAP !== 'undefined' ? DASHBOARD_METRICS_MAP.find(m => m.id === metric) : null;
+
+            tasks.forEach(t => {
+                let gKey = "Tất cả";
+                if (groupBy !== 'none') {
+                    if (groupBy === 'date') gKey = t.complete || "Chưa rõ";
+                    else gKey = t[groupBy] || "Khác";
+                }
+                
+                let val = 0;
+                
+                // 🚀 NHẬN DIỆN ĐỒNG BỘ CHO BIỂU ĐỒ THƯỜNG
+                if (metric === 'count') val = 1;
+                else if (metric === 'count_done') { if ((t.status||"").toLowerCase().includes('hoàn thành')) val = 1; }
+                else if (metric === 'cost') val = parseInt(String(t.dongia || "0").replace(/[^0-9]/g, '')) || 0;
+                else if (metric === 'cost_da') val = parseInt(String(t.projcharge || "0").replace(/[^0-9]/g, '')) || 0;                
+                else if (metric === 'fix_count') { if ((t.status||"").toLowerCase().includes('cần sửa')) val = 1; }
+                // Nếu dùng "KÉP" cho biểu đồ Cột/Đường, hệ thống sẽ tự động chỉ lấy "Số lượng" để vẽ
+                else if (metric === 'dual_metrics_cost' || metric === 'dual_metrics_cost_da') val = 1;
+                else if (customDef) {
+                    let rawValue = t[customDef.filterField];
+                    let checkValue = (typeof rawValue === 'string') ? rawValue.toLowerCase().trim() : rawValue;
+                    let targetValue = (typeof customDef.filterValue === 'string') ? customDef.filterValue.toLowerCase().trim() : customDef.filterValue;
+                    if (checkValue === targetValue) {
+                        if (customDef.calcType === "count") val = 1;
+                        else if (customDef.calcType === "sum" && customDef.sumField) {
+                            val = typeof t[customDef.sumField] === 'number' ? t[customDef.sumField] : parseInt(String(t[customDef.sumField] || "0").replace(/[^0-9]/g, ''), 10);
+                        }
+                    }
+                }
+                
+                map[gKey] = (map[gKey] || 0) + val;
+            });
+            return map;
+        },
+
+        // ==========================================================
+        // 🚀 BƯỚC 3: ĐỘNG CƠ TÍNH TOÁN MA TRẬN ĐA CHIỀU (PIVOT AGGREGATOR)
+        // ==========================================================
+        buildMatrixData: function(tasks, w) {
+            // 🎯 [LƯỚI THƯỢNG NGUỒN]: Kiểm tra giấy thông hành MKT
+            console.group(`🚪 [KIỂM SOÁT CỬA NGÕ MKT] Biểu đồ: ${w.title}`);
+            console.log(`1. Chỉ số biểu đồ đang dùng (w.metric):`, w.metric);
+            console.log(`2. Nút Bật/Tắt MKT (w.mixData):`, w.mixData);
+            console.log(`3. Thùng dữ liệu MKT trên RAM (window.globalExtraCostsData):`, window.globalExtraCostsData);
+            if (!w.mixData) console.warn(`🚨 LUỒNG BỊ CHẶN: Do nút Toggle MKT đang TẮT (w.mixData = false)`);
+            if (!window.globalExtraCostsData) console.warn(`🚨 LUỒNG BỊ CHẶN: Do thùng RAM chứa Data MKT rỗng (Chưa load được từ Google Sheet)`);
+            console.groupEnd();
+
+            let matrix = { rows: {}, cols: new Set() };
+            let metric = w.metric;
+            let customDef = typeof DASHBOARD_METRICS_MAP !== 'undefined' ? DASHBOARD_METRICS_MAP.find(m => m.id === metric) : null;
+
+            tasks.forEach(t => {
+                let rKey = "Tất cả";
+                if (w.groupBy !== 'none') {
+                    rKey = (w.groupBy === 'date') ? (t.complete || "Chưa rõ") : (t[w.groupBy] || "Khác");
+                }
+         
+                let cKey = "Tổng cộng";
+                if (w.colGroup && w.colGroup !== 'none') {
+                    cKey = (w.colGroup === 'date') ? (t.complete || "Chưa rõ") : (t[w.colGroup] || "Khác");
+                }
+
+                let countVal = 1;
+                let costVal = parseInt(String(t.dongia || "0").replace(/[^0-9]/g, '')) || 0;
+                let costDAVal = parseInt(String(t.projcharge || "0").replace(/[^0-9]/g, '')) || 0;
+                
+                let val = 0;
+
+                // 🎯 Tracking xem số tiền có bị đọc sai không
+                if (t.project === "AP CAR CARE" && t.type === "Thiết kế") {
+                    console.log(`   🧮 [Lưới 4 - Ma Trận]: Bắt đầu trộn tiền AP CAR CARE. Tiền Gốc (Đơn giá): "${t.dongia}" -> Bóc số: ${costVal}. Tiền DA (Cột AO): "${t.projcharge}" -> Bóc số: ${costDAVal}. Đang đặt vào tọa độ Y=${rKey}, X=${cKey}`);
+                }
+
+                // 🚀 NHẬN DIỆN CHUẨN XÁC CÁC TỪ KHÓA CHỈ SỐ MỚI
+                if (metric === 'count') val = countVal;
+                else if (metric === 'cost') val = costVal;
+                else if (metric === 'cost_da') val = costDAVal;
+                else if (metric === 'count_done') { if ((t.status||"").toLowerCase().includes('hoàn thành')) val = 1; }
+                else if (metric === 'fix_count') { if ((t.status||"").toLowerCase().includes('cần sửa')) val = 1; }
+                // Gắn thẳng giá trị Count cho 2 loại KÉP để vượt qua màng lọc
+                else if (metric === 'dual_metrics_cost' || metric === 'dual_metrics_cost_da') val = countVal; 
+                else if (customDef) {
+                    let rawValue = t[customDef.filterField];
+                    let checkValue = (typeof rawValue === 'string') ? rawValue.toLowerCase().trim() : rawValue;
+                    let targetValue = (typeof customDef.filterValue === 'string') ? customDef.filterValue.toLowerCase().trim() : customDef.filterValue;
+                    if (checkValue === targetValue) {
+                        if (customDef.calcType === "count") val = 1;
+                        else if (customDef.calcType === "sum" && customDef.sumField) {
+                            val = typeof t[customDef.sumField] === 'number' ? t[customDef.sumField] : parseInt(String(t[customDef.sumField] || "0").replace(/[^0-9]/g, ''), 10);
+                        }
+                    }
+                }
+
+                // Màng lọc rác (Chỉ bỏ qua nếu val = 0 và KHÔNG PHẢI là chỉ số kép)
+                if (val === 0 && metric !== 'dual_metrics_cost' && metric !== 'dual_metrics_cost_da') return; 
+
+                if (!matrix.rows[rKey]) matrix.rows[rKey] = {};
+                if (!matrix.rows[rKey][cKey]) matrix.rows[rKey][cKey] = { val: 0, count: 0, cost: 0, cost_da: 0 };
+
+                // Rót dữ liệu vào kho
+                matrix.rows[rKey][cKey].val += val;
+                matrix.rows[rKey][cKey].count += countVal;
+                matrix.rows[rKey][cKey].cost += costVal;
+                matrix.rows[rKey][cKey].cost_da += costDAVal;
+                
+                matrix.cols.add(cKey);
+            });
+
+            // 🚀 BƯỚC 3.5: RÓT CHI PHÍ MKT VÀO MA TRẬN (ĐÃ OVERHAUL ĐỒNG BỘ LOGIC THỜI GIAN)
+            if (w.mixData && window.globalExtraCostsData) {
+                let f = w.filters || this.getDefaultFilters();
+                let timeType = f.time || 'all';
+                
+                let now = new Date(); 
+                let currM = now.getMonth() + 1; 
+                let currY = now.getFullYear();
+                let lastM = currM - 1; let lastY = currY; if(lastM === 0){lastM = 12; lastY--;}
+
+                const parseCustomToNum = (str) => {
+                    if (!str || str.length !== 10) return 0;
+                    let p = str.split('/');
+                    return p.length === 3 ? parseInt(`${p[2]}${p[1]}${p[0]}`, 10) : 0;
+                };
+
+                let cFromNum = parseCustomToNum(f.dateFrom);
+                let cToNum = parseCustomToNum(f.dateTo);
+
+                // 🚀 TRÍCH XUẤT ĐIỀU KIỆN LỌC DỰ ÁN TỪ SIDEBAR VÀ CẤP 2 (TRỤC Y)
+                let fProj = Array.isArray(f.project) ? f.project : ['ALL'];
+                let g2Arr = Array.isArray(w.groupBy2) ? w.groupBy2 : [w.groupBy2 || 'ALL'];
+
+                Object.keys(window.globalExtraCostsData).forEach(projName => {
+                    // 🎯 [LƯỚI MKT 0 - ĐỒNG BỘ DỰ ÁN]: Chặn ngay từ cửa nếu Dự án bị loại trừ
+                    // 1. Chặn bởi Sidebar Filter (Lọc bên trái)
+                    if (!fProj.includes('ALL') && !fProj.includes(projName)) {
+                        return; // Vứt bỏ, không đưa tiền của DA này vào bảng
+                    }
+                    
+                    // 2. Chặn bởi Dropdown Cấp 2 (Chỉ áp dụng nếu Biểu đồ đang chọn gộp 'Theo Dự án')
+                    if (w.groupBy === 'project' && !g2Arr.includes('ALL') && !g2Arr.includes(projName)) {
+                        return; // Vứt bỏ, không đưa tiền của DA này vào bảng
+                    }
+                    
+                    let projCosts = window.globalExtraCostsData[projName];
+                    Object.keys(projCosts).forEach(claimId => {
+                        
+                        // 🎯 [LƯỚI MKT 1] KIỂM DUYỆT ĐỊNH DẠNG CLAIM ID (Phải chuẩn xxyyzzzz)
+                        let match = String(claimId).trim().match(/^(01|02)(0[1-9]|1[0-2])(\d{4})$/);
+                        if (!match) {
+                            console.warn(`   🚨 [Lưới MKT 1 - Rác]: Claim ID "${claimId}" của DA "${projName}" KHÔNG CHUẨN xxyyzzzz -> Bỏ qua toàn bộ tiền của mã này!`);
+                            return; // Vứt bỏ mã rác
+                        }
+                        
+                        let cBatch = parseInt(match[1], 10);
+                        let cM = parseInt(match[2], 10);
+                        let cY = parseInt(match[3], 10);
+                        // console.log(`   🔎 [Lưới MKT 1 - Hợp lệ]: Claim ID "${claimId}" bóc ra -> Đợt ${cBatch}, Tháng ${cM}, Năm ${cY}`);
+
+                        // 🎯 [LƯỚI MKT 2] LỌC KỲ KẾ TOÁN (Logic đồng bộ với Task)
+                        let isPass = false;
+                        if (timeType === 'all') {
+                            isPass = true;
+                        } else if (timeType === 'custom') {
+                            // Ép ngày đại diện để so sánh (Đợt 1 -> Mùng 10, Đợt 2 -> Mùng 25)
+                            let repDay = (cBatch === 1) ? 10 : 25;
+                            let dNum = parseInt(`${cY}${cM.toString().padStart(2,'0')}${repDay.toString().padStart(2,'0')}`, 10);
+                            isPass = true;
+                            if (cFromNum > 0 && dNum < cFromNum) isPass = false;
+                            if (cToNum > 0 && dNum > cToNum) isPass = false;
+                        } else if (timeType === 'this_month') {
+                            isPass = (cM === currM && cY === currY);
+                        } else if (timeType === 'last_month') {
+                            isPass = (cM === lastM && cY === lastY);
+                        } else if (timeType === 'this_year') {
+                            isPass = (cY === currY);
+                        } else {
+                            if (timeType === 'this_1') isPass = (cBatch === 1 && cM === currM && cY === currY);
+                            else if (timeType === 'this_2') isPass = (cBatch === 2 && cM === currM && cY === currY);
+                            else if (timeType === 'last_1') isPass = (cBatch === 1 && cM === lastM && cY === lastY);
+                            else if (timeType === 'last_2') isPass = (cBatch === 2 && cM === lastM && cY === lastY);
+                        }
+
+                        if (!isPass) {
+                            // console.warn(`   ⛔ [Lưới MKT 2 - Lệch Kỳ]: Tiền MKT của DA "${projName}" (Claim: ${claimId}) bị chặn lại do khác kỳ "${timeType}"`);
+                            return; // Loại bỏ dòng tiền này
+                        } else {
+                            // console.log(`   ✅ [Lưới MKT 2 - Pass]: Tiền MKT của DA "${projName}" (Claim: ${claimId}) ĐÃ LỌT QUA màng lọc kỳ!`);
+                        }
+
+                        // 🎯 [LƯỚI MKT 3] ĐỊNH VỊ TỌA ĐỘ VÀ BƠM TIỀN
+                        projCosts[claimId].forEach(costItem => {
+                            let rKey = "Khác";
+                            if (w.groupBy === 'none') {
+                                rKey = "Tất cả";
+                            } else if (w.groupBy === 'project') {
+                                rKey = projName;
+                            } else {
+                                let projectMap = typeof DASHBOARD_DIMENSION_MAP !== 'undefined' ? DASHBOARD_DIMENSION_MAP["Dự án"] : null;
+                                if (projectMap && projectMap.dimensions[w.groupBy]) {
+                                    let fKey = projectMap.dimensions[w.groupBy].frontendKey;
+                                    rKey = costItem[fKey] || "Khác";
+                                }
+                            }
+
+                            if (!matrix.rows[rKey]) matrix.rows[rKey] = {};
+                            if (!matrix.rows[rKey].extra_mkt_cost) matrix.rows[rKey].extra_mkt_cost = 0;
+                            
+                            let cleanAmount = typeof costItem.amount === 'number' ? costItem.amount : parseInt(String(costItem.amount || "0").replace(/[^0-9]/g, ''), 10) || 0;
+                            
+                            console.log(`   💰 [Lưới MKT 3 - Bơm Tiền]: Rót ${cleanAmount.toLocaleString()}đ vào Trục Y = "${rKey}" (Claim: ${claimId} - Nội dung: ${costItem.note || 'Không có'})`);
+                            
+                            matrix.rows[rKey].extra_mkt_cost += cleanAmount;
+                        });
+                    });
+                });
+            }
+            matrix.cols = Array.from(matrix.cols).sort();
+            return matrix;
+        },
+
+        // 🚀 BƯỚC 4: RENDER ENGINE - VẼ BẢNG MA TRẬN (PIVOT TABLE) HTML
+        renderPivotTable: function(w, matrixObj) {
+            let elId = `#chart_${w.id}`;
+            let container = document.querySelector(elId);
+            if (!container) return;
+            
+            if (this.activeChartInstances[w.id]) {
+                this.activeChartInstances[w.id].destroy();
+                delete this.activeChartInstances[w.id];
+            }
+
+            let metric = w.metric;
+            
+            // 🚀 CƯỠNG CHẾ TẮT CỘT MKT NẾU USER CHỌN ĐƠN GIÁ (Bảo vệ tầng Code Lõi)
+            let isMixDataOn = w.mixData;
+            if (metric === 'dual_metrics_cost' || metric === 'cost') {
+                isMixDataOn = false; 
+            }
+            console.log(`🕸️ [LƯỚI 4 - KHI VẼ BẢNG]: Vẽ cột MKT? -> ${isMixDataOn} (Lõi đang chọn: ${metric})`);
+
+            let cols = matrixObj.cols;
+            let rows = matrixObj.rows;
+            let rowKeys = Object.keys(rows).sort();
+
+            if (rowKeys.length === 0) {
+                container.innerHTML = `<div style="padding: 20px; text-align: center; color: #9CA3AF; font-size: 13px; font-style: italic;">Không có dữ liệu trong kỳ báo cáo này.</div>`;
+                return;
+            }
+
+            const fmtNum = (v) => v.toLocaleString('vi-VN');
+            const fmtMoney = (v) => (v || 0).toLocaleString('vi-VN') + ' đ';
+
+            const renderCell = (dataObj) => {
+                if (!dataObj) return '<span style="color: #CBD5E1;">-</span>';
+                if (metric === 'dual_metrics_cost' || metric === 'dual_metrics_cost_da') {
+                    let displayCost = (metric === 'dual_metrics_cost_da') ? dataObj.cost_da : dataObj.cost;
+                    if (dataObj.count === 0 && displayCost === 0) return '<span style="color: #CBD5E1;">-</span>';
+                    return `
+                        <div style="font-weight: 800; color: #2563EB; font-size: 12.5px;">${fmtNum(dataObj.count)}</div>
+                        <div style="font-size: 10px; color: #64748B; margin-top: 2px;">${fmtMoney(displayCost)}</div>
+                    `;
+                } else if (metric === 'cost' || metric === 'cost_da') {
+                    return dataObj.val === 0 ? '<span style="color: #CBD5E1;">-</span>' : fmtMoney(dataObj.val);
+                } else {
+                    return dataObj.val === 0 ? '<span style="color: #CBD5E1;">-</span>' : fmtNum(dataObj.val);
+                }
+            };
+
+            let colTotals = {};
+            cols.forEach(c => colTotals[c] = { val: 0, count: 0, cost: 0, cost_da: 0 });
+            let grandTotal = { val: 0, count: 0, cost: 0, cost_da: 0 };
+            let grandMktTotal = 0; // Khai báo Tổng MKT chuẩn xác ở đầu
+
+            // 🟢 VẼ TIÊU ĐỀ
+            let theadHTML = `<thead><tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 800; color: #475569; position: sticky; left: 0; background: #F8FAFC; z-index: 2; border-right: 1px solid #E2E8F0;">Hạng mục</th>`;
+            cols.forEach(c => {
+                theadHTML += `<th style="padding: 12px 16px; text-align: right; font-weight: 700; color: #475569;">${c}</th>`;
+            });
+            // Chèn cột MKT một cách tuần tự
+            if (isMixDataOn) {
+                theadHTML += `<th style="padding: 12px 16px; text-align: right; font-weight: 800; color: #D97706; background: #FEF3C7; border-left: 2px solid #FDE68A;">Chi phí MKT khác</th>`;
+            }
+            theadHTML += `<th style="padding: 12px 16px; text-align: right; font-weight: 800; color: #0F172A; background: #F1F5F9; border-left: 2px solid #E2E8F0;">Tổng (Dòng)</th></tr></thead>`;
+
+            // 🟢 VẼ THÂN BẢNG
+            let tbodyHTML = `<tbody>`;
+            rowKeys.forEach(rKey => {
+                tbodyHTML += `<tr style="border-bottom: 1px dashed #E2E8F0; transition: background 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 10px 16px; text-align: left; font-weight: 600; color: #334155; position: sticky; left: 0; background: inherit; z-index: 1; border-right: 1px solid #E2E8F0;">${rKey}</td>`;
+                
+                let rowTotal = { val: 0, count: 0, cost: 0, cost_da: 0 };
+
+                // In đủ data các cột
+                cols.forEach(c => {
+                    let cellData = rows[rKey][c];
+                    if (cellData) {
+                        rowTotal.val += cellData.val; rowTotal.count += cellData.count; rowTotal.cost += cellData.cost; rowTotal.cost_da += cellData.cost_da;
+                        colTotals[c].val += cellData.val; colTotals[c].count += cellData.count; colTotals[c].cost += cellData.cost; colTotals[c].cost_da += cellData.cost_da;
+                    }
+                    tbodyHTML += `<td style="padding: 10px 16px; text-align: right; vertical-align: top;">${renderCell(cellData)}</td>`;
+                });
+                
+                // 🚀 XỬ LÝ IN CỘT MKT & CỘNG DỒN SAU CÙNG (Cho phép hiển thị số Âm)
+                if (isMixDataOn) {
+                    let rowMktCost = rows[rKey].extra_mkt_cost || 0;
+                    
+                    // Sửa điều kiện: Khác 0 là hiển thị (Cả Âm và Dương), chỉ tàng hình khi đúng bằng 0
+                    tbodyHTML += `<td style="padding: 10px 16px; text-align: right; background: #FFFBEB; color: ${rowMktCost < 0 ? '#10B981' : '#D97706'}; font-weight: 700; border-left: 2px solid #FDE68A; vertical-align: top;">${rowMktCost !== 0 ? fmtMoney(rowMktCost) : '<span style="color:#FCD34D;">-</span>'}</td>`;
+                    
+                    // Cộng tiền MKT vào tổng dòng (Lưu ý: Cộng số âm thì tự động trừ đi, logic JS tự lo liệu)
+                    rowTotal.val += rowMktCost;
+                    rowTotal.cost += rowMktCost;
+                    rowTotal.cost_da += rowMktCost;
+                    grandMktTotal += rowMktCost;
+                }
+
+                grandTotal.val += rowTotal.val; grandTotal.count += rowTotal.count; grandTotal.cost += rowTotal.cost; grandTotal.cost_da += rowTotal.cost_da;
+                
+                tbodyHTML += `<td style="padding: 10px 16px; text-align: right; background: #F8FAFC; border-left: 2px solid #E2E8F0; vertical-align: top;">${renderCell(rowTotal)}</td></tr>`;
+            });
+            tbodyHTML += `</tbody>`;
+
+            // 🟢 VẼ ĐÁY BẢNG
+            let tfootHTML = `<tfoot><tr style="background: #E0F2FE;">
+                <td style="padding: 12px 16px; text-align: left; font-weight: 800; color: #0369A1; position: sticky; left: 0; background: #E0F2FE; z-index: 2; border-right: 1px solid #BAE6FD; border-top: 2px solid #7DD3FC;">TỔNG CỘNG</td>`;
+            cols.forEach(c => {
+                tfootHTML += `<td style="padding: 12px 16px; text-align: right; border-top: 2px solid #7DD3FC;">${renderCell(colTotals[c])}</td>`;
+            });                       
+
+            // Sửa điều kiện hiển thị của Tổng Đáy Bảng
+            if (isMixDataOn) {
+                tfootHTML += `<td style="padding: 12px 16px; text-align: right; background: #FDE68A; color: ${grandMktTotal < 0 ? '#059669' : '#B45309'}; font-weight: 800; border-left: 2px solid #FCD34D; border-top: 2px solid #FCD34D;">${grandMktTotal !== 0 ? fmtMoney(grandMktTotal) : '-'}</td>`;
+            }
+
+            tfootHTML += `<td style="padding: 12px 16px; text-align: right; background: #BAE6FD; border-left: 2px solid #7DD3FC; border-top: 2px solid #7DD3FC;">${renderCell(grandTotal)}</td></tr></tfoot>`;
+
+            let tableHTML = `
+            <div style="width: 100%; height: 100%; overflow: auto; padding-bottom: 8px;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-family: 'Inter', sans-serif; font-size: 12.5px; white-space: nowrap;">
+                    ${theadHTML}${tbodyHTML}${tfootHTML}
+                </table>
+            </div>`;
+
+            container.innerHTML = tableHTML;
+        },
+        // ==========================================================
+
+        sortDateKeys: function(keys) {
+            return keys.filter(d => d !== "Chưa rõ").sort((a,b) => {
+                let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/');
+                return new Date(y1, m1-1, d1) - new Date(y2, m2-1, d2);
+            }).slice(-15); 
+        },
+
+        // --- 5. RENDER APEXCHARTS VỚI ZOOM CHUẨN ---
+        // 🛡️ BẢN NÂNG CẤP: HỖ TRỢ CUSTOM OPTIONS (COMBO CHART LƯỠNG CỰC)
+        renderApexChart: function(w, labels, seriesArr, customOpts = null) {
+            let elId = `#chart_${w.id}`;
+            let container = document.querySelector(elId);
+            if (!container) return; 
+
+            if (labels.length === 0) { labels = ["Trống"]; seriesArr.forEach(s => s.data = [0]); }
+            let cType = w.chartType;
+            let actualType = cType;
+            let isHorizontal = false;
+
+            if (cType === 'column') { actualType = 'bar'; isHorizontal = false; } 
+            else if (cType === 'bar') { actualType = 'bar'; isHorizontal = true; }
+            
+            // Nếu có customOpts ép kiểu Mixed/Combo Chart, ta phải đổi type gốc thành 'line' để ApexCharts hiểu
+            if (customOpts && customOpts.stroke && customOpts.stroke.width) {
+                actualType = 'line'; 
+            }
+            
+            // 🚀 2. GÁN CẤU HÌNH CƠ BẢN VỚI LỀ TỰ ĐỘNG (AUTO MARGIN/PADDING)
+            let options = {
+                chart: { 
+                    type: actualType, 
+                    height: '100%', width: '100%', 
+                    fontFamily: 'Inter, sans-serif', 
+                    toolbar: {show: true, tools: {download: false, pan: false}}, 
+                    zoom: { enabled: true, type: 'x' }, 
+                    animations: {enabled: false}, 
+                    parentHeightOffset: 15, // 🚀 Thả lỏng 15px không gian đáy (Mặc định cũ bị ép = 0)
+                    redrawOnParentResize: true,
+                    redrawOnWindowResize: true
+                },
+                colors: ['#4285F4', '#9E9E9E', '#34A853', '#FBBC05', '#EA4335'],
+                dataLabels: { enabled: false },
+                tooltip: { y: { formatter: function(val) { return (w.metric === 'cost' || w.metric === 'cost_da' || w.metric === 'actual_mkt_cost') ? val.toLocaleString('vi-VN')+" đ" : val; } } },
+                legend: { position: 'bottom', offsetY: 8, fontSize: '11px', markers: { width: 10, height: 10 }, itemMargin: { horizontal: 10, vertical: 4 } },
+                
+                // 🚀 CHỪA LỀ: Trái 15px, Phải 35px (để không lẹm nhãn TB), Đáy 35px (để nhãn Trục X được thở)
+                grid: { padding: { top: 15, bottom: 35, left: 15, right: 35 } } 
+            };
+
+            // Trộn Custom Options (Annotations, Colors) nếu có
+            if (customOpts) {
+                options = { ...options, ...customOpts };
+            }
+
+            // 🚀 3. PHÂN LOẠI BIỂU ĐỒ & GÁN TRỤC
+            if (actualType === 'pie' || actualType === 'donut' || actualType === 'radar') {
+                options.series = (actualType === 'radar') ? seriesArr : seriesArr[0].data;
+                options.labels = labels; 
+                options.stroke = { show: true, width: 1, colors: ['#fff'] };
+                if (actualType === 'donut') options.plotOptions = { pie: { donut: { size: '65%' } } };
+                if (actualType === 'radar') { options.fill = { opacity: 0.2 }; options.markers = { size: 4 }; }
+            } else {
+                options.series = seriesArr;
+                // 🚀 AUTO-FIT TRỤC X: Cho phép ẩn chữ khi chật và nghiêng chéo
+                options.xaxis = { 
+                    categories: labels, 
+                    labels: { 
+                        style: { fontSize: '10.5px' }, 
+                        hideOverlappingLabels: true, // Tự tàng hình chữ nếu quá chật
+                        rotate: -45,                 // Xoay nghiêng ăn gian diện tích
+                        trim: true, 
+                        offsetY: 5,                  // 🚀 Đẩy nhẹ nhãn xuống dưới để không dính vào đường base
+                        maxHeight: 120               // 🚀 Nới rộng giới hạn chiều cao (Cũ là 80) để chữ xoay nghiêng không bị cắt
+                    } 
+                };
+
+                if (actualType === 'line' || actualType === 'area') options.stroke = { curve: 'smooth', width: 3 };
+                if (actualType === 'area') options.fill = { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1 } };
+                if (actualType === 'bar') {
+                    options.plotOptions = { bar: { horizontal: isHorizontal, borderRadius: 4, columnWidth: '60%' } };
+                }
+                
+                // 🚀 AUTO-FIT TRỤC Y: Rút gọn Số tiền cực ngắn để dọn chỗ cho Biểu đồ
+                options.yaxis = { 
+                    labels: { 
+                        style: { fontSize: '10.5px' },
+                        formatter: (val) => {
+                            if (w.metric === 'cost' || w.metric === 'cost_da') {
+                                if (val >= 1000000) return (val/1000000).toLocaleString('vi-VN') + "tr";
+                                if (val >= 1000) return (val/1000).toLocaleString('vi-VN') + "k";
+                                return val;
+                            }
+                            return Math.round(val); // Rút gọn thập phân cho Số lượng
+                        }
+                    } 
+                };
+            }
+
+            // 🚀 4. DỌN DẸP SẠCH DOM TRƯỚC KHI VẼ MỚI
+            container.innerHTML = '';
+            try {
+                if (this.activeChartInstances[w.id]) {
+                    this.activeChartInstances[w.id].destroy();
+                    delete this.activeChartInstances[w.id];
+                }
+
+                let newChart = new ApexCharts(container, options);
+                this.activeChartInstances[w.id] = newChart;
+                newChart.render().catch(err => console.error("Render failed", err));
+
+            } catch (globalChartErr) {
+                console.error(`[Bug Net] Chặn lỗi đồng bộ DOM tại ${w.id}:`, globalChartErr);
+            }
+        }
+    };
+
+    // =========================================================================
+    // 🚪 KHỞI TẠO CỬA SỔ & EVENT BÊN NGOÀI
+    // =========================================================================
+    function openDashboardModal() {
+        if (typeof appUser === 'undefined' || !appUser || appUser.role === 'Khách lạ') { alert("Vui lòng Đăng nhập!"); return; }
+
+        let loader = document.getElementById('dashFullScreenLoader');
+        loader.innerHTML = typeof getLoadingHTML === 'function' ? getLoadingHTML(false) : "Đang tải dữ liệu..."; 
+        loader.style.display = 'block';
+
+        let cachedLogo = localStorage.getItem('appLogoBase64');
+        let logoEl = document.getElementById('dashTeamLogo');
+        if (cachedLogo && cachedLogo.startsWith("data:")) { logoEl.src = cachedLogo; logoEl.style.display = "block"; }
+
+        const loadConfigAndRun = () => {
+            google.script.run
+                .withFailureHandler(err => { // 🚀 BẮT LỖI TẢI CẤU HÌNH
+                    console.error("🚨 Lỗi lấy Config:", err);
+                    alert("Lỗi tải cấu hình biểu đồ: " + err.message);
+                    loader.style.display = 'none';
+                })
+                .withSuccessHandler(res => {
+                    try {
+                        if (res && res.success && res.config) DashboardWidgetEngine.config = res.config;
+                        else DashboardWidgetEngine.config = DashboardWidgetEngine.getDefaultConfig();
+
+                        DashboardWidgetEngine.config.widgets.forEach(w => {
+                            if (!w.filters) w.filters = DashboardWidgetEngine.getDefaultFilters();
+                        });
+
+                        DashboardWidgetEngine.buildMultiSelects();
+                        DashboardWidgetEngine.initGrid();
+                        DashboardWidgetEngine.runDataEngineAll();
+                        DashboardWidgetEngine.deselectAllWidgets(); 
+
+                        renderSidebarCustomGroup();
+
+                        loader.style.display = 'none';
+                        let m = document.getElementById('dashboardModalOverlay');
+                        m.style.display = 'flex'; 
+                        window.APP_CURRENT_PAGE = "Dashboard_modal"; // (Hoặc Dashboard_modal tùy hàm)
+                        AppStore.notify(['globalChat']); // Ép hệ thống nhả thông báo
+                        setTimeout(() => m.classList.add('show'), 10);
+                    } catch (e) { // 🚀 BẮT LỖI CRASH GIAO DIỆN NỘI BỘ
+                        console.error("🚨 Lỗi Render UI:", e);
+                        alert("Lỗi hệ thống khi vẽ biểu đồ: " + e.message);
+                        loader.style.display = 'none';
+                    }
+                }).getUserDashboardConfig(appUser);
+        };
+
+        if (window.globalTasksData.length === 0 || !window.globalDropdownData) {
+            google.script.run
+                .withFailureHandler(err => { // 🚀 BẮT LỖI TẢI DATA SHEET CÔNG VIỆC
+                    console.error("🚨 Lỗi lấy Tasks:", err);
+                    alert("Lỗi tải dữ liệu Công việc: " + err.message);
+                    loader.style.display = 'none';
+                })
+                .withSuccessHandler(taskRes => {
+                    // 🎯 [LƯỚI BACKEND]: Kiểm tra hàng hóa Server gửi xuống
+                    console.log(`📦 [SERVER TRẢ HÀNG]: Data tải về từ Backend:`, taskRes);
+                    if (!taskRes.extraCostsData || Object.keys(taskRes.extraCostsData).length === 0) {
+                        console.warn(`🚨 [CẢNH BÁO]: Backend trả về extraCostsData RỖNG hoặc KHÔNG TỒN TẠI!`);
+                    }
+
+                    window.globalTasksData = taskRes.tasks || [];
+                    window.globalExtraCostsData = taskRes.extraCostsData || {}; // Nhặt thùng MKT cất vào RAM!
+                    window.globalMktActualCostsData = taskRes.mktActualCostsData || {}; // 🚀 Nhặt thùng Thực chi MKT
+
+                    google.script.run
+                        .withFailureHandler(err => { // 🚀 BẮT LỖI TẢI DATA SHEET DANH MỤC
+                            console.error("🚨 Lỗi lấy Dropdown:", err);
+                            alert("Lỗi tải dữ liệu Danh mục: " + err.message);
+                            loader.style.display = 'none';
+                        })
+                        .withSuccessHandler(dropRes => {
+                            window.globalDropdownData = dropRes; loadConfigAndRun();
+                        }).getDropdownData();
+                }).getTasksList(appUser);
+        } else { loadConfigAndRun(); }
+    }
+
+    function closeDashboardModal(forceClose = false) {
+        let m = document.getElementById('dashboardModalOverlay');
+        let loader = document.getElementById('dashFullScreenLoader');
+        
+        window.APP_CURRENT_PAGE = document.querySelector('.dt-menu-item.active a, #sidebar a.active')?.innerText.includes('Task') ? 'Task_list' : 'Home';
+        AppStore.notify(['globalChat']);
+
+        if (DashboardWidgetEngine.isSaving && !forceClose) {
+            DashboardWidgetEngine.waitingToClose = true; 
+            m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
+            loader.innerHTML = getLoadingHTML(true); loader.style.display = 'block';
+            return;
+        }
+        DashboardWidgetEngine.deselectAllWidgets(); 
+        m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
+        loader.style.display = 'none'; 
+    }
+    
+    // 🚀 LẮNG NGHE CLICK RA NGOÀI ĐỂ DESELECT
+    document.getElementById('dashContentArea').addEventListener('click', function(e) {
+        if (e.target.id === 'dashContentArea' || e.target.classList.contains('grid-stack')) {
+            DashboardWidgetEngine.deselectAllWidgets();
+        }
+    });
+    
+    // 🚀 ĐẶT BẢN ĐỒ CẤU HÌNH NGAY TẠI FRONTEND (LOAD TỨC THÌ 0 GIÂY)    
+    const DASHBOARD_METRICS_MAP = [
+        // 1. VÍ DỤ CỦA BẠN: Đếm số lượng task có trạng thái "Chờ up"
+        {
+            id: "task_cho_up",           // Mã định danh duy nhất (Không dấu, không khoảng trắng)
+            title: "Task Chờ Up",        // Tên hiển thị trên Dashboard
+            source: "tasks",             // Nguồn quét: "tasks", "projects", hoặc "people"
+            filterField: "status",       // Trường dữ liệu cần soi (dựa theo frontendKey: status, type, priority...)
+            filterValue: "chờ up",       // Giá trị cần khớp (Nên viết chữ thường để hệ thống tự parse)
+            calcType: "count",           // Loại tính toán: "count" (đếm số lượng) hoặc "sum" (cộng dồn)
+            sumField: null,              // Bỏ trống nếu chỉ đếm (count)
+            sidebarGroup: "KHÁC",        // Gom nhóm hiển thị ở Sidebar
+            icon: "⏳",                  // Icon trang trí
+            color: "#1A73E8"             // Màu sắc để vẽ UI (Xanh dương)
+        },
+
+        // 2. VÍ DỤ BỔ SUNG: Tính tổng Tiền của các task "Cần sửa"
+        {
+            id: "tien_can_sua",
+            title: "Chi phí Task Cần sửa",
+            source: "tasks",
+            filterField: "status",
+            filterValue: "cần sửa",
+            calcType: "sum",             // 🚀 Dùng "sum" để cộng dồn tiền
+            sumField: "dongia",          // 🚀 Chỉ định cột chứa Tiền để cộng
+            sidebarGroup: "KHÁC",
+            icon: "💰",
+            color: "#D93025"             // Đỏ cảnh báo
+        },
+
+        // 3. VÍ DỤ BỔ SUNG: Đếm số task Ưu tiên "Khẩn cấp"
+        {
+            id: "task_khan_cap",
+            title: "Việc Khẩn Cấp",
+            source: "tasks",
+            filterField: "urgent",       // Cột Cờ Khẩn cấp (true/false) sinh ra từ hàm normalizeAll_
+            filterValue: true,           // Giá trị Boolean
+            calcType: "count",
+            sumField: null,
+            sidebarGroup: "KHÁC",
+            icon: "🔥",
+            color: "#FF8F00"             // Cam
+        }
+    ];    
+    
+    // Không cần truyền số liệu vào nữa, chỉ vẽ UI Dropdown
+    function renderSidebarCustomGroup() {
+        let sidebarContainer = document.getElementById('sidebar-other-group'); 
+        if (!sidebarContainer || typeof DASHBOARD_METRICS_MAP === 'undefined') return;
+
+        let optionsHtml = DASHBOARD_METRICS_MAP.map(m => `<option value="${m.id}">${m.title}</option>`).join('');
+
+        let html = `
+            <div class="dash-filter-group" style="margin-top: 10px; border-top: 1px dashed #D1D5DB; padding-top: 12px;">
+                <label class="dash-filter-label">CÁC CHỈ SỐ KHÁC</label>
+                <select id="customMetricSelect" class="custom-select-btn" style="appearance: auto;">
+                    <option value="">-- Mặc định --</option>
+                    ${optionsHtml}
+                </select>
+            </div>
+        `;
+        sidebarContainer.innerHTML = html;
+    }
+</script>

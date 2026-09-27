@@ -1,0 +1,7 @@
+node_modules/
+.clasp.json
+*.rar
+*.zip
+*.log
+.DS_Store
+.env

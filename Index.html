@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <base target="_top">
+    <style>
+       /* Copy toàn bộ CSS từ Task_list.html và Home.html vào đây */
+        :root {
+            --color-blue: #4285F4;
+            --color-white: #FFFFFF;
+            --color-bg: #F0F2F5;
+            --color-text-dark: #12151C;
+            --color-text-muted: #656973;
+            --shadow-default: 0 12px 30px rgba(0, 0, 0, 0.05);
+            --transition-premium: all 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        /* --- BIẾN MÀU SẮC (STYLE GUIDE) TRANG HOME --- */
+        :root {
+            --color-blue: #4285F4;
+            --color-blue-dark: #1A56B5;
+            --color-white: #FFFFFF;
+            --color-black: #000000;
+            --color-bg: #F0F2F5; /* Nền xám nhạt cao cấp */
+            --color-text-dark: #12151C;
+            --color-text-muted: #656973;
+            --color-gold: #FFB300;
+            --color-silver: #9E9E9E;
+            --color-bronze: #CD7F32;
+           
+            --font-main: 'Inter', sans-serif; /* Đã cập nhật Font đồng bộ */
+            --transition-premium: all 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+           
+            /* Cập nhật Shadow đậm hơn, nổi bật hơn trên nền xám */
+            --shadow-default: 0 16px 32px rgba(0, 0, 0, 0.08);
+            --shadow-premium: 0 24px 48px rgba(0, 0, 0, 0.12);
+            --shadow-hover-blue: 0 30px 60px rgba(66, 133, 244, 0.4);
+        }
+            /* --- BIẾN MÀU SẮC (STYLE GUIDE) TRANG TASK LIST --- */
+        :root {
+            --primary-blue: #4285F4;
+            --primary-light: rgba(66, 133, 244, 0.08);
+            --bg-white: #FFFFFF;
+            --text-black: #000000;
+            --text-gray: #666666;
+            --bg-board: #F9F9FB; /* Xám siêu sáng cho nền Board/Laptop */
+            --border-light: rgba(0, 0, 0, 0.05);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
+           
+            /* Màu trạng thái */
+            --status-todo: #E0E0E0;
+            --status-doing: #4285F4;
+            --status-review: #FBBC04;
+            --status-done: #34A853;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); margin: 0; }
+        .app-container { width: 100%; max-width: 412px; height: 100vh; background: var(--color-bg); margin: 0 auto; display: flex; flex-direction: column; position: relative; }
+       
+        /* Layout logic: Ẩn/Hiện vùng */
+        .desktop-view-section { display: none !important; }
+        .mobile-view-section { display: block !important; }
+ 
+        /* --- MOBILE UI --- */
+        @media (max-width: 991px) {
+            .mobile-view-section { display: flex !important; flex-direction: column; height: 100vh; }
+            .mb-header { padding: 24px; font-size: 24px; font-weight: 900; }
+            .mb-body { flex-grow: 1; padding: 0 24px 100px 24px; overflow-y: auto; }
+           
+            .task-card {
+                background: var(--color-white); padding: 20px; border-radius: 24px;
+                margin-bottom: 16px; box-shadow: var(--shadow-default);
+                transition: var(--transition-premium); border-left: 5px solid var(--color-blue);
+            }
+            .task-card:hover { transform: scale(1.02); }
+            .status-badge { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+           
+            .mb-footer-nav { /* Giữ nguyên Bottom Bar từ Home */ }
+        }
+ 
+        /* --- LAPTOP UI --- */
+        @media (min-width: 992px) {
+            .mobile-view-section { display: none !important; }
+            .desktop-view-section { display: grid !important; grid-template-columns: 280px 1fr; height: 100vh; }
+            .dt-sidebar { background: var(--color-white); padding: 40px; border-right: 1px solid #EEE; }
+            .dt-main { padding: 40px; overflow-y: auto; }
+           
+            table { width: 100%; border-collapse: collapse; background: white; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-default); }
+            th { text-align: left; padding: 20px; background: #F8F9FC; color: var(--color-text-muted); }
+            td { padding: 20px; border-bottom: 1px solid #F0F0F0; }
+        }
+            /* ==========================================
+           [1. HỆ THỐNG MÀU & ĐỊNH DẠNG CHUNG]
+           ========================================== */
+       
+ 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+ 
+        body {
+            font-family: var(--font-main);
+            color: var(--color-text-dark);
+            min-height: 100vh;
+            background-color: var(--color-bg);
+            /* THÊM HIỆU ỨNG: Nền Gradient Xám nhẹ nhàng, sang trọng (Soft Mesh Gradient) */
+            background-image:
+                radial-gradient(at 0% 0%, hsla(210, 100%, 97%, 1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(220, 20%, 95%, 1) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, hsla(210, 50%, 95%, 1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+ 
+        /* Lệnh ẩn/hiển thị linh hoạt giữa các thiết bị */
+        .desktop-view-section { display: none !important; }
+        .mobile-view-section { display: block !important; }
+ 
+        /* ==========================================
+           [2. ĐỊNH DẠNG CSS CHO MOBILE NATIVE]
+           ========================================== */
+        @media (max-width: 991px) {
+            .mobile-view-section {
+                display: flex !important;
+                flex-direction: column;
+                min-height: 100vh;
+                width: 100%;
+            }
+ 
+            /* Top Header Mobile - Cập nhật nền trắng Premium */
+            .top-header-mobile {
+                padding: 16px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: var(--color-white); /* Chuyển sang màu trắng nguyên khối */
+                border-bottom: 1px solid rgba(0, 0, 0, 0.04); /* Viền mờ chốt đáy thanh bar */
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Bóng đổ lan tỏa nhẹ xuống dưới */
+                position: relative;
+                z-index: 100;
+            }
+            .mb-avatar-left {
+                width: 44px; height: 44px; border-radius: 50%; background: var(--color-white);
+                display: flex; align-items: center; justify-content: center; font-size: 18px;
+                box-shadow: var(--shadow-default); position: relative; border: 1px solid rgba(0,0,0,0.02);
+            }
+            .mb-avatar-left::after {
+                content: ''; position: absolute; width: 10px; height: 10px;
+                background-color: #00E676; border-radius: 50%; bottom: 0; right: 0; border: 2px solid var(--color-white);
+            }
+            .mb-brand-center { text-align: center; flex-grow: 1; padding: 0 10px; flex: 1; overflow: visible;}
+            .mb-logo-text { font-size: 11px; font-weight: 800; color: var(--color-blue); text-transform: uppercase; letter-spacing: 1.5px; }
+            .mb-user-greeting { font-size: 18px; font-weight: 800; color: var(--color-text-dark); margin-top: 2px; letter-spacing: -0.5px; }
+            .mb-bell-right {
+                width: 44px; height: 44px; border-radius: 50%; background: var(--color-white);
+                display: flex; align-items: center; justify-content: center; font-size: 18px;
+                box-shadow: var(--shadow-default); position: relative; border: 1px solid rgba(0,0,0,0.02);
+            }            
+ 
+            /* Scroll Body Mobile */
+            .mb-body { flex-grow: 1; padding: 10px 24px 100px 24px; display: flex; flex-direction: column; gap: 30px; position: relative; z-index: 10;}
+            .mb-intro h2 { font-size: 28px; font-weight: 900; line-height: 1.2; letter-spacing: -1px; }
+ 
+            /* Khung chứa Interlocking Area Mobile */
+            .mb-workspace { 
+                position: relative;
+                width: 100%; 
+                /* Chiều cao động dựa theo chiều rộng màn hình để đảm bảo đủ chỗ cho Khối vuông + Khối nhỏ chui xuống dưới */
+                height: calc(100vw + 60px); 
+                min-height: 420px;
+                margin-bottom: 20px;
+            }
+           
+            /* Thẻ Task Chính - ÉP HÌNH VUÔNG */
+            .mb-btn-task {
+                position: absolute;
+                top: 45px;
+                left: 45px;
+                width: calc(100% - 80px); /* Chừa khoảng trống bên phải cho thẻ Tổng quan */
+                aspect-ratio: 1 / 1;      /* 🚀 LỆNH THẦN THÁNH: Ép thẻ thành hình vuông hoàn hảo */
+                background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%);
+                border-radius: 40px;
+                box-shadow: 0 25px 45px rgba(66, 133, 244, 0.35), inset 0 2px 5px rgba(255,255,255,0.2);
+                display: flex;
+                flex-direction: column;
+                /* 🚀 LỆNH MỚI: Gom tất cả nội dung vào khoảng trống giữa thẻ và canh trái */
+                justify-content: center; 
+                align-items: flex-start;
+                padding: 25px;
+                text-decoration: none;
+                color: var(--color-white);
+                transition: var(--transition-premium);
+                z-index: 10;
+            }
+            
+            /* Hiệu ứng nẩy 3D cho thẻ Vuông */
+            .mb-btn-task:active { transform: scale(0.98); }
+            .mb-btn-task::before {
+                content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+                background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                transform: skewX(-20deg); transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+           
+            /* Thêm lại Hiệu ứng Hover 3D cho Bảng Task (Mobile) */
+            .mb-btn-task:hover, .mb-btn-task:active {
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 0 35px 60px rgba(66, 133, 244, 0.45);
+            }
+            .mb-btn-task:hover::before, .mb-btn-task:active::before { left: 150%; }
+ 
+            /* Typography bên trong thẻ Vuông */
+            .mb-task-icon { 
+                font-size: 42px; /* Chỉnh icon nhỏ lại 1 chút cho tinh tế */
+                /* 🚀 LỆNH MỚI: Cách dòng chữ Production ngay bên dưới 12px */
+                margin-bottom: 12px; 
+                filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25)); 
+                line-height: 1; 
+                top: 25px;
+            }
+            
+            .mb-task-text-group { 
+                /* 🚀 LỆNH MỚI: Xóa lệnh đẩy xuống đáy, để cụm chữ bám sát vào icon tia sét */
+                margin-top: 20; 
+                text-align: left;
+                top: 25px;
+            }
+            .mb-task-eyebrow { font-family: 'Montserrat', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.85); font-weight: 800; display: block; margin-bottom: 10px; }
+            .mb-task-title { font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 900; line-height: 1.15; letter-spacing: -1px; text-shadow: 2px 4px 10px rgba(0,0,0,0.2); margin: 0; }
+
+            .mb-btn-task:hover .mb-task-icon { transform: scale(1.1); }
+           
+            .mb-task-label {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                opacity: 0.8;
+                margin-bottom: 4px;
+                text-align: left;
+            }
+ 
+            /* =========================================================
+               🚀 NÂNG CẤP CSS: HAI THẺ NHỎ TRẮNG (CHỐNG MỜ NHÒE TUYỆT ĐỐI)
+               ========================================================= */
+            .mb-puzzle-small {
+                position: absolute;
+                width: 116px; 
+                height: 116px; 
+                background: var(--color-white);
+                border-radius: 35px; 
+                display: flex; 
+                flex-direction: column; 
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                text-decoration: none;
+                color: var(--color-text-dark);
+                z-index: 20;
+                box-shadow: 0 0 0 10px var(--color-bg), 0 20px 40px rgba(0,0,0,0.12);
+                transition: var(--transition-premium);
+                
+                /* 🚀 LỆNH MỚI: Khử viền lem màu, ép render bằng GPU để chữ siêu nét */
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                transform: translateZ(0); 
+                backface-visibility: hidden;
+            }
+            .mb-puzzle-small:active { transform: scale(0.95) translateZ(0); background: #F8F9FA; }
+           
+            .mb-puzzle-small .icon { 
+                font-size: 32px; 
+                margin-bottom: 8px; 
+                line-height: 1;
+                /* 🚀 ĐÃ XÓA: Lệnh filter: drop-shadow(...) vì nó là thủ phạm số 1 làm nhòe Emoji trên Mobile */
+            }
+            .mb-puzzle-small .title { 
+                font-family: 'Montserrat', sans-serif; 
+                font-size: 11.5px; 
+                font-weight: 800; 
+                line-height: 1.3; 
+                letter-spacing: -0.2px; 
+                color: #12151C; /* Ép cứng màu đen đậm để chống lóa */
+            }
+
+            .mb-puzzle-small:hover, .mb-puzzle-small:active {
+                background-color: var(--color-blue);
+                color: var(--color-white);
+                transform: translateY(-8px) translateZ(0);
+                box-shadow: 0 0 0 12px var(--color-bg), var(--shadow-hover-blue);
+            }
+            .mb-puzzle-small:hover .title { color: var(--color-white); }
+            .mb-puzzle-small:hover .icon { transform: scale(1.2) rotate(-10deg); }
+            
+            .mb-btn-tq { top: 0; right: 0; }
+            .mb-btn-tn { bottom: 15px !important; left: 10px; }
+ 
+            /* Leaderboard Mobile - TĂNG KÍCH THƯỚC */
+            /* Leaderboard Mobile - TĂNG KÍCH THƯỚC VÀ CHỐNG TRÀN VIỀN */
+            .mb-honoring { 
+                background: var(--color-white); 
+                border-radius: 32px; 
+                padding: 24px; 
+                box-shadow: var(--shadow-premium); 
+                position: relative; 
+                
+                /* 🚀 FIX 1: Cắt gọt dải màu vàng cho khớp khít với góc bo tròn */
+                overflow: hidden !important; 
+                
+                /* 🚀 FIX 2: Nhích khung lên vừa phải để không đè lên nút Thu nhập */
+                margin-top: -20px !important; 
+                z-index: 10;
+                
+                /* 🚀 FIX 3: Tuyệt đối cấm Flexbox bóp méo, ép khung phải giãn dài tự động ôm trọn 3 dòng */
+                height: auto !important; 
+                flex-shrink: 0 !important; 
+            }
+            .mb-honoring::before {
+                content: '';
+                position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+                background: linear-gradient(90deg, #FFB300, #CD7F32);
+            }
+           
+            .mb-honoring-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+            .mb-honoring-title { font-size: 15px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px;}
+            .mb-leader-list { display: flex; flex-direction: column; gap: 12px; }
+            .mb-leader-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #F9F9FC; border-radius: 20px; border: 1px solid rgba(0,0,0,0.02); transition: var(--transition-premium); }
+            .mb-leader-item:hover { transform: translateX(5px); background: var(--color-white); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+           
+            .mb-rank-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+            .mb-rank-1 { background: rgba(255, 179, 0, 0.15); color: var(--color-gold); }
+            .mb-rank-2 { background: rgba(158, 158, 158, 0.15); color: var(--color-silver); }
+            .mb-rank-3 { background: rgba(205, 127, 50, 0.15); color: var(--color-bronze); }
+            .mb-score { font-size: 15px; font-weight: 900; color: var(--color-blue); }
+ 
+            /* Tab Navigation Mobile Fixed Bottom */
+            .mb-footer-nav {
+                position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95);
+                backdrop-filter: blur(15px);
+                padding: 12px 16px 24px 16px; display: flex; justify-content: space-around;
+                align-items: center; border-top: 1px solid rgba(0,0,0,0.04); box-shadow: 0 -15px 40px rgba(0,0,0,0.06); z-index: 200;
+            }
+            .mb-nav-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--color-text-muted); font-weight: 700; font-size: 11px; transition: var(--transition-premium); }
+            .mb-nav-link.active-tab { color: var(--color-blue); }
+            .mb-nav-link:hover { color: var(--color-blue); transform: translateY(-3px); }
+            .mb-nav-icon { font-size: 22px; transition: var(--transition-premium); }
+            .mb-nav-link.active-tab .mb-nav-icon { transform: translateY(-2px) scale(1.1); filter: drop-shadow(0 4px 8px rgba(66,133,244,0.3)); }
+        }
+ 
+        /* ==========================================
+           [3. ĐỊNH DẠNG CSS CHO LAPTOP / DESKTOP]
+           ========================================== */
+        @media (min-width: 992px) {
+            .mobile-view-section { display: none !important; }
+            
+            /* 🚀 Lệnh ẨN HOÀN TOÀN bong bóng login góc trên cùng bên phải ở Laptop */
+            .user-profile-widget { display: none !important; }
+            
+            .desktop-view-section {
+                display: grid !important;
+                grid-template-columns: 280px 1fr; /* Mở rộng Sidebar */
+                min-height: 100vh;
+                width: 100%;
+                /* Bố cục PC dùng nền Gradient đồng bộ */
+                background: var(--color-bg);
+            }
+ 
+            /* Sidebar Trái Cố Định */
+            .dt-sidebar {
+                background-color: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                border-right: 1px solid rgba(0,0,0,0.05);
+                padding: 35px 28px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.02);
+            }
+            .dt-logo-block { display: flex; flex-direction: column; gap: 4px; margin-bottom: 50px; }
+            .dt-logo-title { font-size: 18px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: var(--color-text-dark); }
+            .dt-logo-sub { font-size: 12px; font-weight: 800; color: var(--color-blue); letter-spacing: 1.5px; text-transform: uppercase; }
+           
+            .dt-menu-list { display: flex; flex-direction: column; gap: 10px; list-style: none; }
+            .dt-menu-item a {
+                display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+                text-decoration: none; color: var(--color-text-muted); font-weight: 700; font-size: 15px;
+                border-radius: 18px; transition: var(--transition-premium);
+            }
+            .dt-menu-item.active a { background-color: var(--color-blue); color: var(--color-white); box-shadow: 0 10px 20px rgba(66, 133, 244, 0.2); }
+            .dt-menu-item a:hover:not(.active) { background-color: var(--color-white); color: var(--color-text-dark); box-shadow: var(--shadow-default); transform: translateX(5px); }
+           
+            .dt-user-card {
+                display: flex; align-items: center; gap: 14px; padding: 18px;
+                background-color: var(--color-white); border-radius: 22px; box-shadow: var(--shadow-default); border: 1px solid rgba(0,0,0,0.02);
+            }
+            .dt-user-avatar { width: 44px; height: 44px; background: var(--color-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); font-size: 18px; }
+ 
+            /* Khu vực nội dung chính bên phải */
+            .dt-main-content { padding: 45px 50px; display: flex; flex-direction: column; gap: 40px; max-width: 1500px; margin: 0 auto; width: 100%; }
+           
+            /* Top Navbar Laptop */
+            .dt-top-navbar { display: flex; justify-content: space-between; align-items: center; }
+            .dt-page-headline h2 { font-size: 34px; font-weight: 900; color: var(--color-text-dark); letter-spacing: -1px; }
+            .dt-page-headline p { font-size: 16px; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
+           
+            .dt-actions-group { display: flex; align-items: center; gap: 18px; }
+             
+            /* Bố cục lưới thông minh cho Laptop (2 Cột cân bằng) */
+            .dt-grid-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: start; }
+ 
+            /* Khối Workspace Laptop tinh chỉnh góc nghiêng độc đáo */
+            .dt-panel-workspace {
+                display: flex; flex-direction: column; gap: 24px;
+            }
+            .dt-panel-title { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-dark); }
+           
+            /* Laptop Row layout for Actions - TĂNG KÍCH THƯỚC */
+            .dt-workspace-cards-container { display: flex; flex-direction: column; gap: 24px; }
+           
+            .dt-card-large {
+                background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); padding: 40px 45px; border-radius: 36px;
+                color: var(--color-white); text-decoration: none; display: flex; justify-content: space-between;
+                align-items: center; box-shadow: 0 25px 50px rgba(66, 133, 244, 0.3); transition: var(--transition-premium);
+                position: relative; overflow: hidden;
+            }
+            .dt-card-large::before {
+                content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+                background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+                transform: skewX(-20deg); transition: all 0.8s ease;
+            }
+           
+            /* Thêm lại Hiệu ứng Hover 3D Đổi màu/Nổi khối (PC) */
+            .dt-card-large:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 35px 65px rgba(66, 133, 244, 0.45); }
+            .dt-card-large:hover::before { left: 150%; }
+            .dt-card-large:hover .icon { transform: scale(1.15); }
+           
+            .dt-card-large h3 { font-size: 36px; font-weight: 900; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.2);}
+            .dt-card-large .icon { font-size: 60px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.2)); transition: var(--transition-premium); }
+             
+            .dt-cards-subrow { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+            .dt-card-small {
+                background-color: var(--color-white); padding: 30px; border-radius: 30px; text-decoration: none;
+                color: var(--color-text-dark); display: flex; flex-direction: column; gap: 16px;
+                transition: var(--transition-premium); box-shadow: var(--shadow-premium); border: 1px solid rgba(0,0,0,0.02);
+            }
+            /* Thêm lại Hiệu ứng Hover 3D Đổi màu Nút Nhỏ (PC) */
+            .dt-card-small:hover {
+                background-color: var(--color-blue);
+                color: var(--color-white);
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-hover-blue);
+            }
+            .dt-card-small .icon { font-size: 36px; transition: var(--transition-premium); }
+            .dt-card-small:hover .icon { transform: scale(1.2) rotate(-10deg); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+           
+            .dt-card-small h4 { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; }
+            .dt-card-small p { font-size: 13px; line-height: 1.5; color: var(--color-text-muted); font-weight: 500;}
+            .dt-card-small:hover p { color: rgba(255,255,255,0.8); }
+ 
+            /* Khối Bảng Tôn Vinh Laptop - TĂNG KÍCH THƯỚC */
+            .dt-panel-honoring {
+                background-color: var(--color-white); border-radius: 36px; padding: 40px;
+                box-shadow: var(--shadow-premium); display: flex; flex-direction: column; gap: 28px;
+                position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.02);
+            }
+            .dt-panel-honoring::before {
+                content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+                background: linear-gradient(90deg, #FFB300, #CD7F32);
+            }
+            .dt-leader-row {
+                display: flex; align-items: center; justify-content: space-between; padding: 18px 24px;
+                background-color: #F9F9FC; border-radius: 24px; transition: var(--transition-premium);
+                border: 1px solid rgba(0,0,0,0.02);
+            }
+            .dt-leader-row:hover { transform: translateX(8px); background-color: var(--color-white); box-shadow: 0 15px 30px rgba(0,0,0,0.06); }
+            .dt-profile-box { display: flex; align-items: center; gap: 20px; }
+            .dt-rank { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+            .dt-name { font-size: 17px; font-weight: 900; color: var(--color-text-dark); letter-spacing: -0.5px;}
+            .dt-role { font-size: 13px; font-weight: 600; color: var(--color-text-muted); margin-top: 2px;}
+            .dt-score-text { font-size: 18px; font-weight: 900; color: var(--color-blue); }
+        }
+        /* =========================================================
+          ĐOẠN CODE CSS BỔ SUNG: ĐỊNH DẠNG KÍCH THƯỚC LOGO HÌNH ẢNH
+          ========================================================= */
+ 
+        /* Định dạng cho Logo trên thanh Top Bar Trắng của Mobile */
+        /* SỬA LẠI ĐOẠN NÀY TRONG THẺ <style> */
+        .app-logo-img {
+            height: 40px;            
+            width: 100%;            
+            max-width: 200px;        
+            object-fit: contain;    
+            display: block;          
+            margin: 0 auto;
+           
+            /* 🚀 ĐÂY LÀ LỆNH ÉP ZOOM TO ẢNH */
+            transform: scale(3.0);           /* Số 1.6 nghĩa là zoom to lên 160%. Bạn có thể sửa thành 1.8 hoặc 2.0 nếu muốn to hơn nữa */
+            transform-origin: center center; /* Điểm tựa để zoom là từ giữa và đẩy lên trên để không đè vào chữ Xin chào */
+        }
+ 
+        /* Định dạng cho Logo ở thanh Sidebar của Laptop / PC */
+        .app-logo-img-laptop {
+            width: 100%;             /* Co giãn tối đa theo độ rộng của Sidebar trái */
+            max-width: 200px;        /* Giới hạn kích thước vừa vặn tầm nhìn */
+            height: auto;            /* Tự động tính chiều cao theo tỉ lệ ảnh gốc */
+            object-fit: contain;
+            margin-bottom: 6px;      /* Khoảng cách xuống chữ Workspace Terminal bên dưới */
+            display: block;
+        }
+       
+ 
+        /* --- 2. BỐ CỤC TỔNG THỂ --- */
+        .task-page-container {
+            font-family: 'Montserrat', 'Inter', sans-serif;
+            background-color: var(--bg-board);
+            min-height: 100vh;
+            padding: 24px;
+            color: var(--text-black);
+        }
+ 
+        /* --- 3. TOPBAR --- */
+        .task-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+ 
+        .task-topbar h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+ 
+        .task-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+ 
+        .search-input {
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            outline: none;
+            width: 250px;
+            font-family: inherit;
+        }
+ 
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--bg-white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+        }
+       
+        .btn-primary:hover {
+            background-color: #3367D6;
+            transform: translateY(-2px);
+        }
+ 
+        /* Nút thêm nổi (Mobile FAB) - Mặc định ẩn trên Desktop */
+        .fab-add {
+            display: none;
+        }
+
+        /* =======================================================
+           HIỆU ỨNG CHỮ GRADIENT PREMIUM (GLOBAL TITLE)
+           Dùng chung cho tiêu đề của tất cả các trang
+           ======================================================= */
+        .premium-title-gradient { 
+            font-family: 'Montserrat', sans-serif !important; 
+            font-size: 42px !important; 
+            font-weight: 900 !important; 
+            margin: 0; 
+            text-transform: uppercase; 
+            background: linear-gradient(135deg, #000000 30%, #4285F4 100%) !important; 
+            -webkit-background-clip: text !important; 
+            -webkit-text-fill-color: transparent !important; 
+            letter-spacing: 1px !important; 
+        }
+
+        /* 📱 Ép tự động thu nhỏ trên giao diện Điện thoại */
+        @media (max-width: 991px) {
+            .premium-title-gradient { 
+                font-size: 18px !important; 
+                line-height: 1.3 !important;
+                white-space: normal !important; 
+                text-align: left !important;
+            }
+        }
+        
+        /* --- 4. DATA TABLE (LAPTOP BỐ CỤC) --- */
+        .task-table-wrapper {
+            background: var(--bg-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+            overflow-x: auto; /* Cuộn ngang nếu nhiều cột */
+        }
+ 
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px; /* Đảm bảo đủ rộng cho tất cả các cột */
+        }
+ 
+        .task-table th, .task-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+        }
+ 
+        .task-table th {
+            font-weight: 700;
+            color: var(--text-black);
+            background: var(--bg-white);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+ 
+        .task-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+ 
+        .task-table tbody tr:hover {
+            background-color: var(--primary-light);
+        }
+ 
+        /* Badges (Thẻ trạng thái/ưu tiên) */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge.priority-cao { background: #FCE8E6; color: #D93025; }
+        .badge.priority-tb { background: #FEF7E0; color: #E37400; }
+        .badge.status-doing { background: rgba(66, 133, 244, 0.1); color: var(--primary-blue); }
+        .badge.status-done { background: #E6F4EA; color: #137333; }
+ 
+        /* Action Buttons trong Table */
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-blue);
+            cursor: pointer;
+            font-weight: 600;
+            padding: 4px 8px;
+        }
+ 
+        .action-btn:disabled {
+            color: var(--text-gray);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+ 
+        /* --- 5. RESPONSIVE ĐIỆN THOẠI (THÁM HIỂM & CARD BASED) --- */
+        @media (max-width: 768px) {
+            .task-page-container {
+                padding: 12px;
+            }
+ 
+            .task-topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+           
+            .task-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+           
+            .search-input {
+                width: 100%;
+            }
+ 
+            /* Ẩn nút Add thường, hiện nút FAB */
+            .btn-add-desktop { display: none; }
+            .fab-add {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background-color: var(--primary-blue);
+                color: white;
+                font-size: 28px;
+                box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
+                border: none;
+                z-index: 100;
+            }
+ 
+            /* Chuyển Table thành Cards */
+            .task-table-wrapper {
+                background: transparent;
+                box-shadow: none;
+                overflow-x: visible;
+            }
+ 
+            .task-table, .task-table tbody, .task-table tr, .task-table td {
+                display: block;
+                width: 100%;
+            }
+ 
+            .task-table thead {
+                display: none; /* Ẩn header ngang */
+            }
+ 
+            .task-table tr {
+                background: var(--bg-white);
+                margin-bottom: 16px;
+                border-radius: 16px;
+                box-shadow: var(--shadow-soft);
+                padding: 16px;
+                border: none;
+                position: relative;
+            }
+ 
+            /* Tạo kiểu cho từng dòng data (td) trong Card */
+            .task-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border-bottom: 1px solid var(--border-light);
+                text-align: right;
+            }
+ 
+            .task-table td:last-child {
+                border-bottom: none;
+            }
+ 
+            /* Lấy tên cột từ thuộc tính data-label */
+            .task-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-gray);
+                text-align: left;
+                margin-right: 16px;
+                font-size: 13px;
+            }
+ 
+            /* Tùy chỉnh dòng Tên Công Việc cho to, nổi bật lên đầu Card */
+            .task-table td:nth-child(2) {
+                font-size: 16px;
+                font-weight: 800;
+                color: var(--text-black);
+                flex-direction: column;
+                align-items: flex-start;
+                border-bottom: 2px solid var(--border-light);
+                padding-bottom: 12px;
+                margin-bottom: 8px;
+            }
+            .task-table td:nth-child(2)::before { display: none; } /* Ẩn label cho tên task */
+        }
+        .task-topbar-left {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+ 
+            .btn-back {
+                background: transparent;
+                border: 1px solid var(--border-light);
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                color: var(--text-gray);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: 0.3s;
+            }
+            .btn-back:hover {
+                background: var(--bg-white);
+                color: var(--primary-blue);
+                box-shadow: var(--shadow-soft);
+            }
+ 
+            /* --- MODAL (POPUP FORM) --- */
+            .modal-overlay {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(4px); /* Hiệu ứng kính mờ */
+                display: none; /* Mặc định ẩn */
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            .modal-content {
+                background: var(--bg-white);
+                padding: 24px;
+                border-radius: 16px;
+                width: 100%;
+                max-width: 500px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                animation: slideUp 0.3s ease;
+            }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+           
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .modal-header h2 { margin: 0; font-size: 20px; }
+            .btn-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-gray); }
+           
+            .form-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;}
+            .form-group label { font-size: 13px; font-weight: 600; color: var(--text-gray); }
+            .form-control {
+                padding: 10px 14px;
+                border: 1px solid var(--border-light);
+                border-radius: 8px;
+                font-family: inherit;
+                outline: none;
+            }
+            .form-control:focus { border-color: var(--primary-blue); }
+           
+            .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+           
+            .btn-secondary {
+                background: #F1F3F4; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            }
+            .card, .staggered-card, .btn-home-nav {
+                /* Đổ bóng sâu 4 lớp giúp khối nổi hẳn lên nền mờ, cực kỳ sang trọng */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                            0 10px 20px -2px rgba(66, 133, 244, 0.08),
+                            0 20px 35px 0 rgba(0, 0, 0, 0.06);
+                transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+ 
+            /* Hiệu ứng khi rê chuột qua card sẽ phát quang nhẹ viền xanh */
+            .card:hover, .staggered-card:hover {
+                transform: translateY(-4px) scale(1.01);
+                box-shadow: 0 15px 30px rgba(66, 133, 244, 0.15);
+            }
+                /* CSS Bong bóng động chỉ vào nút Login */
+            .loginHintBubble {
+                position: absolute;
+                right: calc(100% + 15px); /* Nằm bên trái nút login */
+                top: 50%;
+                transform: translateY(-50%);
+                background: #ffffff;
+                padding: 10px 18px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(66, 133, 244, 0.2);
+                font-family: 'Inter', sans-serif;
+                font-size: 13px;
+                font-weight: 600;
+                font-style: italic;
+                color: #4285F4;
+                white-space: nowrap;
+                animation: floatPoint 1.5s infinite ease-in-out;
+                z-index: 100;
+                border: 1px solid rgba(66, 133, 244, 0.1);
+            }
+
+            .loginHintBubble::after {
+                content: '';
+                position: absolute;
+                right: -7px;
+                top: 50%;
+                transform: translateY(-50%);
+                border-width: 7px 0 7px 7px;
+                border-style: solid;
+                border-color: transparent transparent transparent #ffffff;
+            }
+
+            @keyframes floatPoint {
+                0%, 100% { transform: translate(0, -50%); }
+                50% { transform: translate(-6px, -50%); } /* Nhấp nhô qua lại */
+            }
+            /* =======================================================
+              NÚT BẤM MÀU XANH PREMIUM (ĐẶT Ở INDEX.HTML ĐỂ NHẬN GLOBAL)
+              ======================================================= */
+            .btn-save-premium {
+                font-family: 'Montserrat', sans-serif !important;
+                font-size: 14px !important;
+                font-weight: 800 !important;
+                color: #FFFFFF !important;
+                padding: 10px 24px !important;
+                border: none !important;
+                border-radius: 10px !important;
+                cursor: pointer !important;
+                
+                /* Màu tĩnh, sang trọng, không chuyển động */
+                background: linear-gradient(135deg, #4285F4 0%, #2A64D2 100%) !important;
+                background-size: 100% 100% !important;
+                
+                box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3) !important;
+                transition: all 0.3s ease !important;
+            }
+
+            /* Hiệu ứng nẩy lên khi đưa chuột vào */
+            .btn-save-premium:hover:not(:disabled) {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 8px 20px rgba(66, 133, 244, 0.5) !important;
+            }
+
+            /* --- TRẠNG THÁI "ĐANG LƯU..." (TỰ ĐỘNG BẬT HIỆU ỨNG) --- */
+            .btn-save-premium:disabled {
+                cursor: wait !important; /* Đổi chuột thành biểu tượng chờ */
+                transform: translateY(1px) !important; /* Nút lún nhẹ xuống */
+                box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2) !important;
+                
+                /* Kích hoạt dải 4 màu và cuộn liên tục */
+                background: linear-gradient(45deg, #4285F4, #2A64D2, #00C6FF, #4285F4) !important;
+                background-size: 300% 300% !important;
+                animation: gradientLoop 2s linear infinite !important;
+            }
+            /* =======================================================
+              NÚT BẤM MÀU TRẮNG PREMIUM (ĐẶT Ở INDEX.HTML ĐỂ NHẬN GLOBAL)
+              ======================================================= */
+            .btn-action-premium-clean {
+                background: #FFFFFF; border: 1.5px solid #4285F4; color: #4285F4; padding: 12px 24px;
+                border-radius: 12px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 800;
+                display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; position: relative; overflow: hidden; z-index: 1;
+            }
+            .btn-action-premium-clean svg { pointer-events: none; }
+            .btn-action-premium-clean:hover {
+                color: #FFF; border-color: transparent; transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(66, 133, 244, 0.3);
+                background: linear-gradient(45deg, #4285F4, #2A64D2, #00C6FF, #4285F4);
+                background-size: 300% 300%; animation: gradientLoop 2s linear infinite;
+            }
+            /* --- TRẠNG THÁI "ĐANG ĐỒNG BỘ" --- */
+            .btn-action-premium-clean.is-syncing {
+                color: #FFF !important; 
+                border-color: transparent !important; 
+                box-shadow: 0 10px 20px rgba(66, 133, 244, 0.3) !important;
+                background: linear-gradient(45deg, #4285F4, #2A64D2, #00C6FF, #4285F4) !important;
+                background-size: 300% 300% !important; 
+                animation: gradientLoop 2s linear infinite !important;
+                cursor: wait !important;
+                opacity: 1 !important; /* Vượt qua lệnh opacity: 0.5 của Trạm gác nút nếu có */
+            }
+
+            /* Hiệu ứng xoay tròn mượt mà cho icon SVG khi đang tải */
+            .btn-action-premium-clean.is-syncing svg {
+                animation: spin-around 1s linear infinite;
+            }
+            @keyframes gradientLoop { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+            
+            /* =======================================================
+               NÚT ICON TRÒN PREMIUM (CHUÔNG, THÔNG BÁO) - GLOBAL UI
+               ======================================================= */
+            .dt-icon-btn {
+                width: 44px; height: 44px; /* Mặc định cho Mobile cho gọn */
+                background-color: var(--color-white); border-radius: 50%;
+                display: flex; align-items: center; justify-content: center; font-size: 18px;
+                box-shadow: var(--shadow-default); cursor: pointer; transition: var(--transition-premium);
+                border: 1px solid rgba(0,0,0,0.02); flex-shrink: 0; outline: none;
+            }
+            .dt-icon-btn:hover { 
+                transform: translateY(-4px) rotate(10deg); 
+                box-shadow: var(--shadow-premium); color: var(--color-blue);
+            }
+            @media (min-width: 992px) {
+                /* PC màn hình to thì tự động nở ra */
+                .dt-icon-btn { width: 50px; height: 50px; font-size: 20px; }
+            }
+
+            /* 🚀 FIX LỖI: ÉP NÚT THÊM TASK BUNG FULL 100% TRÊN MOBILE VÀ CANH GIỮA */
+            @media (max-width: 991px) {
+                #btnAdd.btn-add-task-premium {
+                    width: 100% !important;
+                }
+            }            
+            /* =========================================================================
+              HIỆU ỨNG VÒNG XOAY ĐỒNG BỘ (SYNC SPINNER)
+              ========================================================================= */
+            @keyframes cell-spin-animation {
+                0% { transform: translateY(-50%) rotate(0deg); }
+                100% { transform: translateY(-50%) rotate(360deg); }
+            }
+
+            @keyframes inline-spin-animation {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* 1. Vòng xoay NỔI (Dành cho các ô chữ bình thường như Dự án, Loại Content...) */
+            .cell-sync-spinner {
+                position: absolute;
+                left: 4px;             /* Bám sát mép trái */
+                top: 50%;
+                width: 14px; height: 14px;
+                background-color: #FFFFFF; 
+                border: 1.5px solid rgba(0, 0, 0, 0.1); border-top: 1.5px solid #111111;
+                border-radius: 50%; 
+                animation: cell-spin-animation 0.7s linear infinite;
+                z-index: 10;
+            }
+            .td-syncing {
+                position: relative !important;
+                padding-left: 24px !important; /* Lùi chữ nhường chỗ cho vòng xoay */                 
+            }
+
+            /* 2. Vòng xoay NẰM GIỮA (Dành riêng cho ô 3 thẻ Div có nút Zoom Note) */
+            .cell-sync-spinner-inline {
+                width: 14px; height: 14px; flex-shrink: 0;
+                background-color: #FFFFFF; 
+                border: 1.5px solid rgba(0, 0, 0, 0.1); border-top: 1.5px solid #111111;
+                border-radius: 50%; 
+                animation: inline-spin-animation 0.7s linear infinite;
+                display: none; /* Mặc định tàng hình */
+                margin: 0 4px;
+            }
+            /* =========================================================================
+              HIỆU ỨNG ĐÁNH DẤU DÒNG (ROW HIGHLIGHT)
+              ========================================================================= */
+            .task-row-highlight {
+                background-color: #e8f0fe !important; /* Màu xanh nhạt mượt mà của Google */
+                outline: 1.5px solid #4285F4 !important; /* Viền xanh dương đậm */
+                outline-offset: -1.5px; /* Ép viền lọt vào trong để không làm xô lệch bảng */
+                transition: all 0.15s ease-in-out;
+            }
+
+            /* Đảm bảo các ô bên trong không dùng màu nền đè lên màu highlight */
+            .task-row-highlight td {
+                background-color: transparent !important; 
+            }
+            /* 🔔 HIỆU ỨNG CHUÔNG RUNG & CHẤM ĐỎ */
+            .bell-btn { position: relative; display: inline-flex; }
+            .has-unread { animation: bell-ring 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite; color: #FF3B30 !important; }
+            .has-unread::after {
+                content: ''; position: absolute; top: 0px; right: 0px;
+                width: 12px; height: 12px; background: #FF3B30; border: 2.5px solid #FFF; border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            @keyframes bell-ring {
+                0%, 100% { transform: rotate(0deg); }
+                15%, 45%, 75% { transform: rotate(15deg); }
+                30%, 60% { transform: rotate(-15deg); }
+            }
+
+            /* =======================================================
+               📢 THIẾT KẾ PREMIUM: INFO CENTER COMPONENTS
+               ======================================================= */
+            /* 1. COMPONENT: POPUP BANNER (Hiển thị giữa trang, Glassmorphism, Bắt buộc đọc) */
+            #ic-popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 100000; }
+            .ic-popup { background: #FFF; width: 90%; max-width: 480px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+            .ic-popup-header { padding: 20px 24px; color: #FFF; font-size: 18px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+            .ic-popup-body { padding: 24px; font-size: 15px; color: #333; line-height: 1.6; }
+            .ic-popup-footer { padding: 16px 24px; background: #F9FAFB; border-top: 1px solid #E5E7EB; text-align: right; }
+            .ic-btn-confirm { padding: 10px 24px; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px; color: #FFF; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+            .ic-btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+            @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+            /* 2. COMPONENT: FLOATING TOAST (Popup nhỏ góc phải dưới, tinh tế, ko chắn tầm nhìn) */
+            #ic-toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 16px; z-index: 99999; pointer-events: none; }
+            .ic-toast { width: 340px; background: #FFF; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); padding: 20px; position: relative; pointer-events: auto; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(0,0,0,0.05); }
+            .ic-toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-radius: 16px 0 0 16px; }
+            .ic-toast.CRITICAL::before { background: #DC2626; } .ic-toast.WARNING::before { background: #F59E0B; } .ic-toast.INFO::before { background: #4285F4; }
+            .ic-toast-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 15px; margin-bottom: 8px; padding-right: 20px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.3px; }
+            .ic-toast.CRITICAL .ic-toast-title { color: #DC2626; } .ic-toast.WARNING .ic-toast-title { color: #D97706; } .ic-toast.INFO .ic-toast-title { color: #1A56B5; }
+            .ic-close-btn { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.05); border: none; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; color: #666; cursor: pointer; transition: 0.2s; }
+            .ic-close-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
+            @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+            /* 3. COMPONENT: SCROLLING TICKER (Chữ chạy ngang Marquee phong cách Sàn giao dịch) */
+            #ic-ticker-container { position: sticky; top: 0; z-index: 99998; width: 100%; display: flex; flex-direction: column; }
+            .ic-ticker-bar { width: 100%; display: flex; align-items: center; padding: 0 16px; height: 40px; color: #FFF; overflow: hidden; position: relative; font-weight: 700; font-size: 13.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-bottom: 1px solid rgba(255,255,255,0.2);}
+            .ic-ticker-bar.CRITICAL { background: linear-gradient(90deg, #991B1B, #DC2626, #991B1B); background-size: 200% 100%; animation: gradientMove 3s linear infinite; }
+            .ic-ticker-bar.WARNING { background: linear-gradient(90deg, #B45309, #D97706, #B45309); background-size: 200% 100%; animation: gradientMove 3s linear infinite; }
+            .ic-ticker-bar.INFO { background: linear-gradient(90deg, #1A56B5, #4285F4, #1A56B5); background-size: 200% 100%; animation: gradientMove 3s linear infinite; }
+            .ic-ticker-label { background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; flex-shrink: 0; z-index: 2; margin-right: 12px; display: flex; align-items: center; gap: 6px; }
+            .ic-ticker-text { white-space: nowrap; animation: tickerScroll 100s linear infinite; padding-right: 100%; display: inline-block; }
+            .ic-ticker-close { background: none; border: none; color: #FFF; font-size: 18px; cursor: pointer; z-index: 2; padding: 0 10px; opacity: 0.8; transition: 0.2s; margin-left: auto; }
+            .ic-ticker-close:hover { opacity: 1; transform: scale(1.2); }           
+            @keyframes tickerScroll { 
+                0% { transform: translateX(-50%); } /* 🚀 Xuất hiện ngay lập tức */
+                100% { transform: translateX(-100%); } 
+            }
+            @keyframes gradientMove { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+    </style>
+  </head>
+  <body>
+    <!-- 🚀 TRẠM THU SÓNG INFO CENTER (NẰM SẴN Ở ĐÂY, VĨNH VIỄN KHÔNG BỊ XÓA) -->    
+    <div id="ic-global-wrapper" style="position: relative; z-index: 99; width: 100%; display: flex; flex-direction: column; margin-bottom: 12px;"></div>
+    <div id="ic-toast-container" style="position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 16px; z-index: 99999; pointer-events: none;"></div>
+    <div id="ic-popup-container"></div>
+   
+    <div id="content">
+      <div id="main-content">
+        <?!= include('Home'); ?>
+      </div>
+    </div>
+       
+    <?!= include('Login'); ?>
+   
+    <script>
+ /**
+ * ============================================================================
+ * 🏛️ TỔNG KHO DỮ LIỆU (CENTRAL STORE & LOGISTICS ENGINE) - TÍCH HỢP DEBOUNCE
+ *  * 📦 TRUNG TÂM LOGISTICS & TỔNG KHO (APP STORE)
+ * Chức năng: Giữ dữ liệu sống vĩnh viễn trên RAM trình duyệt, không phụ thuộc UI.
+ * ============================================================================
+ */
+const AppStore = (function() {
+    let state = {
+        tasks: [],               
+        dropdownOptions: null,   
+        globalChat: [],          
+        incomeData: null,        
+        onlineUsers: [],
+        activeFilters: {},       // Ghi nhớ các tick chọn Lọc của user
+        syncQueue: [],           // TRẠM CHỜ: Chứa các lệnh chưa gửi lên Backend
+        isSyncing: false,        // Đang chạy xe tải?
+        hasUnsavedData: false    // Còn hàng đọng trong trạm chờ?
+    };
+    const listeners = {};
+    
+    // 🚀 BỔ SUNG: Biến đếm giờ cho Debounce thay vì Interval
+    let debounceSyncTimer = null; 
+
+    // RÀO CHẮN BẢO VỆ TẮT TAB TRÌNH DUYỆT
+    window.addEventListener('beforeunload', function (e) {
+        if (state.hasUnsavedData) {
+            e.preventDefault();
+            e.returnValue = 'Dữ liệu đang được đồng bộ. Bạn có chắc muốn thoát?';
+        }
+    });
+
+    const store = {
+        getState: () => state,
+        get: (key) => state[key],
+
+        setState: function(newStatePartial) {
+            const changedKeys = [];
+            for (let key in newStatePartial) {
+                if (state[key] !== newStatePartial[key]) {
+                    state[key] = newStatePartial[key];
+                    changedKeys.push(key);
+                }
+            }
+            if (changedKeys.length > 0) this.notify(changedKeys);
+        },
+
+        subscribe: function(key, callback) {            
+            if (!listeners[key]) listeners[key] = [];
+            listeners[key].push(callback);
+            
+            // 🚀 FIX BUG: Phải trả về một hàm vô danh để xóa bộ nhớ khi cần
+            return function() {
+                listeners[key] = listeners[key].filter(cb => cb !== callback);
+            };
+        },
+
+        notify: function(changedKeys) {
+            changedKeys.forEach(key => {
+                if (listeners[key]) {
+                    listeners[key].forEach(cb => cb(state[key], state));
+                }
+            });
+        },
+
+        // 🚚 CỔNG NHẬP HÀNG: Hứng mọi thao tác từ toàn bộ App
+        dispatchAction: function(payload) {
+            let currentQueue = [...state.syncQueue];
+            
+            // Lọc ghi đè nếu sửa cùng 1 ô liên tục
+            if (payload.actionType === "UPDATE_CELL") {
+                let existingIndex = currentQueue.findIndex(item => 
+                    item.actionType === "UPDATE_CELL" && item.row === payload.row && item.col === payload.col
+                );
+                if (existingIndex !== -1) {
+                    currentQueue[existingIndex].value = payload.value;
+                    this.setState({ syncQueue: currentQueue, hasUnsavedData: true });
+                    
+                    // 🚀 KÍCH HOẠT DEBOUNCE MỖI KHI CÓ THAO TÁC
+                    this.triggerDebouncedSync(); 
+                    return; 
+                }
+            }
+
+            // Gói hàng mới
+            currentQueue.push(payload);
+            this.setState({ syncQueue: currentQueue, hasUnsavedData: true });
+            
+            // 🚀 KÍCH HOẠT DEBOUNCE MỖI KHI CÓ THAO TÁC
+            this.triggerDebouncedSync();
+        },
+
+        // ⏱️ ĐỘNG CƠ DEBOUNCE (CHỜ USER RẢNH TAY MỚI CHẠY)
+        triggerDebouncedSync: function() {
+            // 1. Xóa lịch chạy cũ nếu User vừa thao tác thêm (Cốt lõi của Debounce)
+            if (debounceSyncTimer) clearTimeout(debounceSyncTimer);
+            
+            // 2. Đặt lại đồng hồ: Đợi đúng 4 giây (4000ms) sau thao tác cuối cùng
+            debounceSyncTimer = setTimeout(() => {
+                
+                // Kiểm tra xem User có đang gõ dở hoặc đang mở Modal nào không?
+                let isEditingInline = document.querySelector('input:focus, select:focus, textarea:focus');
+                const isModalOpen = (id) => document.getElementById(id) && document.getElementById(id).classList.contains('show');
+                let anyModalOpen = isModalOpen('noteModal') || isModalOpen('filterModal') || isModalOpen('addTaskModal') || isModalOpen('profileModalOverlay') || isModalOpen('loginMiniModal');
+                
+                // Nếu rảnh tay và có hàng -> Chạy xe tải
+                if (state.syncQueue.length > 0 && !state.isSyncing && !isEditingInline && !anyModalOpen) {
+                    this.flushQueue();
+                } 
+                // Nếu đang bận gõ dở -> Delay thêm 4 giây nữa rồi thử lại
+                else if (state.syncQueue.length > 0) {
+                    this.triggerDebouncedSync(); 
+                }
+                
+            }, 4000); 
+        },
+
+        // 🚚 XE TẢI CHỞ HÀNG (Gửi lên Google)
+        flushQueue: function() {
+            let currentQueue = [...state.syncQueue];
+            this.setState({ isSyncing: true, syncQueue: [] }); 
+            
+            console.log(`🚀 [Logistics] Đang vận chuyển ${currentQueue.length} kiện hàng lên Backend...`);
+
+            google.script.run
+                .withSuccessHandler((res) => {
+                    if (res && res.latestTasks) {
+                        this.setState({ tasks: res.latestTasks });
+                    }
+                    this.setState({ isSyncing: false, hasUnsavedData: false });
+                })
+                .withFailureHandler((err) => {
+                    console.error("🚨 [Logistics] Lỗi giao hàng, hoàn trả vào kho:", err);
+                    this.setState({ 
+                        syncQueue: [...currentQueue, ...state.syncQueue], 
+                        isSyncing: false, 
+                        hasUnsavedData: true 
+                    });
+                    // Tự động thử gửi lại sau 5 giây nếu lỗi mạng
+                    setTimeout(() => this.triggerDebouncedSync(), 5000);
+                })
+                .processBatchSync(currentQueue, appUser); 
+        }
+    };
+
+    return store;
+})();
+
+// =========================================================================
+    // 🚀 MODULE: ASSET PRELOADER (QUẢN LÝ TẢI TRƯỚC TÀI NGUYÊN)
+    // =========================================================================
+    var PreloadAssetsManager = {
+        assets: {
+            // LƯU Ý: Đảm bảo bạn dán đúng link ảnh Logo của bạn vào đây
+            logo: "https://lh3.googleusercontent.com/d/1kav3NxxTY1OcqolSur1T7X6Jco5SZ_Vu" 
+        },
+
+        init: function() {
+            this.preloadLogo();
+        },
+
+        preloadLogo: function() {
+            // Kiểm tra xem đã có chưa, có rồi thì khỏi tải lại cho đỡ tốn băng thông
+            if (localStorage.getItem('appLogoBase64')) {
+                console.log("⚡ Logo đã có sẵn trong Cache, bỏ qua tải lại.");
+                return;
+            }
+
+            fetch(this.assets.logo)
+                .then(response => response.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        let base64data = reader.result;
+                        
+                        // 🚀 FIX LỖI MIME TYPE: Ép các định dạng lạ về chuẩn ảnh PNG để thẻ <img> đọc được
+                        if (!base64data.startsWith("data:image")) {
+                            base64data = base64data.replace(/^data:[^;]*;/, 'data:image/png;');
+                        }
+                        
+                        localStorage.setItem('appLogoBase64', base64data);
+                        console.log("✅ Logo preloaded and cached successfully.");
+                    }
+                    reader.readAsDataURL(blob);
+                })
+                .catch(err => {
+                    console.error("🚨 Lỗi tải Logo:", err);
+                });
+        }
+    };
+
+/**
+ * 🛠️ HÀM DEBOUNCE TIỆN ÍCH TOÀN CỤC (GLOBAL UTILS)
+ * Dùng để bọc bất kỳ hàm nào bạn muốn giới hạn tần suất gọi.
+ */
+function globalDebounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
+// Cách dùng ví dụ nếu sau này cần: 
+// document.getElementById('searchInput').addEventListener('input', globalDebounce(searchFunction, 500));
+
+/**
+ * ============================================================================
+ * 🗺️ BỘ BẢN ĐỒ LẮNG NGHE TẬP TRUNG (CENTRAL LISTENER MAP)
+ * Nguyên lý: Khi [Vùng Dữ Liệu] trong Kho đổi -> Chạy [Hàm Vẽ Giao Diện] tương ứng
+ * ============================================================================
+ */
+const LISTENER_MAP = {
+    
+    // 1. DỮ LIỆU BẢNG TASK
+    "tasks": function(newTasks) {
+        let safeData = newTasks || []; 
+        let sortedTasks = [...safeData].sort((a, b) => b.row - a.row);
+        globalTasksData = sortedTasks;        
+        
+        if (typeof applyCurrentFilters === 'function') applyCurrentFilters();
+        
+        setTimeout(() => {
+            if (frontendHighlightedRowId) {
+                let targetCell = document.querySelector(`td[data-row="${frontendHighlightedRowId}"]`);
+                if (targetCell) {
+                    let targetRow = targetCell.closest('tr');
+                    if (targetRow) targetRow.classList.add('task-row-highlight');
+                }
+            }
+        }, 150);
+    },
+    
+    // 2. CỔNG CHAT TEAM & INFO CENTER (CHUẨN SSOT, THÁC ĐỔ & LƯỚI CHẶN THỜI GIAN)
+    "globalChat": function(newChatData) {
+        if (typeof renderGlobalChatHistory === 'function') renderGlobalChatHistory(newChatData);
+
+        let currentUserName = (typeof appUser !== 'undefined' && appUser) ? appUser.name : "";
+        if (!currentUserName) return;
+
+        let latestUrgentAlert = null;
+        let latestInfoAlert = null;
+        let now = Date.now();
+
+        // 🚀 THUẬT TOÁN "LƯỚI CHẶN THỜI GIAN": Quét ngược từ mới nhất về cũ nhất
+        for (let i = newChatData.length - 1; i >= 0; i--) {
+            let msg = newChatData[i];
+            if (msg.type === "INFO_CENTER") {
+                try {
+                    let info = typeof msg.text === "string" ? JSON.parse(msg.text) : msg.text;
+                    let isStarted = !info.startDate || now >= info.startDate;
+                    let isNotExpired = !info.endDate || now <= info.endDate;
+
+                    if (isStarted && isNotExpired) {
+                        let alertObj = { ...info, id: msg.id, readByArr: msg.readBy || [] };
+
+                        if (info.severity === "WARNING" || info.severity === "CRITICAL") {
+                            latestUrgentAlert = alertObj;
+                            break; // 🚀 LƯỚI CHẶN: Đụng Trùm Cuối -> Chốt sổ và đập tan vòng lặp!
+                        } 
+                        else if (info.severity === "INFO" && !latestInfoAlert) {
+                            latestInfoAlert = alertObj; // Lấy Info mới nhất (Nằm trước lưới chặn)
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
+
+        // Đóng gói mảng Ưu tiên (Waterfall): Khẩn cấp xét trước, Info xét sau
+        let alertsToProcess = [latestUrgentAlert, latestInfoAlert].filter(Boolean);
+
+        // 🚀 ĐIỀU KHIỂN CHUÔNG
+        let hasUnreadBell = alertsToProcess.some(a => !a.readByArr.includes(currentUserName + "_Bell"));
+        let bells = document.querySelectorAll('[onclick*="openGlobalChatModal"]');
+        bells.forEach(bell => {
+            bell.classList.add('bell-btn');
+            if (hasUnreadBell) bell.classList.add('has-unread');
+            else bell.classList.remove('has-unread');
+        });
+
+        // 🚀 ĐIỀU KHIỂN GIAO DIỆN COMPONENT
+        if (typeof renderInfoCenterUI === 'function') renderInfoCenterUI(alertsToProcess);
+    },
+
+    // 3. DROPDOWN LỌC TASK & MODAL ADD
+    "dropdownOptions": function(newDropdownData) {
+        console.log("📦 [Logistics] Tải xong Dropdown. Bơm vào Bộ Lọc...");
+        globalDropdownData = newDropdownData; 
+        
+        if (typeof populateFormDropdowns === 'function') populateFormDropdowns(newDropdownData);
+        if (typeof buildFilterCapsulesMenu === 'function') buildFilterCapsulesMenu(newDropdownData);
+        if (globalTasksData && globalTasksData.length > 0 && typeof applyCurrentFilters === 'function') {
+            applyCurrentFilters();
+        }
+    },
+
+    // 4. RADAR ONLINE
+    "onlineUsers": function(newOnlineList) {
+        if (typeof renderOnlineUsers === 'function') renderOnlineUsers(newOnlineList);
+    },
+
+    // 5. THU NHẬP FREELANCER (DASHBOARD)
+    "incomeData": function(newIncomeData) {
+        rawIncomeResponse = newIncomeData;
+        if (typeof processAndRenderIncome === 'function') processAndRenderIncome();
+        if (typeof loadTopFreelancerLeaderboard === 'function' && document.getElementById('topFreelancerHomeBox')) {
+            loadTopFreelancerLeaderboard(newIncomeData);
+        }
+    },
+
+    // 6. CỜ HIỂN THỊ UI BÁO ĐANG LƯU
+    "isSyncing": function(isSyncing) {
+        const syncBtn = document.getElementById('btnSyncGlobal');
+        if (syncBtn) {
+            syncBtn.classList.toggle('is-syncing', isSyncing);
+            syncBtn.disabled = isSyncing;
+        }
+    },
+
+    // 7. CẢNH BÁO CÓ DỮ LIỆU ĐANG KẸT CHƯA LƯU
+    "hasUnsavedData": function(hasUnsaved) {
+        let syncBtn = document.getElementById('btnSyncGlobal');
+        if (!syncBtn) return;
+
+        if (hasUnsaved) {
+            syncBtn.style.border = "1.5px solid #FF3B30";
+            syncBtn.title = "Đang chờ đồng bộ...";
+        } else {
+            syncBtn.style.border = "1.5px solid #4285F4";
+            syncBtn.title = "Đồng bộ hệ thống";
+        }
+    }
+};
+
+/**
+ * 🚀 HÀM KHỞI ĐỘNG HỆ THỐNG LOGISTICS
+ * Gọi hàm này MỘT LẦN DUY NHẤT khi HTML vừa load xong
+ */
+function initCentralLogistics() {
+    // Quét bản đồ và cắm dây liên kết vào Tổng kho
+    for (let key in LISTENER_MAP) {
+        AppStore.subscribe(key, LISTENER_MAP[key]);
+    }
+    console.log("🟢 [Hệ thống] Trạm Logistics Trung tâm đã sẵn sàng hoạt động!");
+
+    // 🚀 FIX LỖI: KÉO DỮ LIỆU NGAY KHI VỪA KHỞI ĐỘNG XONG
+    setTimeout(() => {
+        if(typeof syncGlobalNotifications === 'function') syncGlobalNotifications();
+    }, 500);
+}
+
+// Gọi khởi động ngay khi trình duyệt đọc xong Script
+initCentralLogistics();
+
+    // =========================================================
+    // 🚀 HÀM 1: TRẠM GÁC CHUYỂN TRANG (KIỂM SOÁT ĐỒNG BỘ)
+    // =========================================================
+    // =========================================================
+    // 🚀 HÀM PHỤ TRỢ: SINH HTML GIAO DIỆN LOADING (CHỐNG VỠ LAYOUT 100%)
+    // =========================================================
+    function getLoadingHTML(isWarning) {
+        const title = isWarning ? "Đang hoàn tất lưu dữ liệu..." : "Đang tải không gian làm việc...";
+        const subtitle = isWarning ? "Hệ thống đang đồng bộ. <br>Vui lòng không đóng trang." : "Vui lòng chờ trong giây lát.";
+        const barColor = isWarning ? "linear-gradient(90deg, #FF3B30, #FF9500)" : "linear-gradient(90deg, #4285F4, #34A853)";
+        
+        // 🚀 BƯỚC 2: RÚT LOGO TỪ BỘ NHỚ TRÌNH DUYỆT (LOCALSTORAGE)
+        const cachedLogo = localStorage.getItem('appLogoBase64');
+                
+        // 🚀 ĐÃ FIX ĐIỀU KIỆN: Chỉ cần bắt đầu bằng "data:" là chấp nhận (Bỏ chữ image đi)
+        const safeLogo = (cachedLogo && cachedLogo.startsWith("data:")) 
+                            ? cachedLogo 
+                            : "https://ui-avatars.com/api/?name=Tri+Duc&background=4285F4&color=fff&size=100&bold=true";
+        return `
+            <style>
+                .sync-loading-overlay { display: flex; justify-content: center; align-items: center; height: 500px; width: 100%; font-family: 'Segoe UI', Roboto, sans-serif; }
+                .sync-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.3); text-align: center; }
+                
+                /* 🚀 Tối ưu CSS để ảnh Base64 (dù ngang hay dọc) cũng nằm gọn gàng đẹp mắt */
+                .app-logo-img { width: 70px; height: 70px; border-radius: 50%; object-fit: contain; background: transparent; border: 3px solid #ffffff; box-shadow: 0 8px 20px rgba(66, 133, 244, 0.3); margin-bottom: 20px; animation: pulse-logo 2s infinite; display: inline-block;}
+                
+                @keyframes pulse-logo { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(66, 133, 244, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
+                .sync-title { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+                .sync-subtitle { font-size: 14px; color: #666; margin-bottom: 25px; }
+                .progress-container { width: 100%; height: 6px; background: #eef2f7; border-radius: 10px; overflow: hidden; position: relative; }
+                .progress-bar-shuttle { width: 40%; height: 100%; background: ${barColor}; border-radius: 10px; position: absolute; animation: shuttle-move 1.5s ease-in-out infinite; }
+                @keyframes shuttle-move { 0% { left: -40%; } 50% { left: 100%; } 100% { left: -40%; } }
+            </style>
+            
+            <div class="sync-loading-overlay">
+                <div class="sync-card">
+                    <img src="${safeLogo}" alt="Logo App" class="app-logo-img">
+                    <div class="sync-title">${title}</div>
+                    <div class="sync-subtitle">${subtitle}</div>
+                    <div class="progress-container"><div class="progress-bar-shuttle"></div></div>
+                </div>
+            </div>
+        `;
+    }
+
+    // =========================================================
+    // 🚀 HÀM 1: TRẠM GÁC CHUYỂN TRANG (KIỂM SOÁT ĐỒNG BỘ 2 CỬA)
+    // =========================================================
+    function loadMenuPage(pageName, el) {
+        const storeState = AppStore.getState();
+
+        // NẾU ĐANG CÓ LỆNH ĐỒNG BỘ NGẦM HOẶC ĐANG TẢI DATA -> VÀO TRẠM CHỜ
+        if (storeState.hasUnsavedData || storeState.isSyncing) {
+            if (el) {
+                document.querySelectorAll("#menu a, #sidebar a, .card-btn").forEach(a => a.classList.remove("active"));
+                el.classList.add("active");
+            }
+
+            // GIAO DIỆN CẢNH BÁO CHỜ LƯU DỮ LIỆU (Màu Cam/Đỏ)
+            document.getElementById("main-content").innerHTML = getLoadingHTML(true);
+
+            // 🚀 CỬ 2 THÁM TỬ CANH CẢ 2 CỬA ĐỂ CHỐNG ĐỨNG HÌNH VĨNH VIỄN
+            let isNavigating = false;
+            
+            const checkReadyToGo = () => {
+                const currentState = AppStore.getState();
+                // Chỉ đi tiếp khi: Hàng đã lưu xong (false) VÀ Tải bảng xong (false)
+                if (!currentState.hasUnsavedData && !currentState.isSyncing && !isNavigating) {
+                    isNavigating = true; // Khóa chốt chống chuyển trang 2 lần
+                    if (window.unsubUnsaved) window.unsubUnsaved();
+                    if (window.unsubSync) window.unsubSync();
+                    executePageLoad(pageName, el);
+                }
+            };
+
+            // Đăng ký canh chừng cả 2 cờ
+            window.unsubUnsaved = AppStore.subscribe('hasUnsavedData', checkReadyToGo);
+            window.unsubSync = AppStore.subscribe('isSyncing', checkReadyToGo);
+            
+            // Gọi check ngay lập tức đề phòng trường hợp Data vừa về xong trong chớp mắt
+            checkReadyToGo(); 
+            return;
+        }
+
+        // NẾU KHÔNG VƯỚNG BẬN GÌ -> CHUYỂN TRANG LUÔN
+        executePageLoad(pageName, el);
+    }
+
+    // 🚀 HÀM ĐỘC LẬP: KÉO DỮ LIỆU CỔNG THÔNG TIN VÀO KHO
+    function syncGlobalNotifications() {
+        var sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : JSON.parse(localStorage.getItem('appUserSession'));
+        if (!sessionUser || sessionUser.role === 'Khách lạ') return;
+        
+        google.script.run.withSuccessHandler(function(data) {
+            // Nhét vào AppStore, Bản đồ LISTENER_MAP sẽ tự động kích hoạt hàm vẽ UI
+            AppStore.setState({ globalChat: data }); 
+        }).getGlobalChatMessages(sessionUser);
+    }
+
+    // =========================================================
+    // 🚀 HÀM 2: LÕI THỰC THI CHUYỂN TRANG
+    // =========================================================
+    function executePageLoad(pageName, el) {
+        const myRole = (typeof appUser !== 'undefined') ? appUser.role : 'Khách lạ';
+        const rolePermissions = (typeof appPermissions !== 'undefined' && appPermissions[myRole]) ? appPermissions[myRole] : { allowedPages: [], fullAccess: false };
+        
+        if (!rolePermissions.fullAccess && !rolePermissions.allowedPages.includes(pageName)) {
+            if(el) el.classList.remove("active"); return;
+        }
+
+        if (el) {
+            document.querySelectorAll("#menu a, #sidebar a, .card-btn").forEach(a => a.classList.remove("active"));
+            el.classList.add("active");
+        }
+        
+        window.APP_CURRENT_PAGE = pageName; // CHỐT TRANG HIỆN TẠI VÀO BỘ NHỚ
+
+        document.getElementById("main-content").innerHTML = getLoadingHTML(false);
+        google.script.run.withSuccessHandler(function (html) {
+            const container = document.getElementById("main-content");
+            container.innerHTML = html; 
+            
+            const scripts = container.querySelectorAll("script");
+            scripts.forEach(script => {
+                const newScript = document.createElement("script");
+                if (script.src) newScript.src = script.src;
+                else newScript.textContent = script.textContent;
+                document.body.appendChild(newScript); document.body.removeChild(newScript);
+            });
+ 
+            const initFnName = "init" + pageName;
+            if (typeof window[initFnName] === "function") window[initFnName]();
+            if (typeof controlUiButtonsByPermission === "function") controlUiButtonsByPermission();
+            
+            // 🚀 KHI TẢI TRANG XONG: DỌN DẸP DIV CŨ VÀ KÉO DATA THÔNG BÁO MỚI NHẤT
+            setTimeout(() => {
+                document.getElementById('ic-global-wrapper').innerHTML = "";
+                document.getElementById('ic-toast-container').innerHTML = "";
+                document.getElementById('ic-popup-container').innerHTML = "";
+                syncGlobalNotifications(); 
+            }, 100);
+            
+        }).loadPage(pageName);
+        
+        if (window.innerWidth <= 768) {
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar) sidebar.classList.remove("active");
+        }
+        
+        var bottomNav = document.querySelector('.mb-footer-nav') || document.getElementById('mbBottomNav');
+        if (bottomNav) {
+            if (pageName === 'Home') bottomNav.style.setProperty('display', 'none', 'important');
+            else bottomNav.style.display = 'flex';
+        }
+    }
+    // =========================================================================
+    // 🎯 TÍNH NĂNG: THEO DÕI & HIGHLIGHT DÒNG (PHIÊN BẢN V5 - ĐẢO NGƯỢC TƯ DUY)
+    // =========================================================================
+    
+    let frontendHighlightedRowId = null;
+
+    document.addEventListener('mousedown', function(event) {
+        // Nhận diện dòng trên Laptop hoặc thẻ Card trên Mobile
+        const clickedRow = event.target.closest('tbody tr'); 
+        const clickedMobileCard = event.target.closest('.task-mobile-card');
+
+        // NẾU NHẤN VÀO 1 DÒNG / THẺ TRONG BẢNG:
+        if (clickedRow || clickedMobileCard) {
+            let targetRow = clickedRow || clickedMobileCard;
+            
+            document.querySelectorAll('.task-row-highlight').forEach(el => el.classList.remove('task-row-highlight'));
+            targetRow.classList.add('task-row-highlight');
+            
+            // Tìm ID dòng (Laptop nằm ở td, Mobile nằm ngay trên thẻ mẹ)
+            let cellWithRowData = targetRow.querySelector('td[data-row]') || targetRow;
+            if (cellWithRowData && cellWithRowData.getAttribute('data-row')) {
+                frontendHighlightedRowId = cellWithRowData.getAttribute('data-row');
+            }
+            return; 
+        }
+
+        // 🚀 RADAR V5: ĐẢO NGƯỢC TƯ DUY
+        // Chỉ xóa Highlight khi user bấm TRỰC TIẾP vào các vùng nền trống rỗng của App
+        const isBackgroundClick = event.target.classList.contains('task-page-container') ||
+                                  event.target.classList.contains('dt-main-content') ||
+                                  event.target.classList.contains('task-table-wrapper') ||
+                                  event.target.tagName === 'BODY' ||
+                                  event.target.tagName === 'HTML';
+
+        if (isBackgroundClick) {
+            frontendHighlightedRowId = null; 
+            document.querySelectorAll('.task-row-highlight').forEach(el => el.classList.remove('task-row-highlight'));
+        }
+        
+        // CÁC TRƯỜNG HỢP CÒN LẠI (Bấm Vùng đen Modal, Chuông, Bộ Lọc, Floating Pill...) -> MẶC NHIÊN ĐƯỢC BẢO VỆ!
+    });
+    // =========================================================================
+// 🚀 ĐỘNG CƠ TÍNH TOÁN TÀI CHÍNH GLOBAL (CHẠY NGẦM KHÔNG CẦN DASHBOARD UI)
+// =========================================================================
+window.appGlobalProjectMatrix = null; // Biến chứa dữ liệu xuất ra
+
+window.GlobalFinancialEngine = {
+    // Chạy ngầm gom dữ liệu Pivot Kép
+    buildPivotMatrix: function(timeType = 'this_month') {
+        let tasks = window.globalTasksData || [];
+        let mktData = window.globalExtraCostsData || {};
+        
+        let matrix = { byProject: {}, grandTotal: { count: 0, cost_da: 0, mkt_cost: 0, total: 0 } };
+        
+        let now = new Date(); 
+        let currM = now.getMonth() + 1; let currY = now.getFullYear();
+        let lastM = currM - 1; let lastY = currY; if(lastM === 0){ lastM = 12; lastY--; }
+
+        // 1. HÀM CHECK KỲ KẾ TOÁN (Rút gọn từ Dashboard Engine)
+        const checkPeriod = (d, m, y, type) => {
+            let b = 1; let fM = m; let fY = y;
+            if (d >= 11 && d <= 25) { b = 2; } 
+            else if (d >= 26) { b = 1; fM++; if (fM > 12) { fM = 1; fY++; } } 
+            else if (d <= 10) { b = 1; }
+
+            if (type === 'this_month') return (fM === currM && fY === currY);
+            if (type === 'last_month') return (fM === lastM && fY === lastY);
+            if (type === 'this_year') return (fY === currY);
+            return true; // Mặc định 'all'
+        };
+
+        // 2. DUYỆT BẢNG TASK
+        tasks.forEach(t => {
+            let payStr = (t.projchargedate || "").toString().trim();
+            let d=0, m=0, y=0, isValid = false;
+
+            // Ưu tiên 1: Cột Tiến độ thanh toán (xxyyzzzz)
+            let match = payStr.match(/^(01|02)(0[1-9]|1[0-2])(\d{4})$/);
+            if (match) {
+                d = (match[1] === "01") ? 10 : 25; m = parseInt(match[2], 10); y = parseInt(match[3], 10);
+                isValid = true;
+            } else {
+                // Ưu tiên 2 & 3: Ngày Air hoặc Hoàn thành
+                let isDone = (t.status || "").toLowerCase().includes("hoàn thành");
+                let altDateStr = (t.airdate && t.airdate !== "-") ? t.airdate : (isDone ? t.complete : null);
+                if (altDateStr) {
+                    let pts = altDateStr.split('/');
+                    if (pts.length === 3) { d = parseInt(pts[0], 10); m = parseInt(pts[1], 10); y = parseInt(pts[2], 10); isValid = true; }
+                }
+            }
+
+            if (!isValid) return; // Rớt đài
+            if (!checkPeriod(d, m, y, timeType)) return; // Sai kỳ thời gian
+
+            let proj = t.project || "Khác";
+            let cost = parseInt(String(t.projcharge || "0").replace(/[^0-9]/g, '')) || 0;
+            
+            if (!matrix.byProject[proj]) matrix.byProject[proj] = { count: 0, cost_da: 0, mkt_cost: 0, total: 0 };
+            
+            matrix.byProject[proj].count += 1;
+            matrix.byProject[proj].cost_da += cost;
+            matrix.byProject[proj].total += cost;
+
+            matrix.grandTotal.count += 1;
+            matrix.grandTotal.cost_da += cost;
+            matrix.grandTotal.total += cost;
+        });
+
+        // 3. DUYỆT BẢNG CHI PHÍ MKT
+        Object.keys(mktData).forEach(projName => {
+            Object.keys(mktData[projName]).forEach(claimId => {
+                let match = String(claimId).trim().match(/^(01|02)(0[1-9]|1[0-2])(\d{4})$/);
+                if (!match) return;
+                let cBatch = parseInt(match[1], 10); let cM = parseInt(match[2], 10); let cY = parseInt(match[3], 10);
+                let d = (cBatch === 1) ? 10 : 25;
+
+                if (!checkPeriod(d, cM, cY, timeType)) return;
+
+                if (!matrix.byProject[projName]) matrix.byProject[projName] = { count: 0, cost_da: 0, mkt_cost: 0, total: 0 };
+
+                mktData[projName][claimId].forEach(costItem => {
+                    let mktVal = typeof costItem.amount === 'number' ? costItem.amount : parseInt(String(costItem.amount || "0").replace(/[^0-9]/g, ''), 10) || 0;
+                    
+                    matrix.byProject[projName].mkt_cost += mktVal;
+                    matrix.byProject[projName].total += mktVal;
+                    matrix.grandTotal.mkt_cost += mktVal;
+                    matrix.grandTotal.total += mktVal;
+                });
+            });
+        });
+
+        window.appGlobalProjectMatrix = matrix;
+        console.log(`✅ [Global Engine] Đã tính toán xong Pivot Kép cho kỳ "${timeType}":`, matrix);
+        return matrix;
+    }
+};
+// =========================================================================
+// 📢 INFO CENTER MATRIX & RENDERER (CỖ MÁY ĐIỀU KHIỂN THÔNG BÁO)
+// =========================================================================
+const INFO_CENTER_MATRIX = {
+    "Home": { allowedTypes: ["INFO", "WARNING", "CRITICAL"], renderComponent: "PopupBanner", autoHide: false },
+    "Task_list": { allowedTypes: ["INFO", "WARNING", "CRITICAL"], renderComponent: "ScrollingTicker", autoHide: false },
+    "Income_modal": { allowedTypes: ["INFO", "WARNING", "CRITICAL"], renderComponent: "FloatingToast", autoHide: true, duration: 5000 },
+    "Dashboard_modal": { allowedTypes: ["INFO", "WARNING", "CRITICAL"], renderComponent: "ScrollingTicker", autoHide: false }
+};
+
+window.APP_CURRENT_PAGE = "Home"; // Mặc định ban đầu
+
+// 🚀 HÀM MỚI: CẢM BIẾN ĐÁNH DẤU ĐÃ ĐỌC (ĐÃ BỌC THÉP VÀ GẮN CỜ)
+function markComponentAsRead(alertId, componentType) {
+    console.log(`🚩 [CẢM BIẾN TRIGGER] Đã kích hoạt markComponentAsRead cho ID: ${alertId} | Nguồn: ${componentType}`);
+    
+    // 1. TÌM USER CHUẨN XÁC
+    let currentUser = (typeof appUser !== 'undefined' && appUser) ? appUser : JSON.parse(localStorage.getItem('appUserSession'));
+    
+    if (!currentUser || !currentUser.name) {
+        console.error("❌ [LỖI TRẠM GÁC] Không tìm thấy thông tin User đang đăng nhập! Đã hủy lệnh gửi.");
+        return;
+    }
+
+    // 2. CHỐNG SPAM (TICKER)
+    let cacheKey = "READ_" + alertId + "_" + componentType;
+    if (sessionStorage.getItem(cacheKey)) {
+        console.log(`⚠️ [TRẠM GÁC] Lệnh này đã gửi trong phiên làm việc rồi. Bỏ qua để chống Spam!`);
+        return; 
+    }
+    sessionStorage.setItem(cacheKey, "true");
+
+    // 3. ĐÓNG GÓI VÀ GỌI XE TẢI
+    let readMark = currentUser.name + "_" + componentType;
+    console.log(`📦 [TRẠM GÁC] Bắt đầu đóng gói kiện hàng cho: ${readMark}`);
+    
+    AppStore.dispatchAction({
+        actionId: "READ_ALERT_" + alertId + "_" + componentType + "_" + Date.now(), 
+        actionType: "MARK_ALERT_READ",
+        alertId: alertId,
+        userName: readMark
+    });
+    
+    console.log(`🚚 [TRẠM GÁC] Đã ném vào kho. ÉP XE TẢI FLUSH QUEUE CHẠY NGAY!`);
+    AppStore.flushQueue(); 
+}
+
+// HÀM ĐÓNG THÔNG BÁO GIAO DIỆN
+function closeInfoAlert(alertId, el, componentType) {
+    let container = el.closest('#ic-popup-overlay') || el.closest('.ic-toast') || el.closest('.ic-ticker-bar');
+    if (container) container.remove();
+    
+    let closedAlerts = JSON.parse(sessionStorage.getItem('closedAlerts') || "[]");
+    closedAlerts.push(alertId);
+    sessionStorage.setItem('closedAlerts', JSON.stringify(closedAlerts));
+
+    // Nếu bấm nút Đóng/Đã Rõ -> Báo cáo đã đọc luôn
+    if (componentType) markComponentAsRead(alertId, componentType);
+    
+    AppStore.notify(['globalChat']);
+}
+
+// CỖ MÁY VẼ GIAO DIỆN COMPONENT
+function renderInfoCenterUI(activeAlerts) {
+    let currentPage = window.APP_CURRENT_PAGE;
+    let pageConfig = INFO_CENTER_MATRIX[currentPage];
+    if (!pageConfig) return;
+
+    let closedAlerts = JSON.parse(sessionStorage.getItem('closedAlerts') || "[]");
+
+    let alertsToShow = activeAlerts.filter(a => {
+        let isSeverityAllowed = pageConfig.allowedTypes.includes(a.severity);
+        let isTargetPage = a.targetPages.includes("TẤT CẢ") || a.targetPages.includes("Tất cả") || a.targetPages.includes(currentPage);
+        let isNotClosedInSession = !closedAlerts.includes(a.id);
+        
+        // 🚀 LỌC CHÉO: Xem User ĐÃ ĐỌC thông báo này ở Giao diện Tương ứng chưa
+        let isNotReadByThisComponent = !(a.readByArr || []).includes((appUser ? appUser.name : "") + "_" + pageConfig.renderComponent);
+
+        return isSeverityAllowed && isTargetPage && isNotClosedInSession && isNotReadByThisComponent;
+    });
+
+    if (alertsToShow.length === 0) return;
+
+    let tickerHtml = ""; let toastHtml = ""; let popupHtml = "";
+    
+    alertsToShow.forEach(alert => {
+        let icon = alert.severity === "CRITICAL" ? "🚨" : (alert.severity === "WARNING" ? "⚠️" : "📢");
+        
+        if (pageConfig.renderComponent === "PopupBanner") {
+            let bgHeader = alert.severity === "CRITICAL" ? "linear-gradient(135deg, #DC2626, #991B1B)" : (alert.severity === "WARNING" ? "linear-gradient(135deg, #D97706, #B45309)" : "linear-gradient(135deg, #4285F4, #1A56B5)");
+            popupHtml += `
+                <div id="ic-popup-overlay">
+                    <div class="ic-popup">
+                        <div class="ic-popup-header" style="background: ${bgHeader};">
+                            <span>${icon}</span>
+                            <div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[THÔNG BÁO] ${alert.title}</div>
+                        </div>
+                        <div class="ic-popup-body">${alert.message.replace(/\n/g, '<br>')}</div>
+                        <div class="ic-popup-footer">
+                            <button class="ic-btn-confirm" style="background: ${bgHeader};" onclick="closeInfoAlert('${alert.id}', this, 'PopupBanner')">ĐÃ RÕ</button>
+                        </div>
+                    </div>
+                </div>`;
+        } 
+        else if (pageConfig.renderComponent === "FloatingToast") {
+            toastHtml += `
+                <div class="ic-toast ${alert.severity}" id="ic_${alert.id}">
+                    <button class="ic-close-btn" onclick="closeInfoAlert('${alert.id}', this, 'FloatingToast')">✕</button>
+                    <div class="ic-toast-title">${icon} ${alert.title}</div>
+                    <div style="font-size:13px; color:#444; line-height:1.4;">${alert.message.replace(/\n/g, '<br>')}</div>
+                </div>`;
+            if (pageConfig.autoHide) {
+                setTimeout(() => {
+                    let toastEl = document.getElementById(`ic_${alert.id}`);
+                    if (toastEl) closeInfoAlert(alert.id, toastEl.querySelector('.ic-close-btn'), 'FloatingToast');
+                }, pageConfig.duration || 5000);
+            }
+        }
+        else if (pageConfig.renderComponent === "ScrollingTicker") {
+            tickerHtml += `
+                <div class="ic-ticker-bar ${alert.severity}" id="ic_${alert.id}">
+                    <div class="ic-ticker-label">${icon} ${alert.title}</div>
+                    <div style="flex:1; overflow:hidden; white-space:nowrap;">
+                        <span class="ic-ticker-text" onanimationiteration="markComponentAsRead('${alert.id}', 'ScrollingTicker')">${alert.message}</span>
+                    </div>
+                    <button class="ic-ticker-close" onclick="closeInfoAlert('${alert.id}', this, 'ScrollingTicker')">✕</button>
+                </div>`;
+        }
+    });
+
+    let globalWrapper = document.getElementById('ic-global-wrapper');
+    if (globalWrapper) globalWrapper.innerHTML = tickerHtml;
+    
+    let toastContainer = document.getElementById('ic-toast-container');
+    if (toastContainer) toastContainer.innerHTML = toastHtml;
+    
+    let oldPopup = document.getElementById('ic-popup-overlay');
+    if (oldPopup) oldPopup.remove();
+    if (popupHtml !== "") document.body.insertAdjacentHTML('beforeend', popupHtml);
+}
+
+// =========================================================================
+// 🚀 TRẠM GÁC OPTISYNC V5: ĐÁNH DẤU ĐÃ ĐỌC (LƯU VÀO DB GỐC)
+// =========================================================================
+window.markComponentAsRead = function(alertId, componentType, elementToDestroy) {
+    let currentUserName = (typeof appUser !== 'undefined' && appUser) ? appUser.name : "";
+    if (!currentUserName) return;
+
+    let readMark = currentUserName + "_" + componentType;
+
+    // 1. Dọn dẹp UI ngay lập tức
+    if (elementToDestroy) {
+        let container = elementToDestroy.closest('#ic-popup-overlay') || elementToDestroy.closest('.ic-toast') || elementToDestroy.closest('.ic-ticker-bar');
+        if (container) container.remove();
+    }
+
+    // 2. Khóa an toàn RAM: Chống user bấm liên tục hoặc Ticker chạy quá nhanh 
+    let lockKey = "LOCK_" + alertId + "_" + componentType;
+    if (window[lockKey]) return; 
+    window[lockKey] = true;
+
+    console.log(`📦 [OptiSync V5] Đã xác nhận ${componentType}. Bơm hàng lên xe tải!`);
+    
+    // 3. Chuẩn OptiSync V5
+    AppStore.dispatchAction({
+        actionId: "READ_ALERT_" + alertId + "_" + componentType + "_" + Date.now(), 
+        actionType: "MARK_ALERT_READ",
+        alertId: alertId,
+        userName: readMark
+    });
+    
+    AppStore.flushQueue(); // 🚚 ÉP XE TẢI CHẠY TỨC THÌ
+};
+
+// =========================================================================
+// 🎨 CỖ MÁY VẼ GIAO DIỆN (THÁC ĐỔ - WATERFALL)
+// =========================================================================
+function renderInfoCenterUI(alertsToProcess) {
+    let globalWrapper = document.getElementById('ic-global-wrapper');
+    let toastContainer = document.getElementById('ic-toast-container');
+    let oldPopup = document.getElementById('ic-popup-overlay');
+    
+    // Dọn sạch tàn dư cũ
+    if (globalWrapper) globalWrapper.innerHTML = "";
+    if (toastContainer) toastContainer.innerHTML = "";
+    if (oldPopup) oldPopup.remove();
+
+    if (!alertsToProcess || alertsToProcess.length === 0) return;
+
+    let currentPage = window.APP_CURRENT_PAGE;
+    let pageConfig = INFO_CENTER_MATRIX[currentPage];
+    if (!pageConfig) return;
+
+    let currentUserName = (typeof appUser !== 'undefined' && appUser) ? appUser.name : "";
+    let componentType = pageConfig.renderComponent;
+    let readMark = currentUserName + "_" + componentType;
+
+    let alertToShow = null;
+
+    // 🚀 LỌC ƯU TIÊN: Quét từ Khẩn Cấp -> Info. Lấy đúng 1 thông báo CHƯA ĐỌC đầu tiên!
+    for (let alert of alertsToProcess) {
+        let isSeverityAllowed = pageConfig.allowedTypes.includes(alert.severity);
+        let isTargetPage = alert.targetPages.includes("TẤT CẢ") || alert.targetPages.includes("Tất cả") || alert.targetPages.includes(currentPage);
+        let isRead = alert.readByArr.includes(readMark);
+
+        if (isSeverityAllowed && isTargetPage && !isRead) {
+            alertToShow = alert;
+            break; // 🚀 Gặp tin chưa đọc -> Chốt và nhường sân khấu!
+        }
+    }
+
+    if (!alertToShow) {
+        console.log(`✅ User đã đọc mọi thông báo quan trọng cho trang này. Bảng sạch.`);
+        return; 
+    }
+
+    // VẼ COMPONENT TƯƠNG ỨNG
+    let icon = alertToShow.severity === "CRITICAL" ? "🚨" : (alertToShow.severity === "WARNING" ? "⚠️" : "📢");
+    
+    if (componentType === "PopupBanner") {
+        let bgHeader = alertToShow.severity === "CRITICAL" ? "linear-gradient(135deg, #DC2626, #991B1B)" : (alertToShow.severity === "WARNING" ? "linear-gradient(135deg, #D97706, #B45309)" : "linear-gradient(135deg, #4285F4, #1A56B5)");
+        let popupHtml = `
+            <div id="ic-popup-overlay">
+                <div class="ic-popup">
+                    <div class="ic-popup-header" style="background: ${bgHeader};">
+                        <span>${icon}</span>
+                        <div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[THÔNG BÁO] ${alertToShow.title}</div>
+                    </div>
+                    <div class="ic-popup-body">${alertToShow.message.replace(/\n/g, '<br>')}</div>
+                    <div class="ic-popup-footer">
+                        <button class="ic-btn-confirm" style="background: ${bgHeader};" onclick="markComponentAsRead('${alertToShow.id}', 'PopupBanner', this)">ĐÃ RÕ</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+    } 
+    else if (componentType === "ScrollingTicker") {
+        let tickerHtml = `
+            <div class="ic-ticker-bar ${alertToShow.severity}" id="ic_${alertToShow.id}">
+                <div class="ic-ticker-label">${icon} ${alertToShow.title}</div>
+                <div style="flex:1; overflow:hidden; white-space:nowrap;">
+                    <span class="ic-ticker-text" onanimationiteration="markComponentAsRead('${alertToShow.id}', 'ScrollingTicker', this)">${alertToShow.message}</span>
+                </div>
+                <button class="ic-ticker-close" onclick="markComponentAsRead('${alertToShow.id}', 'ScrollingTicker', this)">✕</button>
+            </div>`;
+        if (globalWrapper) globalWrapper.innerHTML = tickerHtml;
+    }
+}
+
+
+    </script>
+    <?!= include('Income_Modal'); ?>    
+    <?!= include('Global_Chat_Modal'); ?> 
+    <?!= include('Dashboard_Modal'); ?> 
+    <?!= include('Media_Hub_Modal'); ?>   
+  </body>
+</html>

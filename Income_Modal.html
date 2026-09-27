@@ -1,0 +1,1111 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style> 
+    #incomeModal * { font-family: 'Inter', 'Montserrat', sans-serif; }
+    
+    .income-max-modal { 
+        width: 95% !important; max-width: 1400px !important; 
+        height: 88vh !important; max-height: 850px !important; 
+        display: flex; flex-direction: column; overflow: hidden;
+        border-radius: 20px !important; box-shadow: 0 25px 60px rgba(0,0,0,0.4) !important;
+    }
+    
+    .ic-header-thin {
+        background: #1A56B5; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .ic-header-thin h3 { font-family: 'Montserrat', sans-serif; color: #FFF; font-weight: 900; font-size: 16px; margin: 0; letter-spacing: 0.5px; text-transform: uppercase; }
+    
+    .income-modal-body { display: flex; flex-direction: row; flex: 1; background: #F4F7FC; overflow: hidden; padding: 0 !important; }
+    
+    .income-sidebar { width: 260px; background: #FFF; border-right: 1px solid #E5E7EB; padding: 20px 12px; display: flex; flex-direction: column; gap: 8px; z-index: 10; }
+    .income-tab-btn {
+        display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: transparent; border: none; border-radius: 12px;
+        cursor: pointer; text-align: left; transition: 0.2s;
+    }
+    .income-tab-btn .tab-text { font-family: 'Montserrat', sans-serif; font-size: 13.5px; font-weight: 700; color: #555; }
+    .income-tab-btn .tab-sub { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; margin-top: 4px; }
+    .income-tab-btn:hover { background: #F8FAFD; }
+    .income-tab-btn.active { background: #1A56B5; box-shadow: 0 8px 15px rgba(26,86,181,0.25); }
+    .income-tab-btn.active .tab-text, .income-tab-btn.active .tab-sub { color: #FFF; }
+
+    .income-content-wrapper { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .income-filter-bar { padding: 16px 24px; background: #FFF; border-bottom: 1px solid #E5E7EB; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .ic-filter-group { display: flex; align-items: center; gap: 10px; }
+    .ic-filter-group label { font-size: 11px; font-weight: 800; color: #555; text-transform: uppercase; }
+    .ic-filter-select { padding: 8px 12px; border-radius: 8px; border: 1px solid #D1D5DB; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; outline: none; }
+    
+    .income-data-panel { padding: 24px; overflow-y: auto; flex: 1; }
+    .ic-title-bold { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; margin: 0 0 20px 0; color: #12151C; text-transform: uppercase; }
+    
+    .ic-table-card { background: #FFF; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid #E5E7EB; margin-bottom: 20px; }
+    .ic-table-card table { width: 100%; border-collapse: collapse; }
+    .ic-table-card th { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; color: #555; background: #F8FAFD; padding: 14px 16px; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; }
+    .ic-table-card td { font-size: 14px; color: #333; padding: 14px 16px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+    
+    .admin-salary-box { background: #FFF; border: 1px solid #4285F4; border-radius: 16px; padding: 20px; margin-top: 24px; box-shadow: 0 4px 15px rgba(66,133,244,0.05); }
+    .admin-salary-adder-bar { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; background: #F8FAFC; padding: 14px; border-radius: 12px; border: 1px solid #E2E8F0; }
+    .ic-money-input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; color: #1A56B5; outline: none; }
+    .ic-money-input:focus { border-color: #4285F4; box-shadow: 0 0 0 3px rgba(66,133,244,0.1); }
+    .btn-delete-salary { background: none; border: none; color: #EF4444; cursor: pointer; font-size: 16px; padding: 4px; border-radius: 6px; transition: 0.2s; }
+    .btn-delete-salary:hover { background: #Ffee2e2; }
+
+    @media (max-width: 768px) {
+        .income-max-modal { width: 100% !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; }
+        .income-modal-body { flex-direction: column; }
+        .income-sidebar { width: 100%; flex-direction: row; padding: 10px; overflow-x: auto; border-bottom: 1px solid #E5E7EB; }
+        .income-tab-btn { flex: 1; min-width: 150px; padding: 10px; }
+        .admin-salary-adder-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+        .ic-desktop-table { display: none !important; }
+        .ic-mobile-list { display: flex !important; flex-direction: column; gap: 12px; width: 100%; }
+    }
+    
+    .ic-desktop-table { display: table; width: 100%; }
+    .ic-mobile-list { display: none; width: 100%; flex-direction: column; gap: 12px; }
+
+    @media (max-width: 768px) {
+        .ic-desktop-table { display: none !important; }
+        .ic-mobile-list { display: flex !important; }
+    }
+    
+    .ic-card { background: #FFF; border-radius: 16px; border: 1px solid #E5E7EB; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow: hidden; transition: 0.3s; }
+    .ic-card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 12px; }
+    .ic-card-title { flex: 1; font-size: 14px; font-weight: 800; color: #111; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+    .ic-card-price { font-weight: 900; color: #0D652D; font-size: 15px; white-space: nowrap; flex-shrink: 0; }
+    .ic-card-arrow { font-size: 12px; color: #4285F4; transition: 0.3s; padding-left: 5px; }
+    .ic-card-body { max-height: 0; overflow: hidden; background: #F8FAFD; padding: 0 16px; transition: max-height 0.4s ease, padding 0.4s ease; border-top: 1px solid transparent; }
+    .ic-card.expanded .ic-card-body { max-height: 500px; padding: 16px; border-top-color: #E5E7EB; }
+    .ic-card.expanded .ic-card-arrow { transform: rotate(180deg); }
+    .ic-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #E5E7EB; }
+    .ic-row:last-child { border-bottom: none; }
+    .ic-label { font-size: 12px; font-weight: 800; color: #666; }
+    .ic-value { font-size: 13px; font-weight: 600; color: #111; text-align: right; }
+
+    .global-collapse-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 16px; background: #F8FAFD; border-bottom: 1px solid #E5E7EB;
+        font-size: 12.5px; font-weight: 800; color: #1A56B5; cursor: pointer; user-select: none; transition: 0.3s;
+    }
+    .global-collapse-header:hover { background: #E8F0FE; }
+    .collapse-arrow { font-size: 12px; transition: transform 0.3s ease; }
+    .global-collapse-header.expanded .collapse-arrow { transform: rotate(180deg); }
+
+    .collapse-body-global { 
+        max-height: 0; overflow: hidden; padding: 0 16px !important; 
+        transition: max-height 0.4s ease, padding 0.4s ease; opacity: 0;
+    }
+    .collapse-body-global.expanded { max-height: 800px; padding: 16px !important; opacity: 1; }
+</style>
+
+<div id="incomeModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:99999; display:none; justify-content:center; align-items:center; opacity:0; transition:0.3s;" onclick="closeIncomeModal()">
+    <div class="note-modal-content income-max-modal" onclick="event.stopPropagation()">
+        
+        <div class="ic-header-thin">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:20px;">🏆</span>
+                <h3>BẢNG VÀNG THU NHẬP TEAM</h3>
+            </div>
+            <button onclick="closeIncomeModal()" style="background:none; border:none; cursor:pointer; color:#FFF; font-size: 24px; line-height: 1;">×</button>
+        </div>
+        
+        <div class="income-modal-body">
+            <div class="income-sidebar">
+                <button class="income-tab-btn active" onclick="switchIncomeTab(0)">
+                    <div style="font-size:20px;">📊</div>
+                    <div><div class="tab-text">Thống kê Thu nhập</div><div class="tab-sub">TRÍ ĐỨC CAR MEDIA TEAM</div></div>
+                </button>
+                <button class="income-tab-btn" onclick="switchIncomeTab(1)">
+                    <div style="font-size:20px;">💵</div>
+                    <div><div class="tab-text">Thu nhập của bạn</div><div id="incomeTabUserName" class="tab-sub" style="color:#4285F4;">CHÍNH CHỦ</div></div>
+                </button>
+            </div>
+            
+            <div class="income-content-wrapper">
+                <div id="icPaymentInfoSection" style="display:none; background: #FFF; border-bottom: 1px solid #E5E7EB; border-left: 4px solid #1A56B5;">
+                    <div class="global-collapse-header" onclick="toggleGlobalSection('paymentBody', this)">
+                        <div style="display:flex; align-items:center; gap:8px;"><span>💳</span> <span id="icPaymentTitleText">THÔNG TIN NHẬN LƯƠNG</span></div>
+                        <div class="collapse-arrow">▼</div>
+                    </div>
+                    <div id="paymentBody" class="collapse-body-global">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 14px 8px;">
+                            <div>
+                                <label style="font-size:11px; font-weight:800; color:#666; text-transform:uppercase; display:block; margin-bottom:6px;">Tên tài khoản</label>
+                                <input type="text" id="ic_acc_name" onblur="autoSavePaymentInfo()" style="width:100%; padding:10px; border:1px solid #B3CFFD; border-radius:8px; font-size:13px; font-weight:600; text-transform:uppercase; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:11px; font-weight:800; color:#666; text-transform:uppercase; display:block; margin-bottom:6px;">Số tài khoản</label>
+                                <input type="text" id="ic_acc_num" onblur="autoSavePaymentInfo()" style="width:100%; padding:10px; border:1px solid #B3CFFD; border-radius:8px; font-size:13px; font-weight:700; color:#1A56B5; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:11px; font-weight:800; color:#666; text-transform:uppercase; display:block; margin-bottom:6px;">Ngân hàng nhận</label>
+                                <input type="text" id="ic_acc_bank" onblur="autoSavePaymentInfo()" style="width:100%; padding:10px; border:1px solid #B3CFFD; border-radius:8px; font-size:13px; font-weight:600; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div id="icSaveStatus" style="font-size:11px; color:#0D652D; font-weight:700; padding: 0 8px 10px 0; display:none; text-align:right;">✓ Đã tự động cập nhật số tài khoản!</div>
+                    </div>
+                </div>
+
+                <div style="background: #FFF; border-bottom: 1px solid #E5E7EB;">
+                    <div class="global-collapse-header expanded" onclick="toggleGlobalSection('filterBody', this)">
+                        <div style="display:flex; align-items:center; gap:8px;"><span>🔍</span> BỘ LỌC TÌM KIẾM</div>
+                        <div class="collapse-arrow">▼</div>
+                    </div>
+                    <div id="filterBody" class="income-filter-bar collapse-body-global expanded">
+                        <div class="ic-filter-group" id="icManagerUserFilterGroup" style="display:none; padding-right:16px; border-right:2px dashed #E5E7EB; margin-right:8px;">
+                            <label style="color:#D93025;">GÓC NHÌN QUẢN LÝ</label>
+                            <select id="icFilterManagerUser" class="ic-filter-select" onchange="onManagerUserChange()" style="border-color:#D93025; color:#D93025; font-weight:800; background:#FEF7E0;"></select>
+                        </div>
+                        <div class="ic-filter-group"><label>Đợt</label><select id="icFilterBatch" class="ic-filter-select" onchange="processAndRenderIncome()"><option value="All">Tất cả</option><option value="1">Đợt 1</option><option value="2">Đợt 2</option></select></div>
+                        <div class="ic-filter-group"><label>Tháng</label><select id="icFilterMonth" class="ic-filter-select" onchange="processAndRenderIncome()">
+                            <option value="All">Tất cả</option><option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option><option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8">Tháng 8</option><option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                        </select></div>
+                        <div class="ic-filter-group"><label>Năm</label><select id="icFilterYear" class="ic-filter-select" onchange="processAndRenderIncome()"><option value="All">Tất cả</option><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
+                    </div>
+                </div>
+
+                <div class="income-data-panel">
+                    <div id="incomeModalLoader" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px;">
+                        <div class="spinner-arrow-rotate" style="width: 42px; height: 42px; border: 4px solid rgba(26,86,181,0.1); border-top: 4px solid #1A56B5; border-radius: 50%; display: inline-block; animation: spin-around 0.9s linear infinite;"></div>
+                        <div style="margin-top:14px; color:#1A56B5; font-weight:700; font-size:14px;">Đang tải dữ liệu thu nhập...</div>
+                    </div>
+                    <div id="incomeModalView" style="display:none;"></div>
+                </div>            
+            </div>          
+        </div>
+    </div>
+</div>
+
+<script>
+    var rawIncomeResponse = null;
+    var currentIncomeTab = 0;
+
+    // 🚀 ĐIỀU CHỈNH 2: BỘ SÀNG LỌC TỰ CHỮA LÀNH DỮ LIỆU LỊCH SỬ CŨ SANG MỚI REALTIME
+    function normalizeAdminSalaryData(salariesObj) {
+        if (!salariesObj) return {};
+        let cleanObj = JSON.parse(JSON.stringify(salariesObj)); 
+        
+        Object.keys(cleanObj).forEach(user => {
+            let years = cleanObj[user];
+            if (!years || typeof years !== 'object') return;
+            
+            Object.keys(years).forEach(year => {
+                let months = years[year];
+                if (!months || typeof months !== 'object') return;
+                
+                Object.keys(months).forEach(month => {
+                    let data = months[month];
+                    if (!data || typeof data !== 'object') return;
+                    
+                    // Phát hiện nếu cấu trúc chứa l1/l2/b1/b2 cũ phẳng lặng
+                    if (data.hasOwnProperty('l1') || data.hasOwnProperty('b1') || data.hasOwnProperty('l2') || data.hasOwnProperty('b2')) {
+                        let oldL1 = data.l1 || 0; let oldB1 = data.b1 || 0;
+                        let oldL2 = data.l2 || 0; let oldB2 = data.b2 || 0;
+                        
+                        // Tiến hành cấu trúc lại sang dạng mảng đa tầng dự án
+                        months[month] = { "batch_1": [], "batch_2": [] };
+                        
+                        if (oldL1 > 0 || oldB1 > 0) {
+                            months[month]["batch_1"].push({
+                                id: "migrated_1_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+                                project: "Trí Đức Car Media", // Đưa về dự án mặc định hạch toán
+                                salary: oldL1, bonus: oldB1
+                            });
+                        }
+                        if (oldL2 > 0 || oldB2 > 0) {
+                            months[month]["batch_2"].push({
+                                id: "migrated_2_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+                                project: "Trí Đức Car Media", // Đưa về dự án mặc định hạch toán
+                                salary: oldL2, bonus: oldB2
+                            });
+                        }
+                    }
+                });
+            });
+        });
+        return cleanObj;
+    }
+
+    function formatMoneyInput(input) {
+        let val = input.value.replace(/[^0-9]/g, '');
+        if(val === '') { input.value = ''; return; }
+        input.value = parseInt(val).toLocaleString('vi-VN');
+    }
+
+    function openIncomeModal() {
+        const modal = document.getElementById('incomeModal');
+        if(!modal) return;
+        
+        let bottomNav = document.querySelector('.mb-footer-nav');
+        if(bottomNav) bottomNav.style.setProperty('display', 'none', 'important');
+        
+        var sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')) || { name: "Khách", role: "Khách" });
+        document.getElementById('incomeTabUserName').innerText = sessionUser.name;
+        
+        let currentM = new Date().getMonth() + 1;
+        document.getElementById('icFilterMonth').value = currentM.toString();
+        
+        modal.style.display = 'flex';
+        window.APP_CURRENT_PAGE = "Income_modal";
+        AppStore.notify(['globalChat']);
+        setTimeout(() => { modal.style.opacity = '1'; modal.classList.add('show'); }, 10);
+        
+        document.getElementById('incomeModalLoader').style.display = 'block';
+        document.getElementById('incomeModalView').style.display = 'none';
+
+        google.script.run.withSuccessHandler(res => {
+            // 🚀 Ép dỡ hàng qua trạm làm sạch cấu hình trước khi nạp vào RAM hệ thống
+            if (res && res.adminSalaries) {
+                res.adminSalaries = normalizeAdminSalaryData(res.adminSalaries);
+            }
+            rawIncomeResponse = res;
+            
+            document.getElementById('incomeModalLoader').style.display = 'none';
+            document.getElementById('incomeModalView').style.display = 'block';
+            if (sessionUser.role === 'Quản lý') {
+                let userGroup = document.getElementById('icManagerUserFilterGroup');
+                let userSelect = document.getElementById('icFilterManagerUser');
+                if (userGroup && userSelect) {
+                    userGroup.style.display = 'flex';
+                    userSelect.innerHTML = '';
+                    let uniqueUsers = Object.keys(res.avatars).sort();
+                    uniqueUsers.forEach(u => {
+                        let opt = document.createElement('option');
+                        opt.value = u; opt.innerText = "Xem tài khoản: " + u;
+                        if (u.toLowerCase() === sessionUser.name.toLowerCase()) opt.selected = true;
+                        userSelect.appendChild(opt);
+                    });
+                }
+            }
+            renderPaymentInfoFields(sessionUser.name);
+            switchIncomeTab(0);
+        }).getFreelancerIncomeData(sessionUser);
+    }
+
+    function onManagerUserChange() {
+        let targetUser = document.getElementById('icFilterManagerUser').value;
+        renderPaymentInfoFields(targetUser);
+        processAndRenderIncome();
+    }
+
+    function renderPaymentInfoFields(targetUser) {
+        let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+        let isMe = targetUser.toLowerCase() === sessionUser.name.toLowerCase();
+
+        try {
+            let pInfo = rawIncomeResponse.paymentInfos[targetUser];
+            if (pInfo && pInfo.startsWith("{")) {
+                let pObj = JSON.parse(pInfo);
+                document.getElementById('ic_acc_name').value = pObj.name || "";
+                document.getElementById('ic_acc_num').value = pObj.num || "";
+                document.getElementById('ic_acc_bank').value = pObj.bank || "";
+            } else {
+                document.getElementById('ic_acc_name').value = "";
+                document.getElementById('ic_acc_num').value = "";
+                document.getElementById('ic_acc_bank').value = "";
+            }
+        } catch(err) { console.error(err); }
+
+        document.getElementById('ic_acc_name').disabled = !isMe;
+        document.getElementById('ic_acc_num').disabled = !isMe;
+        document.getElementById('ic_acc_bank').disabled = !isMe;
+    }
+
+    function closeIncomeModal() {
+        let modal = document.getElementById('incomeModal');
+        if (modal) { modal.style.opacity = '0'; modal.classList.remove('show'); setTimeout(() => modal.style.display = 'none', 300); }
+        window.APP_CURRENT_PAGE = 'Home';
+        AppStore.notify(['globalChat']);
+        let bottomNav = document.querySelector('.mb-footer-nav');
+        if(bottomNav && typeof activePage !== 'undefined' && activePage !== 'Home') {
+            bottomNav.style.setProperty('display', 'flex', 'important');
+        }
+    }
+
+    function switchIncomeTab(tabIdx) {
+        currentIncomeTab = tabIdx;
+        let btns = document.querySelectorAll('.income-tab-btn');
+        btns[0].classList.toggle('active', tabIdx === 0);
+        btns[1].classList.toggle('active', tabIdx === 1);
+        
+        let paySec = document.getElementById('icPaymentInfoSection');
+        if (paySec) paySec.style.display = (tabIdx === 1) ? 'block' : 'none';
+        
+        let mgrGroup = document.getElementById('icManagerUserFilterGroup');
+        if (mgrGroup) {
+            let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')) || {});
+            if (sessionUser.role === 'Quản lý' && tabIdx === 1) {
+                mgrGroup.style.display = 'flex';
+            } else {
+                mgrGroup.style.display = 'none';
+            }
+        }
+        processAndRenderIncome();
+    }
+
+    function processAndRenderIncome() {
+        if (!rawIncomeResponse) return;
+        var sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')) || { name: "Khách", role: "Khách" });
+        
+        let fBatch = document.getElementById('icFilterBatch').value;
+        let fMonth = document.getElementById('icFilterMonth').value;
+        let fYear = document.getElementById('icFilterYear').value;
+
+        let expandedTasks = [];
+        rawIncomeResponse.tasks.forEach(t => {
+            if (t.doinguoi && t.doinguoi.startsWith("{")) {
+                try {
+                    let dObj = JSON.parse(t.doinguoi);
+                    if (dObj.oldAssignee && dObj.newAssignee) {
+                        let newPrice = typeof dObj.newPrice === 'number' ? dObj.newPrice : t.price;
+                        expandedTasks.push({ ...t, assignee: dObj.newAssignee, price: newPrice, isNewAssignee: true, oldAssignee: dObj.oldAssignee });
+                        expandedTasks.push({ ...t, assignee: dObj.oldAssignee, price: newPrice, isOldAssignee: true, newAssignee: dObj.newAssignee });
+                        return;
+                    }
+                } catch(e){}
+            }
+            expandedTasks.push(t);
+        });
+
+        let processedTasks = expandedTasks.map(t => {
+            let b = 1, m = 1, y = 2026;
+            if (t.ktt && t.ktt.match(/L(\d)\/T(\d+)/i)) {
+                let match = t.ktt.match(/L(\d)\/T(\d+)/i);
+                b = parseInt(match[1]); m = parseInt(match[2]);
+                if (t.complete) { let pts = t.complete.split('/'); if (pts.length === 3) y = parseInt(pts[2]); }
+            } else if (t.complete) {
+                let pts = t.complete.split('/');
+                if (pts.length === 3) { m = parseInt(pts[1]); y = parseInt(pts[2]); b = parseInt(pts[0]) <= 17 ? 1 : 2; }
+            }
+            return { ...t, calcBatch: b, calcMonth: m, calcYear: y };
+        });
+
+        let filteredTasks = processedTasks.filter(t => {
+            if (fBatch !== "All" && t.calcBatch != fBatch) return false;
+            if (fMonth !== "All" && t.calcMonth != fMonth) return false;
+            if (fYear !== "All" && t.calcYear != fYear) return false;
+            return true;
+        });
+
+        let userStats = {};
+        processedTasks.forEach(t => {
+            if (fMonth !== "All" && t.calcMonth != fMonth) return;
+            if (fYear !== "All" && t.calcYear != fYear) return;
+            
+            let assigneesToCredit = [{ name: t.assignee, price: t.price }];
+            if (t.doinguoi && t.doinguoi.startsWith("{")) {
+                try {
+                    let dObj = JSON.parse(t.doinguoi);
+                    if (dObj.oldAssignee) assigneesToCredit.push({ name: dObj.oldAssignee, price: dObj.newPrice || t.price });
+                } catch(e){}
+            }
+
+            assigneesToCredit.forEach(cred => {
+                if (!userStats[cred.name]) {
+                    userStats[cred.name] = { name: cred.name, fullL1: 0, fullL2: 0, filteredL1: 0, filteredL2: 0 };
+                }
+                if (t.calcBatch === 1) userStats[cred.name].fullL1 += cred.price; 
+                else userStats[cred.name].fullL2 += cred.price;
+                
+                if (fBatch === "All" || t.calcBatch == fBatch) {
+                    if (t.calcBatch === 1) userStats[cred.name].filteredL1 += cred.price;
+                    else userStats[cred.name].filteredL2 += cred.price;
+                }
+            });
+        });
+
+        let leaderboard = Object.keys(userStats).map(k => {
+            let u = userStats[k];
+            u.bonus = 0;
+            let isEligible = (u.fullL1 >= 750000 && u.fullL2 >= 750000);
+            if (isEligible && (fBatch === "2" || fBatch === "All")) {
+                u.bonus = 200000;
+            }
+            u.l1 = u.filteredL1;
+            u.l2 = u.filteredL2;
+            u.total = u.l1 + u.l2 + u.bonus; 
+            return u;
+        }).sort((a, b) => b.total - a.total);
+
+        const view = document.getElementById('incomeModalView');
+        let filterText = `Đợt ${fBatch==='All'?'Tất cả':fBatch} - Tháng ${fMonth==='All'?'Tất cả':fMonth} - Năm ${fYear}`;
+
+        if (currentIncomeTab === 0) {
+            let html = `<div class="ic-table-card"><table class="task-table" style="min-width:100%!important; border:none; margin:0;">
+                        <thead style="background:#F0F4F8; border-bottom: 2px solid #D1DBE8;"><tr>
+                            <th style="width:10%; text-align:center; padding:16px; font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase;">Hạng</th>
+                            <th style="font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase;">Freelancer</th>
+                            <th style="text-align:right; font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase;">Lần 1 (Đợt 1)</th>
+                            <th style="text-align:right; font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase;">Lần 2 (Đợt 2)</th>
+                            <th style="text-align:right; font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase;">Bonus</th>
+                            <th style="text-align:right; font-size:13px; font-weight:900; color:#1A56B5; text-transform:uppercase; padding-right:20px;">Tổng Thu nhập</th>
+                        </tr></thead><tbody>`;
+            leaderboard.forEach((item, idx) => {
+                let medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `<span style="color:#888; font-weight:900;">${idx+1}</span>`;
+                let avaUrl = rawIncomeResponse.avatars[item.name] || 'https://ui-avatars.com/api/?name='+encodeURIComponent(item.name)+'&background=random';
+                
+                html += `<tr>
+                            <td style="text-align:center; font-size:16px;">${medal}</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${avaUrl}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #FFF; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                    <strong style="font-family:'Montserrat',sans-serif; font-size:14px; color:#1A56B5 !important; font-weight:900;">${item.name}</strong>
+                                </div>
+                            </td>
+                            <td style="text-align:right; font-weight:700; color:#555; font-size:13.5px;">${item.l1.toLocaleString('vi-VN')}</td>
+                            <td style="text-align:right; font-weight:700; color:#555; font-size:13.5px;">${item.l2.toLocaleString('vi-VN')}</td>
+                            <td style="text-align:right; font-weight:900; color:#0D652D; font-size:13.5px;">+ ${item.bonus.toLocaleString('vi-VN')}</td>
+                            <td style="text-align:right; font-weight:900; color:#1A56B5; font-size:16px; padding-right:20px;">${item.total.toLocaleString('vi-VN')} đ</td>
+                        </tr>`;
+            });
+            html += `</tbody></table></div>`;
+            view.innerHTML = html;
+
+        } else {
+            let targetUser = sessionUser.name;
+            if (sessionUser.role === 'Quản lý') {
+                let mgrSelect = document.getElementById('icFilterManagerUser');
+                if (mgrSelect) targetUser = mgrSelect.value;
+            }
+            let isMe = targetUser.toLowerCase() === sessionUser.name.toLowerCase();
+            let targetRole = rawIncomeResponse.userRoles[targetUser] || "Freelancer";
+
+            let html = `<h3 class="ic-title-bold">THỐNG KÊ CHI TIẾT THEO ${filterText}</h3>`;
+            let myTasks = filteredTasks.filter(t => t.assignee.toLowerCase() === targetUser.toLowerCase());
+            
+            myTasks = myTasks.map(t => {
+                let noteSuffix = "";
+                if (t.isNewAssignee) {
+                    noteSuffix = ` <i style="color:#1A73E8; font-weight:600; font-size:11.5px;"><br>↳ (Nhận bàn giao từ ${t.oldAssignee})</i>`;
+                } else if (t.isOldAssignee) {
+                    noteSuffix = ` <i style="color:#D93025; font-weight:600; font-size:11.5px;"><br>↳ (Đã bàn giao cho ${t.newAssignee})</i>`;
+                }
+                return { ...t, name: t.name + noteSuffix };
+            });
+            
+            let myStat = leaderboard.find(u => u.name.toLowerCase() === targetUser.toLowerCase());
+            let myBonus = myStat ? myStat.bonus : 0;
+            
+            let taskTotal = myTasks.reduce((sum, t) => sum + (t.price || 0), 0);
+            let grandTotal = taskTotal + myBonus;
+
+            html += `<div class="ic-table-card ic-desktop-table" style="overflow-x: auto; display: block; width: 100%;">
+                        <table class="task-table" style="min-width:100%!important; border:none; margin:0;">
+                            <thead style="background:#F8FAFD;">
+                                <tr>
+                                    <th style="padding:16px;">Mã Task</th>
+                                    <th>Đợt</th>
+                                    <th>Chủ Đề Công Việc</th>
+                                    <th>Hạn / Hoàn Thành</th>
+                                    <th style="text-align:right; padding-right:20px;">Đơn Giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+            
+            myTasks.forEach(t => {
+                html += `<tr>
+                            <td style="text-align:center; padding:16px;"><strong>${t.id}</strong></td>
+                            <td style="text-align:center;"><span class="status-badge bg-todo" style="border-radius:6px;">Đợt ${t.calcBatch}</span></td>
+                            <td><strong style="color:#111;">${t.name}</strong></td>
+                            <td style="text-align:center; color:#555; font-size:13px; font-weight:600;">${t.complete || '-'}</td>
+                            <td style="text-align:right; font-weight:800; color:#0D652D; padding-right:20px;">+ ${t.price.toLocaleString('vi-VN')} đ</td>
+                        </tr>`;
+            });
+
+            html += `<tr style="background: #FEF7E0; border-top: 1px solid #E5E7EB;">
+                        <td colspan="4" style="text-align:right; font-family:'Montserrat',sans-serif; font-weight:800; color:#B06000; font-size:13px; padding:12px 16px;">THƯỞNG CHUYÊN CẦN (MỐC 750K/ĐỢT X 2):</td>
+                        <td style="text-align:right; font-family:'Montserrat',sans-serif; font-weight:900; color:#0D652D; font-size:14px; padding-right:20px;">+ ${myBonus.toLocaleString('vi-VN')} đ</td>
+                     </tr>`;
+
+            html += `<tr style="background: #F4F7FC; border-top: 2px solid #1A56B5;">
+                        <td colspan="4" style="text-align:right; font-family:'Montserrat',sans-serif; font-weight:800; color:#1A56B5; font-size:13px; padding:16px;">TỔNG THU NHẬP CÁC TASK ĐÃ LỌC:</td>
+                        <td style="text-align:right; font-family:'Montserrat',sans-serif; font-weight:900; color:#D93025; font-size:15px; padding-right:20px;">${grandTotal.toLocaleString('vi-VN')} đ</td>
+                     </tr>`;
+
+            html += `</tbody></table></div>`;
+
+            html += `<div class="ic-mobile-list">`;
+            if (myTasks.length === 0) {
+                 html += `<div style="text-align:center; padding:20px; color:#999; font-size:13px; background:#FFF; border-radius:12px;">Không có dữ liệu task trong khoảng thời gian này.</div>`;
+            }
+            myTasks.forEach(t => {
+                html += `
+                    <div class="ic-card" onclick="this.classList.toggle('expanded')">
+                        <div class="ic-card-header">
+                            <div class="ic-card-title">${t.name}</div>
+                            <div class="ic-card-price">+ ${t.price.toLocaleString('vi-VN')} đ</div>
+                            <div class="ic-card-arrow">▼</div>
+                        </div>
+                        <div class="ic-card-body">
+                            <div class="ic-row"><span class="ic-label">Mã Task:</span><span class="ic-value">${t.id}</span></div>
+                            <div class="ic-row"><span class="ic-label">Đợt Thanh Toán:</span><span class="status-badge bg-todo" style="padding:2px 8px; width:auto;">Đợt ${t.calcBatch}</span></div>
+                            <div class="ic-row"><span class="ic-label">Hoàn Thành:</span><span class="ic-value" style="color:#555;">${t.complete || '-'}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div style="margin-top: 12px; background: #FEF7E0; border: 1px dashed #FABB05; border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;">
+                    <span style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:11px; color:#B06000; text-transform:uppercase;">THƯỞNG CHUYÊN CẦN:</span>
+                    <span style="font-family:'Montserrat',sans-serif; font-weight:900; font-size:14px; color:#0D652D;">+ ${myBonus.toLocaleString('vi-VN')} đ</span>
+                </div>
+            `;
+            
+            html += `
+                <div style="margin-top: 6px; background: #FFF; border: 1px solid #1A56B5; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(26, 86, 181, 0.1); width: 100%; box-sizing: border-box;">
+                    <span style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:12px; color:#1A56B5; text-transform:uppercase;">TỔNG THU NHẬP:</span>
+                    <span style="font-family:'Montserrat',sans-serif; font-weight:900; font-size:16px; color:#D93025;">${grandTotal.toLocaleString('vi-VN')} đ</span>
+                </div>
+            `;
+            html += `</div>`;
+
+            let isB1Locked = false;
+            let isB2Locked = false;
+            
+            const checkLockStatus = (b) => {
+                let consented = false;
+                let paid = false;
+                if (rawIncomeResponse.consentData && rawIncomeResponse.consentData[targetUser] && 
+                    rawIncomeResponse.consentData[targetUser][fYear] && rawIncomeResponse.consentData[targetUser][fYear][fMonth]) {
+                    consented = !!rawIncomeResponse.consentData[targetUser][fYear][fMonth][b];
+                }
+                if (rawIncomeResponse.paidData && rawIncomeResponse.paidData[targetUser] && 
+                    rawIncomeResponse.paidData[targetUser][fYear] && rawIncomeResponse.paidData[targetUser][fYear][fMonth]) {
+                    paid = !!rawIncomeResponse.paidData[targetUser][fYear][fMonth][b];
+                }
+                return consented || paid;
+            };
+
+            isB1Locked = checkLockStatus("1");
+            isB2Locked = checkLockStatus("2");
+
+            // =========================================================================
+            // 👑 TỔ CHỨC LẠI SECTION LƯƠNG ADMIN MẢNG ĐA TẦNG DỰ ÁN
+            // =========================================================================
+            if (targetRole === 'Admin' || targetRole === 'Quản lý') {
+                if (fYear === "All" || fMonth === "All") {
+                    html += `<div style="margin-top:24px; text-align:center; padding:16px; background:#FEF7E0; color:#B06000; border-radius:12px; font-weight:700;">⚠️ Vui lòng chọn 1 Tháng và 1 Năm ở bộ lọc để quản lý lương Admin.</div>`;
+                } else {
+                    let salaryHistoryObj = (rawIncomeResponse.adminSalaries && rawIncomeResponse.adminSalaries[targetUser]) ? rawIncomeResponse.adminSalaries[targetUser] : {};
+                    let monthData = (salaryHistoryObj[fYear] && salaryHistoryObj[fYear][fMonth]) ? salaryHistoryObj[fYear][fMonth] : {};
+                    let currentRows = [];
+                    
+                    if (fBatch === "1") currentRows = monthData.batch_1 || [];
+                    else if (fBatch === "2") currentRows = monthData.batch_2 || [];
+                    else {
+                        let b1 = monthData.batch_1 || []; let b2 = monthData.batch_2 || [];
+                        currentRows = [
+                            ...b1.map(item => ({ ...item, batchDisplay: "Đợt 1" })),
+                            ...b2.map(item => ({ ...item, batchDisplay: "Đợt 2" }))
+                        ];
+                    }
+
+                    let adminSalarySum = currentRows.reduce((s, item) => s + (item.salary || 0) + (item.bonus || 0), 0);
+                    let totalPersonal = grandTotal + adminSalarySum;
+
+                    // 🚀 Đã sửa luồng hiển thị: Tự động tính toán chuỗi tiêu đề dựa trên Đợt đang chọn
+                    let adminTitleDisplay = fBatch === "All" ? `THÁNG ${fMonth}/${fYear}` : `ĐỢT ${fBatch} THÁNG ${fMonth}/${fYear}`;
+
+                    html += `
+                        <div class="admin-salary-box">
+                            <h4 style="margin:0 0 16px 0; font-family:'Montserrat',sans-serif; color:#1A56B5; text-transform:uppercase; font-size:14px;">👑 CẤU TRÚC LƯƠNG & BONUS ADMIN - ${adminTitleDisplay}</h4>
+                            <input type="hidden" id="adminBaseTotalHidden" value="${grandTotal}">
+                    `;
+
+                    // 🚀 ĐỀ XUẤT 3: Chức năng thêm mới chỉ xuất hiện khi chọn 1 đợt cụ thể, ĐÃ BỎ "Công việc chung"
+                    if (fBatch !== "All") {
+                        let isCurrentBatchLocked = (fBatch === "1" ? isB1Locked : isB2Locked);
+                        if (isMe && !isCurrentBatchLocked) {
+                            let uniqueProjects = [...new Set(rawIncomeResponse.tasks.map(t => t.project).filter(Boolean))].sort();
+                            let projOptions = uniqueProjects.map(p => `<option value="${p}">${p}</option>`).join('');
+
+                            html += `
+                                <div class="admin-salary-adder-bar">
+                                    <div style="flex: 1.5; min-width: 140px;">
+                                        <label style="font-size:11px; font-weight:800; color:#555; display:block; margin-bottom:4px;">TÊN DỰ ÁN</label>
+                                        <select id="admNewProject" class="ic-filter-select" style="width:100%; height:40px; background:#FFF;">
+                                            <option value="">-- Chọn dự án --</option>
+                                            ${projOptions}
+                                        </select>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label style="font-size:11px; font-weight:800; color:#555; display:block; margin-bottom:4px;">LƯƠNG CỐ ĐỊNH (đ)</label>
+                                        <input type="text" id="admNewSalary" placeholder="VD: 1.500.000" oninput="formatMoneyInput(this)" class="ic-money-input" style="height:40px;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label style="font-size:11px; font-weight:800; color:#555; display:block; margin-bottom:4px;">BONUS TRÁCH NHIỆM (đ)</label>
+                                        <input type="text" id="admNewBonus" placeholder="VD: 500.000" oninput="formatMoneyInput(this)" class="ic-money-input" style="height:40px;">
+                                    </div>
+                                    <button onclick="executeAddAdminSalaryRow('${fYear}', '${fMonth}', '${fBatch}')" style="width:40px; height:40px; background:#1A56B5; color:#FFF; border:none; border-radius:8px; cursor:pointer; font-size:22px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
+                                </div>
+                            `;
+                        } else if (isCurrentBatchLocked) {
+                            html += `<div style="padding:10px 14px; background:#F3F4F6; border-radius:12px; font-size:12px; font-style:italic; color:#9CA3AF; margin-bottom:14px; font-weight:600; text-align:center;">🔒 Đợt ${fBatch} đã chốt hạch toán chi lương. Khóa thêm mới.</div>`;
+                        }
+                    }
+
+                    html += `
+                        <div class="ic-table-card" style="margin-bottom:16px; border-color:#E5E7EB;">
+                            <table style="width:100%;">
+                                <thead style="background:#F8FAFD;">
+                                    <tr>
+                                        <th style="padding:10px 14px; text-align:left;">Dự án hạch toán</th>
+                                        ${fBatch === 'All' ? '<th style="text-align:center;">Đợt</th>' : ''}
+                                        <th style="text-align:right;">Lương cố định</th>
+                                        <th style="text-align:right;">Bonus</th>
+                                        ${(fBatch !== 'All' && isMe) ? '<th style="text-align:center; width:50px;">Xóa</th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    if (currentRows.length === 0) {
+                        html += `<tr><td colspan="${fBatch==='All'?4:5}" style="text-align:center; color:#999; font-style:italic; padding:14px;">Chưa cấu hình hạng mục lương Admin đợt này.</td></tr>`;
+                    } else {
+                        currentRows.forEach(item => {
+                            let isCurrentRowLocked = (fBatch === "All") ? (item.batchDisplay === "Đợt 1" ? isB1Locked : isB2Locked) : (fBatch === "1" ? isB1Locked : isB2Locked);
+                            html += `
+                                <tr>
+                                    <td style="font-weight:700; color:#334155;">${item.project}</td>
+                                    ${fBatch === 'All' ? `<td style="text-align:center;"><span class="status-badge bg-todo" style="border-radius:6px; font-size:11px;">${item.batchDisplay}</span></td>` : ''}
+                                    <td style="text-align:right; font-weight:700; color:#1A56B5;">${item.salary.toLocaleString('vi-VN')} đ</td>
+                                    <td style="text-align:right; font-weight:700; color:#0D652D;">+ ${item.bonus.toLocaleString('vi-VN')} đ</td>
+                                    ${(fBatch !== 'All' && isMe) ? `
+                                        <td style="text-align:center;">
+                                            <button class="btn-delete-salary" onclick="executeDeleteAdminSalaryRow('${fYear}', '${fMonth}', '${fBatch}', '${item.id}')" ${isCurrentRowLocked ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>🗑️</button>
+                                        </td>
+                                    ` : ''}
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px;">
+                            <div style="font-size:14.5px; font-weight:800; color:#333;">THU NHẬP THỰC LÃNH (LƯƠNG + TASK) - ${fBatch === "All" ? "CẢ THÁNG" : `ĐỢT ${fBatch}`} T${fMonth}/${fYear}:</div>
+                            <div id="adminTotalLiveDisplay" style="color:#D93025; font-size:18px; font-weight:900;">${totalPersonal.toLocaleString('vi-VN')} đ</div>
+                        </div>
+                    </div>`;
+                }
+            }
+
+            if (fBatch === "1" || fBatch === "2") {
+                let txtB = fBatch;
+                let txtM = fMonth === "All" ? "(Tất cả tháng)" : fMonth;
+                let txtY = fYear === "All" ? "2026" : fYear;
+
+                let paidVal = false;
+                if (rawIncomeResponse.paidData && rawIncomeResponse.paidData[targetUser]) {
+                    let userPaidData = rawIncomeResponse.paidData[targetUser];
+                    if (userPaidData[fYear] && userPaidData[fYear][fMonth] && userPaidData[fYear][fMonth][fBatch]) {
+                        paidVal = userPaidData[fYear][fMonth][fBatch]; 
+                    }
+                }
+                let isPaidChecked = !!paidVal;
+
+                let isChecked = false;
+                if (rawIncomeResponse.consentData && rawIncomeResponse.consentData[targetUser]) {
+                    let userConsent = rawIncomeResponse.consentData[targetUser];
+                    if (userConsent[fYear] && userConsent[fYear][fMonth] && userConsent[fYear][fMonth][fBatch] === true) {
+                        isChecked = true;
+                    }
+                }
+                if (isPaidChecked) isChecked = true;
+                
+                let checkedAttr = isChecked ? "checked" : "";
+                let disabledAttr = (!isMe || isPaidChecked) ? "disabled" : "";
+                let boxBg = isChecked ? "#E6F4EA" : "#E8F0FE";
+                let boxBorder = isChecked ? "#0D652D" : "#B3CFFD";
+                let textColor = isChecked ? "#0D652D" : "#333";
+                let curStyle = (!isMe || isPaidChecked) ? "cursor: not-allowed; opacity: 0.8;" : "cursor: pointer;";
+                
+                html += `
+                    <label id="icConsentWrapper" style="background: ${boxBg}; border: 1px solid ${boxBorder}; border-radius: 16px; padding: 18px 20px; margin-top: 20px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.05); box-sizing: border-box; width: 100%; transition: 0.3s; ${curStyle}">
+                        <div style="position: relative; flex-shrink: 0; width: 28px; height: 28px; margin-top: 2px;">
+                            <input type="checkbox" id="icConsentCheckbox" onchange="toggleConsentStyle(this)" ${checkedAttr} ${disabledAttr} style="position: absolute; opacity: 0; height: 0; width: 0;">
+                            <div id="icConsentBox" style="width: 22px; height: 22px; border: 2.5px solid ${isChecked ? '#0D652D' : '#4285F4'}; border-radius: 6px; background: #FFF; transition: 0.2s; position: absolute; top: 6px; left: 0;"></div>
+                            <svg id="icConsentTick" viewBox="0 0 32 32" style="position: absolute; top: -8px; left: 4px; width: 36px; height: 36px; pointer-events: none; opacity: ${isChecked ? '1' : '0'}; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: ${isChecked ? 'scale(1)' : 'scale(0.5)'};">
+                                <path d="M 5 18 L 12 25 L 28 5" fill="none" stroke="#0D652D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div id="icConsentText" style="flex: 1; font-size: 13.5px; font-weight: 600; color: ${textColor}; line-height: 1.5; font-family: 'Inter', sans-serif; transition: 0.3s; margin-top: 3px;">
+                            Bằng cách nhấn nút V kế bên, tôi đồng ý thanh toán tổng thu nhập của đợt <span style="font-weight:800;">${txtB}</span> tháng <span style="font-weight:800;">${txtM}</span> năm <span style="font-weight:800;">${txtY}</span> theo số tài khoản của tôi đã cung cấp tại trang này.
+                        </div>
+                    </label>
+                `;      
+
+                let paidCheckedAttr = isPaidChecked ? "checked" : "";
+                let paidDisabledAttr = (sessionUser.role === 'Quản lý') ? "" : "disabled";
+                let paidBoxBg = isPaidChecked ? "#FCE8E6" : "#F8F9FA";
+                let paidBoxBorder = isPaidChecked ? "#D93025" : "#DADCE0";
+                let paidTextColor = isPaidChecked ? "#D93025" : "#5F6368";
+                let paidCurStyle = (sessionUser.role === 'Quản lý') ? "cursor: pointer;" : "cursor: not-allowed; opacity: 0.8;";                
+                let paidTextDisplay = isPaidChecked ? `ĐÃ THANH TOÁN CHI LƯƠNG: ${paidVal}` : "CHƯA THANH TOÁN CHI LƯƠNG";
+                
+                html += `
+                    <label id="icPaidWrapper" style="background: ${paidBoxBg}; border: 1px solid ${paidBoxBorder}; border-radius: 16px; padding: 18px 20px; margin-top: 12px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 0 4px 15px rgba(217, 48, 37, 0.05); box-sizing: border-box; width: 100%; transition: 0.3s; ${paidCurStyle}">
+                        <div style="position: relative; flex-shrink: 0; width: 28px; height: 28px; margin-top: 2px;">
+                            <input type="checkbox" id="icPaidCheckbox" onchange="togglePaidStyle(this)" ${paidCheckedAttr} ${paidDisabledAttr} style="position: absolute; opacity: 0; height: 0; width: 0;">
+                            <div id="icPaidBox" style="width: 22px; height: 22px; border: 2.5px solid ${isPaidChecked ? '#D93025' : '#9AA0A6'}; border-radius: 6px; background: #FFF; transition: 0.2s; position: absolute; top: 6px; left: 0;"></div>
+                            <svg id="icPaidTick" viewBox="0 0 32 32" style="position: absolute; top: -8px; left: 4px; width: 36px; height: 36px; pointer-events: none; opacity: ${isPaidChecked ? '1' : '0'}; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: ${isPaidChecked ? 'scale(1)' : 'scale(0.5)'};">
+                                <path d="M 5 18 L 12 25 L 28 5" fill="none" stroke="#D93025" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div id="icPaidText" style="flex: 1; font-size: 13.5px; font-weight: 800; color: ${paidTextColor}; line-height: 1.5; font-family: 'Inter', sans-serif; transition: 0.3s; margin-top: 3px; text-transform: uppercase;">
+                            ${paidTextDisplay}
+                        </div>
+                    </label>
+                `;
+
+                html += `
+                    <div style="margin-top: 16px; display: flex; gap: 12px; width: 100%; box-sizing: border-box;">
+                        <button onclick="exportSalaryToPDF()" style="flex: 1; padding: 14px; background: #1A56B5; color: #FFF; font-family:'Montserrat',sans-serif; font-weight: 800; font-size: 13px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(26, 86, 181, 0.2); transition: 0.3s;">
+                            <span>📥</span> XUẤT PHIẾU LƯƠNG (PDF)
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="margin-top: 20px; text-align: center; font-style: italic; color: #666; font-size: 13px; background: #F8FAFD; padding: 16px; border-radius: 12px; border: 1px dashed #B3CFFD;">
+                        ⚠️ Vui lòng chọn lọc <strong>Đợt 1</strong> hoặc <strong>Đợt 2</strong> để xem các tùy chọn Xác nhận thanh toán và Xuất phiếu lương.
+                    </div>
+                `;
+            }
+            view.innerHTML = html;
+        }
+    }
+
+    function executeAddAdminSalaryRow(year, month, batch) {
+        let sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+        let targetUser = sessionUser.name; 
+        if (sessionUser.role === 'Quản lý') {
+            let mgrSelect = document.getElementById('icFilterManagerUser');
+            if (mgrSelect) targetUser = mgrSelect.value;
+        }
+
+        let proj = document.getElementById('admNewProject').value;
+        let sal = parseInt(document.getElementById('admNewSalary').value.replace(/[^0-9]/g, '')) || 0;
+        let bns = parseInt(document.getElementById('admNewBonus').value.replace(/[^0-9]/g, '')) || 0;
+
+        if(!proj) return alert("⚠️ Vui lòng chọn Tên dự án hạch toán!");
+        if(!sal && !bns) return alert("⚠️ Vui lòng nhập số tiền Lương hoặc Bonus!");
+
+        if (!rawIncomeResponse.adminSalaries) rawIncomeResponse.adminSalaries = {};
+        if (!rawIncomeResponse.adminSalaries[targetUser]) rawIncomeResponse.adminSalaries[targetUser] = {};
+        if (!rawIncomeResponse.adminSalaries[targetUser][year]) rawIncomeResponse.adminSalaries[targetUser][year] = {};
+        if (!rawIncomeResponse.adminSalaries[targetUser][year][month]) rawIncomeResponse.adminSalaries[targetUser][year][month] = {};
+        
+        let batchKey = "batch_" + batch;
+        if (!rawIncomeResponse.adminSalaries[targetUser][year][month][batchKey]) {
+            rawIncomeResponse.adminSalaries[targetUser][year][month][batchKey] = [];
+        }
+
+        let newRow = { id: "temp_" + Date.now(), project: proj, salary: sal, bonus: bns };
+        rawIncomeResponse.adminSalaries[targetUser][year][month][batchKey].push(newRow);
+
+        window.recentEdits = window.recentEdits || {};
+        window.recentEdits[targetUser + "_" + year + "_" + month + "_adminSal"] = { 
+            time: Date.now(), 
+            value: JSON.stringify(rawIncomeResponse.adminSalaries[targetUser][year][month]) 
+        };
+
+        AppStore.dispatchAction({
+            actionType: "UPDATE_ADMIN_SALARY",
+            payload: { userName: targetUser, year: year, month: month, batch: batch, project: proj, salary: sal, bonus: bns, salaryHistory: rawIncomeResponse.adminSalaries[targetUser] }
+        });
+
+        if (typeof window !== 'undefined' && window.DeliveryManager && typeof window.DeliveryManager.flushQueue === 'function') {
+            window.DeliveryManager.flushQueue();
+        }
+
+        processAndRenderIncome(); 
+    }
+
+    function executeDeleteAdminSalaryRow(year, month, batch, itemId) {
+        let sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+        let targetUser = sessionUser.name; 
+        if (sessionUser.role === 'Quản lý') {
+            let mgrSelect = document.getElementById('icFilterManagerUser');
+            if (mgrSelect) targetUser = mgrSelect.value;
+        }
+
+        if (!confirm(`Bạn có chắc chắn muốn xóa hạng mục lương Admin này không?`)) return;
+
+        let batchKey = "batch_" + batch;
+        if (rawIncomeResponse.adminSalaries && rawIncomeResponse.adminSalaries[targetUser] && rawIncomeResponse.adminSalaries[targetUser][year] && rawIncomeResponse.adminSalaries[targetUser][year][month]) {
+            let arr = rawIncomeResponse.adminSalaries[targetUser][year][month][batchKey] || [];
+            rawIncomeResponse.adminSalaries[targetUser][year][month][batchKey] = arr.filter(item => item.id !== itemId);
+        }
+
+        google.script.run.withSuccessHandler(() => {
+            processAndRenderIncome();
+        }).deleteAdminSalaryItem(targetUser, year, month, batch, itemId);
+
+        processAndRenderIncome();
+    }
+
+    function autoSavePaymentInfo() {
+        let name = document.getElementById('ic_acc_name').value.trim().toUpperCase();
+        let num = document.getElementById('ic_acc_num').value.trim();
+        let bank = document.getElementById('ic_acc_bank').value.trim().toUpperCase();
+        
+        document.getElementById('ic_acc_name').value = name;
+        document.getElementById('ic_acc_bank').value = bank;
+
+        let pStr = JSON.stringify({ name: name, num: num, bank: bank });
+        let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+        
+        let statusEl = document.getElementById('icSaveStatus');
+        if (statusEl) {
+            statusEl.innerText = "⏳ Đang tự động lưu lên máy chủ...";
+            statusEl.style.color = "#4285F4";
+            statusEl.style.display = "block";
+        }
+
+        google.script.run.withSuccessHandler(res => {
+            if (res.success && statusEl) {
+                statusEl.innerText = "✓ Hệ thống đã tự động cập nhật số tài khoản!";
+                statusEl.style.color = "#0D652D";
+                setTimeout(() => { statusEl.style.display = "none"; }, 3000);
+            }
+        }).saveUserPaymentInfo(pStr, sessionUser);
+    }
+
+    function toggleConsentStyle(checkboxEl) {
+        let textEl = document.getElementById('icConsentText');
+        let wrapEl = document.getElementById('icConsentWrapper');
+        let boxEl = document.getElementById('icConsentBox');   
+        let tickEl = document.getElementById('icConsentTick'); 
+        
+        if (textEl && wrapEl && boxEl && tickEl) {
+            if (checkboxEl.checked) {
+                textEl.style.color = "#0D652D"; wrapEl.style.borderColor = "#0D652D"; wrapEl.style.background = "#E6F4EA";
+                boxEl.style.borderColor = "#0D652D"; tickEl.style.opacity = "1"; tickEl.style.transform = "scale(1)";
+            } else {
+                textEl.style.color = "#333"; wrapEl.style.borderColor = "#B3CFFD"; wrapEl.style.background = "#E8F0FE";
+                boxEl.style.borderColor = "#4285F4"; tickEl.style.opacity = "0"; tickEl.style.transform = "scale(0.5)";
+            }
+        }
+        
+        let fBatch = document.getElementById('icFilterBatch').value;
+        let fMonth = document.getElementById('icFilterMonth').value;
+        let fYear = document.getElementById('icFilterYear').value;
+        let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+
+        let targetUser = sessionUser.name;
+        if (sessionUser.role === 'Quản lý') {
+            let mgrSelect = document.getElementById('icFilterManagerUser');
+            if (mgrSelect) targetUser = mgrSelect.value;
+        }
+
+        if (!rawIncomeResponse.consentData) rawIncomeResponse.consentData = {};
+        if (!rawIncomeResponse.consentData[targetUser]) rawIncomeResponse.consentData[targetUser] = {};
+        if (!rawIncomeResponse.consentData[targetUser][fYear]) rawIncomeResponse.consentData[targetUser][fYear] = {};
+        if (!rawIncomeResponse.consentData[targetUser][fYear][fMonth]) rawIncomeResponse.consentData[targetUser][fYear][fMonth] = {};
+        rawIncomeResponse.consentData[targetUser][fYear][fMonth][fBatch] = checkboxEl.checked;
+
+        google.script.run.saveUserConsent(fYear, fMonth, fBatch, checkboxEl.checked, sessionUser);
+        setTimeout(() => processAndRenderIncome(), 350);
+    }
+
+    function togglePaidStyle(checkboxEl) {
+        let textEl = document.getElementById('icPaidText');
+        let wrapEl = document.getElementById('icPaidWrapper');
+        let boxEl = document.getElementById('icPaidBox');   
+        let tickEl = document.getElementById('icPaidTick'); 
+        let timeStampStr = "";
+        
+        if (textEl && wrapEl && boxEl && tickEl) {
+            if (checkboxEl.checked) {
+                let now = new Date();
+                let timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                let dateStr = now.toLocaleDateString('vi-VN');
+                timeStampStr = `${timeStr} - ${dateStr}`;
+                
+                textEl.innerText = `ĐÃ THANH TOÁN CHI LƯƠNG: ${timeStampStr}`;
+                textEl.style.color = "#D93025"; wrapEl.style.borderColor = "#D93025"; wrapEl.style.background = "#FCE8E6";
+                boxEl.style.borderColor = "#D93025"; tickEl.style.opacity = "1"; tickEl.style.transform = "scale(1)";
+            } else {
+                textEl.innerText = "CHƯA THANH TOÁN CHI LƯƠNG";
+                textEl.style.color = "#5F6368"; wrapEl.style.borderColor = "#DADCE0"; wrapEl.style.background = "#F8F9FA";
+                boxEl.style.borderColor = "#9AA0A6"; tickEl.style.opacity = "0"; tickEl.style.transform = "scale(0.5)";
+            }
+        }
+        
+        let fBatch = document.getElementById('icFilterBatch').value;
+        let fMonth = document.getElementById('icFilterMonth').value;
+        let fYear = document.getElementById('icFilterYear').value;
+        let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')));
+
+        let targetUser = sessionUser.name;
+        if (sessionUser.role === 'Quản lý') {
+            let mgrSelect = document.getElementById('icFilterManagerUser');
+            if (mgrSelect) targetUser = mgrSelect.value;
+        }
+
+        if (!rawIncomeResponse.paidData) rawIncomeResponse.paidData = {};
+        if (!rawIncomeResponse.paidData[targetUser]) rawIncomeResponse.paidData[targetUser] = {};
+        if (!rawIncomeResponse.paidData[targetUser][fYear]) rawIncomeResponse.paidData[targetUser][fYear] = {};
+        if (!rawIncomeResponse.paidData[targetUser][fYear][fMonth]) rawIncomeResponse.paidData[targetUser][fYear][fMonth] = {};
+        
+        let saveVal = checkboxEl.checked ? timeStampStr : false;
+        rawIncomeResponse.paidData[targetUser][fYear][fMonth][fBatch] = saveVal;
+
+        google.script.run.saveUserPaidStatus(fYear, fMonth, fBatch, saveVal, targetUser);
+
+        if (checkboxEl.checked) {
+            if (!rawIncomeResponse.consentData) rawIncomeResponse.consentData = {};
+            if (!rawIncomeResponse.consentData[targetUser]) rawIncomeResponse.consentData[targetUser] = {};
+            if (!rawIncomeResponse.consentData[targetUser][fYear]) rawIncomeResponse.consentData[targetUser][fYear] = {};
+            if (!rawIncomeResponse.consentData[targetUser][fYear][fMonth]) rawIncomeResponse.consentData[targetUser][fYear][fMonth] = {};
+            rawIncomeResponse.consentData[targetUser][fYear][fMonth][fBatch] = true;
+            google.script.run.saveUserConsent(fYear, fMonth, fBatch, true, { name: targetUser, role: "Freelancer" });
+        }
+    
+        setTimeout(() => processAndRenderIncome(), 350);
+    }
+
+    function toggleGlobalSection(targetId, headerEl) {
+        let targetBody = document.getElementById(targetId);
+        if (targetBody) {
+            targetBody.classList.toggle('expanded');
+            headerEl.classList.toggle('expanded');
+        }
+    }
+
+    // 🚀 ĐIỀU CHỈNH 1: THIẾT KẾ PHIẾU LƯƠNG ADMIN TRONG BẢN IN PDF CAO CẤP CHUẨN ĐỒNG BỘ
+    function exportSalaryToPDF() {
+        let fBatch = document.getElementById('icFilterBatch').value;
+        let fMonth = document.getElementById('icFilterMonth').value;
+        let fYear = document.getElementById('icFilterYear').value;
+        
+        let txtB = fBatch === "All" ? "Tất cả các đợt" : ("Đợt " + fBatch);
+        let txtM = fMonth === "All" ? "Tất cả các tháng" : ("Tháng " + fMonth);
+        
+        let sessionUser = (typeof appUser !== 'undefined') ? appUser : (JSON.parse(localStorage.getItem('appUserSession')) || {});
+        let targetUser = sessionUser.name;
+        if (sessionUser.role === 'Quản lý') {
+            let mgrSelect = document.getElementById('icFilterManagerUser');
+            if (mgrSelect) targetUser = mgrSelect.value;
+        }
+
+        let accName = document.getElementById('ic_acc_name').value || "Chưa cung cấp";
+        let accNum = document.getElementById('ic_acc_num').value || "Chưa cung cấp";
+        let accBank = document.getElementById('ic_acc_bank').value || "Chưa cung cấp";
+        
+        let taskTotalNum = parseInt(document.getElementById('adminBaseTotalHidden')?.value) || 0;
+        let originalTable = document.querySelector('.ic-desktop-table table');
+        let tableHtml = originalTable ? originalTable.outerHTML : "<p style='text-align:center;'>Không có dữ liệu task.</p>";
+
+        let salaryHistoryObj = (rawIncomeResponse.adminSalaries && rawIncomeResponse.adminSalaries[targetUser]) ? rawIncomeResponse.adminSalaries[targetUser] : {};
+        let monthData = (salaryHistoryObj[fYear] && salaryHistoryObj[fYear][fMonth]) ? salaryHistoryObj[fYear][fMonth] : {};
+        let currentRows = [];
+        
+        if (fBatch === "1") currentRows = monthData.batch_1 || [];
+        else if (fBatch === "2") currentRows = monthData.batch_2 || [];
+        else {
+            currentRows = [
+                ...(monthData.batch_1 || []).map(r => ({...r, bText: "Đợt 1"})),
+                ...(monthData.batch_2 || []).map(r => ({...r, bText: "Đợt 2"}))
+            ];
+        }
+
+        let adminSalaryPart = currentRows.reduce((s, item) => s + (item.salary || 0) + (item.bonus || 0), 0);
+        let finalAdminTotal = taskTotalNum + adminSalaryPart;
+
+        let adminHtml = '';
+        if (currentRows.length > 0) {
+            let adminRowsHtml = '';
+            currentRows.forEach(item => {
+                adminRowsHtml += `
+                    <tr>
+                        <td style="padding: 12px 14px; text-align: left; font-weight: 700; color: #334155; border-bottom: 1px solid #E5E7EB;">${item.project} ${fBatch === 'All' ? `<span style="font-size:10px; background:#F3F4F6; padding:2px 6px; border-radius:4px; margin-left:6px; font-weight:normal; color:#666;">${item.bText}</span>` : ''}</td>
+                        <td style="padding: 12px 14px; text-align: right; font-weight: bold; color: #1A56B5; border-bottom: 1px solid #E5E7EB;">${item.salary.toLocaleString('vi-VN')} đ</td>
+                        <td style="padding: 12px 14px; text-align: right; font-weight: bold; color: #0D652D; border-bottom: 1px solid #E5E7EB;">+ ${item.bonus.toLocaleString('vi-VN')} đ</td>
+                    </tr>
+                `;
+            });
+
+            // Giao diện hạch toán nâng cấp cấu trúc A4 bo góc cao cấp, sắc nét như ảnh chụp
+            adminHtml = `
+                <div style="margin-top: 25px; background: #FFFFFF; border: 1.5px solid #1A56B5; border-radius: 16px; padding: 20px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(26,86,181,0.02);">
+                    <div style="display:flex; align-items:center; gap:8px; margin: 0 0 16px 0; border-bottom: 2px solid #1A56B5; padding-bottom: 10px;">
+                        <span style="font-size:16px;">👑</span>
+                        <h4 style="margin: 0; color: #1A56B5; font-size: 14px; text-transform: uppercase; font-weight: 900; font-family:'Montserrat',sans-serif;">QUYẾT TOÁN CẤU TRÚC LƯƠNG & BONUS ADMIN</h4>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family:'Inter',sans-serif;">
+                        <thead>
+                            <tr style="background: #F8FAFD;">
+                                <th style="padding: 12px 14px; text-align: left; font-weight: 800; color: #475569; text-transform: uppercase; border-bottom: 2px solid #E5E7EB;">Dự án hạch toán</th>
+                                <th style="padding: 12px 14px; text-align: right; font-weight: 800; color: #475569; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; width:25%;">Lương cố định</th>
+                                <th style="padding: 12px 14px; text-align: right; font-weight: 800; color: #475569; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; width:25%;">Bonus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${adminRowsHtml}
+                            <tr style="background: #F4F7FC;">
+                                <td colspan="1" style="padding: 14px; color: #1A56B5; font-weight: 900; font-size: 13.5px; font-family:'Montserrat',sans-serif; text-transform: uppercase;">TỔNG THU NHẬP CHI ADMIN THỰC LÃNH:</td>
+                                <td colspan="2" style="padding: 14px; text-align: right; color: #D93025; font-size: 17px; font-weight: 900; font-family:'Montserrat',sans-serif;">${finalAdminTotal.toLocaleString('vi-VN')} đ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        let isConsented = document.getElementById('icConsentCheckbox') ? document.getElementById('icConsentCheckbox').checked : false;
+        let consentText = isConsented ? "✓ ĐÃ XÁC NHẬN ĐỒNG Ý ĐỐI SOÁT CHÍNH XÁC" : "❌ CHƯA XÁC NHẬN ĐỒNG Ý ĐỐI SOÁT";
+
+        let printElement = document.createElement('div');
+        printElement.id = 'printPdfWrapper';
+        printElement.style.padding = '40px 50px';
+        printElement.style.background = '#FFF';
+        
+        printElement.innerHTML = `
+            <style>
+                #printPdfWrapper * { font-family: 'Montserrat', 'Inter', sans-serif !important; }
+                #printPdfWrapper table.task-table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #E5E7EB; margin-top: 15px; }
+                #printPdfWrapper table.task-table th, #printPdfWrapper table.task-table td { font-size: 12px !important; padding: 12px 10px !important; }
+                #printPdfWrapper table.task-table th { font-weight: 800 !important; color: #1A56B5 !important; background: #F8FAFD !important; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; }
+                #printPdfWrapper table.task-table td { border-bottom: 1px dashed #E5E7EB; color: #333; }
+            </style>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1A56B5; padding-bottom: 15px; margin-bottom: 25px;">
+                <div>
+                    <h2 style="margin: 0; color: #1A56B5; font-size: 22px; font-weight: 900;">TRÍ ĐỨC CAR MEDIA TEAM</h2>
+                    <small style="color: #666; font-weight: 800;">HỆ THỐNG QUẢN LÝ TIẾN ĐỘ TASK FREELANCERS</small>
+                </div>
+                <div style="text-align: right;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 900;">PHIẾU CHI THU NHẬP</h3>
+                    <small style="color: #1A56B5; font-weight: 800; font-size: 13px;">${txtB} - ${txtM}/${fYear}</small>
+                </div>
+            </div>
+            <div style="background: #F8FAFD; border-left: 4px solid #1A56B5; padding: 16px 20px; margin-bottom: 25px;">
+                <table style="width: 100%; font-size: 13px; border: none !important; margin: 0 !important;">
+                    <tr><td style="width: 25%; padding: 4px 0 !important; color: #666; border: none !important;">Họ và tên:</td><td style="padding: 4px 0 !important; font-weight: 800; border: none !important;">${targetUser}</td></tr>
+                    <tr><td style="padding: 4px 0 !important; color: #666; border: none !important;">Số tài khoản:</td><td style="padding: 4px 0 !important; font-weight: 900; color: #1A56B5; border: none !important;">${accNum}</td></tr>
+                    <tr><td style="padding: 4px 0 !important; color: #666; border: none !important;">Tên tài khoản:</td><td style="padding: 4px 0 !important; font-weight: 800; text-transform: uppercase; border: none !important;">${accName}</td></tr>
+                    <tr><td style="padding: 4px 0 !important; color: #666; border: none !important;">Ngân hàng:</td><td style="padding: 4px 0 !important; font-weight: 800; border: none !important;">${accBank}</td></tr>
+                </table>
+            </div>
+            <h4 style="margin: 0 0 10px 0; color: #333; font-size: 13px; text-transform: uppercase; font-weight: 900;">📋 DANH SÁCH CHI TIẾT CÁC TASKS ĐÃ HOÀN THÀNH</h4>
+            ${tableHtml}
+            ${adminHtml}
+            <div style="border-top: 1px dashed #CCC; padding-top: 15px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 12px; font-style: italic; color: #0D652D; font-weight: 800;">${consentText}</div>
+                <div style="text-align: right; font-size: 12px; color: #999;">Ngày xuất phiếu: ${new Date().toLocaleDateString('vi-VN')}</div>
+            </div>
+        `;
+
+        let fileName = `Phieu_luong_${targetUser.replace(/\s+/g, '_')}_Thang_${fMonth}_${fYear}.pdf`;
+        let opt = { margin: 10, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+
+        if (navigator.share && window.innerWidth <= 768) {
+            html2pdf().set(opt).from(printElement).outputPdf('blob').then(function(pdfBlob) {
+                let file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                navigator.share({ files: [file], title: `Phiếu lương Trí Đức Media - ${targetUser}` }).catch(err => console.log('Hủy share:', err));
+            });
+        } else {
+            html2pdf().set(opt).from(printElement).save();
+        }
+    }
+</script>

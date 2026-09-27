@@ -1,0 +1,3167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PM Dashboard</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <style>
+    :root{
+      --font: "Roboto", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+
+      /* Blue/White Professional */
+      --bg: #F6F9FF;
+      --panel: #FFFFFF;
+      --panel2: #F1F6FF;
+      --ink: #0B1220;
+      --muted: #667085;
+
+      --primary: #2563EB; /* blue */
+      --primary2: #1D4ED8;
+      --accent: #38BDF8;  /* sky */
+      --danger: #EF4444;
+      --warning: #F59E0B;
+      --success: #22C55E;
+
+      --border: rgba(15, 23, 42, 0.10);
+      --shadow: 0 10px 30px rgba(2, 6, 23, .10);
+      --shadow2: 0 6px 18px rgba(2, 6, 23, .08);
+
+      --radius: 16px;
+      --radius2: 22px;
+
+      --sidebarW: 260px;
+      --sidebarW2: 78px;
+
+      --hTop: 68px;
+      --hFooter: 52px;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; margin:0; }
+    body{
+      font-family: var(--font);
+      background: radial-gradient(1200px 800px at 10% 10%, rgba(56,189,248,.18), transparent 60%),
+                  radial-gradient(1200px 800px at 90% 20%, rgba(37,99,235,.18), transparent 55%),
+                  var(--bg);
+      color: var(--ink);
+      overflow: hidden; /* no page scroll; internal scrolling only */
+    }
+
+    .app{
+      height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebarW) 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    /* Sidebar */
+    .sidebar{
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow2);
+      overflow: hidden;
+      display:flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .brand{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 14px 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brandLeft{ display:flex; gap:12px; align-items:center; }
+    .logo{
+      width: 42px; height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 10px 20px rgba(37,99,235,.25);
+      display:grid; place-items:center;
+      color:#fff;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brandTitle{ line-height: 1.1; }
+    .brandTitle .t1{ font-weight:800; font-size: 14px; }
+    .brandTitle .t2{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .iconBtn{
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: .15s ease;
+    }
+    .iconBtn:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .msr{ font-family:"Material Symbols Rounded"; font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24; font-size: 20px; color: var(--ink); }
+
+    .nav{
+      padding: 10px;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+    }
+    .navItem{
+      display:flex; align-items:center; gap: 12px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      user-select:none;
+      transition: .15s ease;
+    }
+    .navItem:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.12); }
+    .navItem.active{
+      background: linear-gradient(180deg, rgba(37,99,235,.14), rgba(56,189,248,.10));
+      border-color: rgba(37,99,235,.18);
+    }
+    .navItem .label{ font-weight: 650; font-size: 13px; }
+    .navItem .sub{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .navTxt{ display:flex; flex-direction:column; min-width:0; }
+    .navTxt .label, .navTxt .sub{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .sidebarFooter{
+      padding: 12px 12px 14px 12px;
+      border-top: 1px solid var(--border);
+      display:flex; gap: 10px; align-items:center; justify-content: space-between;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
+      color: var(--muted);
+      font-size: 12px;
+      min-width:0;
+    }
+    .chip b{ color: var(--ink); font-weight: 700; }
+    .dot{
+      width: 10px; height: 10px; border-radius: 999px; background: var(--success);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.15);
+    }
+
+    /* Collapsed sidebar */
+    .app.collapsed{ grid-template-columns: var(--sidebarW2) 1fr; }
+    .app.collapsed .brandTitle, .app.collapsed .navTxt, .app.collapsed .chip span{ display:none; }
+    .app.collapsed .chip{ justify-content:center; width: 100%; }
+    .app.collapsed .brand{ justify-content:center; }
+    .app.collapsed .brandLeft{ justify-content:center; }
+    .app.collapsed .iconBtn{ width: 44px; height: 44px; border-radius: 16px; }
+
+    /* Main */
+    .main{
+      display: grid;
+      grid-template-rows: var(--hTop) 1fr;
+      gap: 16px;
+      min-width: 0;
+      height: calc(100vh - 32px);
+    }
+
+    .topbar{
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow2);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      min-width:0;
+    }
+    .topLeft{
+      display:flex; flex-direction:column; gap: 2px;
+      min-width:0;
+    }
+    .pageTitle{
+      font-weight: 850;
+      font-size: 16px;
+      letter-spacing: .2px;
+      white-space: nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    .pageSub{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .topRight{ display:flex; align-items:center; gap: 10px; }
+
+    .search{
+      width: 340px;
+      display:flex; align-items:center; gap: 8px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.9);
+      padding: 8px 10px;
+      transition: .15s ease;
+    }
+    .search:focus-within{ border-color: rgba(37,99,235,.35); box-shadow: 0 0 0 6px rgba(37,99,235,.12); }
+    .search input{
+      border:0; outline:0; background:transparent;
+      width: 100%;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .btn{
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      cursor:pointer;
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      font-weight: 700;
+      font-size: 13px;
+      transition: .15s ease;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .btn.primary{
+      border-color: rgba(37,99,235,.25);
+      background: linear-gradient(135deg, rgba(37,99,235,.95), rgba(56,189,248,.85));
+      color:#fff;
+    }
+    .btn.primary .msr{ color:#fff; }
+
+    .content{
+      min-width:0;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow2);
+      overflow: hidden;
+      display:grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+
+    /* Filter bar */
+    .filters{
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(241,246,255,.9), rgba(255,255,255,.7));
+    }
+    .field{
+      display:flex; flex-direction:column; gap: 6px;
+      min-width: 180px;
+    }
+    .field.small{ min-width: 150px; }
+    .field label{
+      font-size: 11px; color: var(--muted);
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    select, input[type="date"]{
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      padding: 0 10px;
+      outline: none;
+      font-size: 13px;
+    }
+    select:focus, input[type="date"]:focus{
+      border-color: rgba(37,99,235,.35);
+      box-shadow: 0 0 0 6px rgba(37,99,235,.12);
+    }
+
+    .toggle{
+      display:flex; align-items:center; gap: 10px;
+      height: 38px;
+      padding: 0 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      cursor: pointer;
+      user-select:none;
+    }
+    .switch{
+      width: 44px; height: 24px; border-radius: 999px;
+      background: rgba(15,23,42,.12);
+      position: relative;
+      transition: .15s ease;
+    }
+    .switch::after{
+      content:"";
+      width: 18px; height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      position:absolute; top: 3px; left: 3px;
+      transition: .15s ease;
+      box-shadow: 0 6px 14px rgba(2,6,23,.20);
+    }
+    .toggle.on .switch{ background: rgba(34,197,94,.35); }
+    .toggle.on .switch::after{ left: 23px; }
+
+    /* Tab body + scroll fix */
+    .tabBody{
+      padding: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+    }
+    .tab{
+      height: auto;
+      display:none;
+      overflow: visible;
+      min-height: 0;
+    }
+    .tab.active{ display:block; }
+    .grid{
+      height: auto;
+      display:grid;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    /* Cards */
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      grid-auto-rows: 1fr;
+      gap: 12px;
+    }
+    .card{
+      background: rgba(255,255,255,.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(2,6,23,.06);
+      padding: 12px;
+      min-width:0;
+    }
+    .kpi{
+      display:flex; justify-content:space-between; gap: 12px; align-items:flex-start;
+    }
+    .kpi .left{ min-width:0; }
+    .kpi .name{ font-size: 12px; color: var(--muted); font-weight: 800; letter-spacing: .2px; }
+    .kpi .val{ font-size: 22px; font-weight: 900; margin-top: 6px; }
+    .badge{
+      display:inline-flex; align-items:center; gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid var(--border);
+      background: rgba(241,246,255,.9);
+      color: var(--primary2);
+      white-space: nowrap;
+    }
+    .badge.danger{ background: rgba(239,68,68,.08); color: var(--danger); border-color: rgba(239,68,68,.18); }
+    .badge.warn{ background: rgba(245,158,11,.10); color: var(--warning); border-color: rgba(245,158,11,.18); }
+    .badge.ok{ background: rgba(34,197,94,.10); color: var(--success); border-color: rgba(34,197,94,.18); }
+
+    /* EISENHOWER – layout riêng, 2x2 */
+    #tab-eisenhower .cards{
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      grid-auto-rows: auto;
+    }
+
+    .eiCard{
+      position: relative;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:150px;
+      padding:14px 14px 12px 14px;
+      background:
+        radial-gradient(800px 800px at 0% 0%, rgba(37,99,235,.05), transparent 60%),
+        radial-gradient(800px 800px at 100% 100%, rgba(56,189,248,.05), transparent 60%),
+        rgba(255,255,255,.96);
+      border-radius: var(--radius);
+      border:1px solid rgba(15,23,42,.10);
+      box-shadow: var(--shadow2);
+      cursor:pointer;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
+    }
+
+    .eiCard:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 16px 42px rgba(15,23,42,.16);
+      border-color: rgba(37,99,235,.40);
+    }
+
+    .eiCard.eiActive{
+      border-color: rgba(37,99,235,.85);
+      box-shadow: 0 18px 48px rgba(37,99,235,.28);
+      background:
+        linear-gradient(135deg, rgba(37,99,235,.10), rgba(56,189,248,.08)),
+        #ffffff;
+    }
+
+    .eiCard .badge{
+      font-size:11px;
+      padding:5px 9px;
+      max-width: 160px;
+      text-align:right;
+    }
+
+    .eiHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      min-width:0;
+    }
+
+    .eiTitle{
+      font-size:13px;
+      font-weight:900;
+      margin-top:2px;
+    }
+
+    .eiQuadrant{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .eiBig{
+      margin-top:6px;
+      font-size:26px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .eiMetaRow{
+      margin-top:10px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .eiHint{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.5;
+      max-width:70%;
+    }
+
+    .eiPct{
+      font-size:11px;
+      font-weight:800;
+      color:var(--muted);
+      white-space:nowrap;
+      text-align:right;
+    }
+
+    .eiCard.ei-Q1 .eiBig{ color: var(--danger); }
+    .eiCard.ei-Q2 .eiBig{ color: var(--success); }
+    .eiCard.ei-Q3 .eiBig{ color: var(--warning); }
+    .eiCard.ei-Q4 .eiBig{ color: var(--primary2); }
+
+    .eiCard.ei-Q1 .eiQuadrant{ color: var(--danger); }
+    .eiCard.ei-Q2 .eiQuadrant{ color: var(--success); }
+    .eiCard.ei-Q3 .eiQuadrant{ color: var(--warning); }
+    .eiCard.ei-Q4 .eiQuadrant{ color: var(--primary2); }
+
+    /* Charts layout */
+    .charts{
+      display:grid;
+      grid-template-columns: 1.1fr 1.1fr 1.8fr;
+      gap: 12px;
+      min-height: 0;
+    }
+    .chartBox{
+      height: 320px;
+      display:flex; flex-direction:column;
+      min-height:0;
+    }
+    .chartTitle{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .chartTitle h3{
+      margin:0;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .chartCanvas{
+      flex: 1;
+      min-height:0;
+    }
+    .chartCanvas canvas{
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Tables */
+    .tableWrap{
+      display:flex; flex-direction:column;
+      min-height:0;
+      height: 100%;
+    }
+    .tableHead{
+      display:flex; justify-content:space-between; align-items:center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .tableHead h3{ margin:0; font-size: 13px; font-weight: 900; }
+    .table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .table th, .table td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(15,23,42,.08);
+      vertical-align: top;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .table th{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(8px);
+      z-index: 2;
+    }
+    .table td .sub{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 320px;
+    }
+    .tableScroll{
+      overflow: auto;
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,.85);
+      min-height: 0;
+      height: 100%;
+    }
+    .rowClick{ cursor:pointer; }
+    .rowClick:hover{ background: rgba(37,99,235,.05); }
+
+    .pill{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.8);
+      white-space: nowrap;
+    }
+    .pill.s1{ color: var(--primary2); border-color: rgba(37,99,235,.20); background: rgba(37,99,235,.06); }
+    .pill.s2{ color: var(--warning); border-color: rgba(245,158,11,.20); background: rgba(245,158,11,.08); }
+    .pill.s3{ color: var(--danger); border-color: rgba(239,68,68,.20); background: rgba(239,68,68,.08); }
+    .pill.s4{ color: var(--success); border-color: rgba(34,197,94,.20); background: rgba(34,197,94,.10); }
+
+    .progress{
+      width: 160px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.08);
+      overflow:hidden;
+      border: 1px solid rgba(15,23,42,.08);
+    }
+    .progress > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(37,99,235,.95), rgba(56,189,248,.95));
+      border-radius: 999px;
+      transition: width .2s ease;
+    }
+
+    /* Drawer */
+    .drawerMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.45);
+      display:none;
+      align-items: stretch;
+      justify-content: flex-end;
+      z-index: 99;
+    }
+    .drawerMask.show{ display:flex; }
+    .drawer{
+      width: 430px;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-left: 1px solid rgba(255,255,255,.35);
+      box-shadow: -20px 0 60px rgba(2,6,23,.25);
+      padding: 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width:0;
+    }
+    .drawerTop{
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
+    }
+    .drawerTop h3{
+      margin:0;
+      font-size: 14px;
+      font-weight: 950;
+    }
+    .drawerBody{
+      overflow:auto;
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,.85);
+      padding: 12px;
+      min-height: 0;
+      flex: 1;
+    }
+    .kv{ display:grid; grid-template-columns: 140px 1fr; gap: 8px 10px; }
+    .k{ color: var(--muted); font-weight: 800; font-size: 12px; }
+    .v{ font-weight: 650; font-size: 13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space: nowrap; }
+    .v.wrap{ white-space: pre-wrap; overflow: visible; text-overflow: initial; }
+    .divider{ height:1px; background: rgba(15,23,42,.10); margin: 10px 0; }
+
+    /* Gantt */
+    #ganttChart{
+      width: 100%;
+      height: 520px;
+      border-radius: 14px;
+      overflow:hidden;
+      border: 1px solid rgba(15,23,42,.08);
+      background: rgba(255,255,255,.85);
+    }
+
+    /* CALENDAR – Lịch công việc */
+    .calendarWrap{
+      display:flex;
+      flex-direction:column;
+      height:100%;
+    }
+    .calHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .calTitle{
+      font-weight:950;
+      font-size:14px;
+    }
+    .calControls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .calGrid{
+      flex:1;
+      display:grid;
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      grid-auto-rows: minmax(76px, 1fr);
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.08);
+      overflow:hidden;
+      background:rgba(255,255,255,.9);
+    }
+    .calDow{
+      padding:6px 8px;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      color:var(--muted);
+      background:rgba(241,246,255,.9);
+      border-bottom:1px solid rgba(15,23,42,.06);
+      text-align:center;
+    }
+    .calDay{
+      position:relative;
+      padding:6px 8px;
+      font-size:12px;
+      border-right:1px solid rgba(15,23,42,.04);
+      border-bottom:1px solid rgba(15,23,42,.04);
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+      transition:.12s ease;
+      min-width:0;
+    }
+    .calDay:hover{
+      background:rgba(37,99,235,.06);
+    }
+    .calDay.otherMonth{
+      color:var(--muted);
+      background:rgba(246,249,255,.6);
+    }
+    .calDay.today{
+      box-shadow:0 0 0 1px rgba(37,99,235,.65) inset;
+      background:rgba(239,246,255,.9);
+    }
+    .calDay .calDate{
+      font-weight:900;
+      font-size:12px;
+    }
+    .calDay .calCount{
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .calDay .calDot{
+      margin-top:auto;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .calDay.hasTasks .calDate{
+      color:var(--primary2);
+    }
+    .calDay.hasTasks .calCount{
+      color:var(--primary2);
+      font-weight:600;
+    }
+    .calDay.hasTasks .calDot{
+      color:var(--primary2);
+    }
+
+    /* Responsive */
+    @media (max-width: 1220px){
+      .cards{ grid-template-columns: repeat(3, minmax(200px,1fr)); }
+      .charts{ grid-template-columns: 1fr; }
+      .search{ width: 260px; }
+    }
+
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 1fr; }
+      .sidebar{ display:none; }
+      .cards{ grid-template-columns: repeat(2, minmax(200px,1fr)); }
+      .search{ width: 220px; }
+    }
+
+    @media (max-width: 640px){
+      .cards{ grid-template-columns: minmax(0,1fr); }
+    }
+
+    @media (max-width: 980px){
+      #tab-eisenhower .cards{
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    /* Loader + Toast */
+    .loaderMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(246,249,255,.70);
+      display:none; /* mặc định ẩn */
+      align-items:center;
+      justify-content:center;
+      z-index: 200;
+      backdrop-filter: blur(10px);
+    }
+    .loader{
+      width: 520px;
+      max-width: calc(100vw - 40px);
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px 18px;
+    }
+    .loaderTop{
+      display:flex; gap: 12px; align-items:center;
+    }
+    .spinner{
+      width: 44px; height: 44px; border-radius: 18px;
+      background: linear-gradient(135deg, rgba(37,99,235,.95), rgba(56,189,248,.9));
+      display:grid; place-items:center;
+      color:#fff;
+      box-shadow: 0 12px 22px rgba(37,99,235,.20);
+      position: relative;
+      overflow:hidden;
+    }
+    .spinner::after{
+      content:"";
+      width: 14px; height: 14px;
+      border-radius: 999px;
+      border: 3px solid rgba(255,255,255,.70);
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+      display:block;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+    .loaderTop .txt{ min-width:0; }
+    .loaderTop .txt .t1{ font-weight: 950; font-size: 14px; }
+    .loaderTop .txt .t2{ margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .bar{
+      height: 10px;
+      background: rgba(15,23,42,.08);
+      border-radius: 999px;
+      overflow:hidden;
+      margin-top: 14px;
+      border: 1px solid rgba(15,23,42,.08);
+    }
+    .bar > div{
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, rgba(37,99,235,.95), rgba(56,189,248,.95));
+      border-radius: 999px;
+      animation: loading 1.2s ease-in-out infinite;
+    }
+    @keyframes loading{
+      0%{ transform: translateX(-60%); width: 30%; }
+      50%{ transform: translateX(80%); width: 55%; }
+      100%{ transform: translateX(-60%); width: 30%; }
+    }
+
+    .toast{
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(15,23,42,.12);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow2);
+      display:none;
+      gap: 10px;
+      align-items:flex-start;
+      max-width: 420px;
+      z-index: 300;
+    }
+    .toast.show{ display:flex; }
+    .toast .title{ font-weight: 950; font-size: 13px; }
+    .toast .msg{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+  </style>
+</head>
+
+<body>
+  <!-- LOADER -->
+  <div class="loaderMask" id="loaderMask">
+    <div class="loader">
+      <div class="loaderTop">
+        <div class="spinner"></div>
+        <div class="txt">
+          <div class="t1">Đang tải dữ liệu Dashboard…</div>
+          <div class="t2" id="loaderHint">Đọc Công việc / Dự án / Nhân sự, dựng KPI, biểu đồ &amp; Gantt</div>
+        </div>
+      </div>
+      <div class="bar"><div></div></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="msr" id="toastIcon">info</span>
+    <div>
+      <div class="title" id="toastTitle">Thông báo</div>
+      <div class="msg" id="toastMsg"></div>
+    </div>
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawerMask" id="drawerMask" onclick="closeDrawer(event)">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <div class="drawerTop">
+        <h3 id="drawerTitle">Chi tiết</h3>
+        <button class="iconBtn" onclick="hideDrawer()" title="Đóng"><span class="msr">close</span></button>
+      </div>
+      <div class="drawerBody" id="drawerBody"></div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" onclick="openInSheetFromDrawer()"><span class="msr">open_in_new</span> Mở trên Sheet</button>
+        <button class="btn primary" onclick="saveQuickEdit()" id="btnSaveQuickEdit" style="display:none;">
+          <span class="msr">save</span> Lưu cập nhật
+        </button>
+      </div>
+      <div style="font-size:12px; color:var(--muted); line-height:1.45;">
+        Mẹo: Click dự án → tự chuyển sang tab Gantt. Click công việc → xem chi tiết, có thể cập nhật nhanh Trạng thái / % hoàn thành / Ghi chú / Liên kết.
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brandLeft">
+          <div class="logo">PM</div>
+          <div class="brandTitle">
+            <div class="t1" id="brandT1">PM Dashboard</div>
+            <div class="t2" id="brandT2">Dự án &amp; Công việc</div>
+          </div>
+        </div>
+        <button class="iconBtn" id="btnCollapse" title="Thu gọn / Mở rộng">
+          <span class="msr">menu_open</span>
+        </button>
+      </div>
+
+      <div class="nav" id="nav">
+        <div class="navItem active" data-tab="overview">
+          <span class="msr">space_dashboard</span>
+          <div class="navTxt">
+            <div class="label">Tổng quan</div>
+            <div class="sub">KPI + biểu đồ + cảnh báo</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="tasks">
+          <span class="msr">checklist</span>
+          <div class="navTxt">
+            <div class="label">Công việc</div>
+            <div class="sub">Bảng công việc &amp; cập nhật nhanh</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="projects">
+          <span class="msr">folder_open</span>
+          <div class="navTxt">
+            <div class="label">Dự án</div>
+            <div class="sub">Tiến độ dự án + click xem Gantt</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="people">
+          <span class="msr">group</span>
+          <div class="navTxt">
+            <div class="label">Nhân sự</div>
+            <div class="sub">Workload &amp; quá hạn theo người</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="eisenhower">
+          <span class="msr">grid_view</span>
+          <div class="navTxt">
+            <div class="label">Eisenhower</div>
+            <div class="sub">Ma trận quan trọng/khẩn cấp</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="alerts">
+          <span class="msr">notification_important</span>
+          <div class="navTxt">
+            <div class="label">Cảnh báo</div>
+            <div class="sub">Quá hạn / sắp đến hạn / log nhắc</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="schedule">
+          <span class="msr">calendar_month</span>
+          <div class="navTxt">
+            <div class="label">Lịch</div>
+            <div class="sub">Lịch công việc dạng calendar</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="gantt">
+          <span class="msr">bar_chart</span>
+          <div class="navTxt">
+            <div class="label">Gantt</div>
+            <div class="sub">Gantt chart theo dự án</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="settings">
+          <span class="msr">settings</span>
+          <div class="navTxt">
+            <div class="label">Danh mục</div>
+            <div class="sub">Danh mục dropdown cho file</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebarFooter">
+        <div class="chip" title="Trạng thái kết nối">
+          <span class="dot"></span>
+          <span>Đang xem: <b id="chipInfo">—</b></span>
+        </div>
+        <button class="iconBtn" onclick="refreshAll()" title="Làm mới dữ liệu">
+          <span class="msr">refresh</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="topbar">
+        <div class="topLeft">
+          <div class="pageTitle" id="pageTitle">Tổng quan</div>
+          <div class="pageSub" id="pageSub">KPI, biểu đồ &amp; danh sách cần xử lý</div>
+        </div>
+
+        <div class="topRight">
+          <div class="search">
+            <span class="msr" style="color:var(--muted);">search</span>
+            <input id="q" type="text" placeholder="Tìm công việc/dự án/nhân sự (tên, mã, email)..." />
+          </div>
+
+          <button class="btn" onclick="resetFilters()"><span class="msr">filter_alt_off</span> Reset</button>
+          <button class="btn primary" onclick="refreshAll()"><span class="msr">sync</span> Tải lại</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <!-- FILTERS -->
+        <div class="filters" id="filters">
+          <div class="field small">
+            <label>Từ ngày (Hạn chót)</label>
+            <input type="date" id="fFrom" />
+          </div>
+          <div class="field small">
+            <label>Đến ngày (Hạn chót)</label>
+            <input type="date" id="fTo" />
+          </div>
+
+          <div class="field">
+            <label>Dự án</label>
+            <select id="fProject"></select>
+          </div>
+
+          <div class="field">
+            <label>Nhân sự phụ trách</label>
+            <select id="fAssignee"></select>
+          </div>
+
+          <div class="field">
+            <label>Bộ phận</label>
+            <select id="fDept"></select>
+          </div>
+
+          <div class="field">
+            <label>Trạng thái</label>
+            <select id="fStatus"></select>
+          </div>
+
+          <div class="field">
+            <label>Ưu tiên</label>
+            <select id="fPriority"></select>
+          </div>
+
+          <div class="field">
+            <label>Loại công việc</label>
+            <select id="fType"></select>
+          </div>
+
+          <div class="toggle" id="tOverdue" onclick="toggleOverdue()">
+            <div class="switch"></div>
+            <div style="display:flex; flex-direction:column; line-height:1.15;">
+              <div style="font-size:12px; font-weight:900;">Chỉ quá hạn</div>
+              <div style="font-size:11px; color:var(--muted);">lọc nhanh</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="tabBody">
+          <!-- OVERVIEW -->
+          <div class="tab active" id="tab-overview">
+            <div class="grid" style="grid-template-rows:auto auto 1fr;">
+
+              <div class="cards" id="kpiCards"></div>
+
+              <div class="charts">
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Trạng thái công việc</h3>
+                    <span class="badge" id="badgeStatus">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartStatus"></canvas></div>
+                </div>
+
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Mức ưu tiên</h3>
+                    <span class="badge" id="badgePriority">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartPriority"></canvas></div>
+                </div>
+
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Xu hướng đến hạn (30 ngày)</h3>
+                    <span class="badge" id="badgeTrend">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartTrend"></canvas></div>
+                </div>
+              </div>
+
+              <div class="grid" style="grid-template-columns: 1.2fr 1fr; min-height:0;">
+                <div class="card tableWrap">
+                  <div class="tableHead">
+                    <h3>Quá hạn cần xử lý</h3>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <span class="badge danger" id="badgeOverdue">—</span>
+                      <button class="btn" onclick="quickFilter('overdue')"><span class="msr">bolt</span> Lọc</button>
+                    </div>
+                  </div>
+                  <div class="tableScroll">
+                    <table class="table" id="tblOverdue"></table>
+                  </div>
+                </div>
+
+                <div class="card tableWrap">
+                  <div class="tableHead">
+                    <h3>Sắp đến hạn (7 ngày)</h3>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <span class="badge warn" id="badgeDue7">—</span>
+                      <button class="btn" onclick="quickFilter('due7')"><span class="msr">event_upcoming</span> Lọc</button>
+                    </div>
+                  </div>
+                  <div class="tableScroll">
+                    <table class="table" id="tblDueSoon"></table>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TASKS -->
+          <div class="tab" id="tab-tasks">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:950; font-size:14px;">Bảng công việc</div>
+                  <div style="font-size:12px; color:var(--muted);">Click 1 dòng để mở chi tiết. Có cập nhật nhanh Trạng thái / % / Ghi chú / Liên kết.</div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                  <div class="field small" style="min-width:160px;">
+                    <label>Page size</label>
+                    <select id="taskPageSize">
+                      <option value="25">25</option>
+                      <option value="50" selected>50</option>
+                      <option value="100">100</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3 id="taskTableTitle">Danh sách công việc</h3>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <span class="badge" id="taskCount">—</span>
+                    <button class="btn" onclick="gotoFirstPage('tasks')"><span class="msr">first_page</span></button>
+                    <button class="btn" onclick="prevPage('tasks')"><span class="msr">chevron_left</span></button>
+                    <button class="btn" onclick="nextPage('tasks')"><span class="msr">chevron_right</span></button>
+                    <button class="btn" onclick="gotoLastPage('tasks')"><span class="msr">last_page</span></button>
+                  </div>
+                </div>
+                <div class="tableScroll">
+                  <table class="table" id="tblTasks"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROJECTS -->
+          <div class="tab" id="tab-projects">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:950; font-size:14px;">Danh sách dự án</div>
+                  <div style="font-size:12px; color:var(--muted);">Click dự án để xem chi tiết hoặc chuyển sang tab Gantt.</div>
+                </div>
+              </div>
+
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3>Mức độ hoàn chỉnh dự án</h3>
+                  <span class="badge" id="projectCount">—</span>
+                </div>
+                <div class="tableScroll">
+                  <table class="table" id="tblProjects"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PEOPLE -->
+          <div class="tab" id="tab-people">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:950; font-size:14px;">Workload theo nhân sự</div>
+                  <div style="font-size:12px; color:var(--muted);">Tổng việc đang làm, quá hạn, và drill-down.</div>
+                </div>
+              </div>
+
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3>Danh sách nhân sự</h3>
+                  <span class="badge" id="peopleCount">—</span>
+                </div>
+                <div class="tableScroll">
+                  <table class="table" id="tblPeople"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EISENHOWER -->
+          <div class="tab" id="tab-eisenhower">
+            <div class="grid" style="grid-template-rows:auto auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px; max-width:520px;">
+                  <div style="font-weight:950; font-size:14px;">Ma trận Eisenhower</div>
+                  <div style="font-size:12px; color:var(--muted);">
+                    Phân loại công việc theo <b>2 cột &ldquo;Quan trọng&rdquo; và &ldquo;Khẩn cấp&rdquo;</b> trong sheet <b>Công việc</b>.
+                    Chỉ tính các công việc <b>chưa hoàn thành</b> sau khi áp dụng bộ lọc bên trên.
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  <button class="btn" data-ei-filter="all" onclick="setEisenhowerFilter('all')">
+                    <span class="msr">select_all</span> Tất cả
+                  </button>
+                  <button class="btn" data-ei-filter="Q1" onclick="setEisenhowerFilter('Q1')">
+                    <span class="msr">priority_high</span> Q1 – Làm ngay
+                  </button>
+                  <button class="btn" data-ei-filter="Q2" onclick="setEisenhowerFilter('Q2')">
+                    <span class="msr">calendar_month</span> Q2 – Lên kế hoạch
+                  </button>
+                  <button class="btn" data-ei-filter="Q3" onclick="setEisenhowerFilter('Q3')">
+                    <span class="msr">group</span> Q3 – Ủy quyền
+                  </button>
+                  <button class="btn" data-ei-filter="Q4" onclick="setEisenhowerFilter('Q4')">
+                    <span class="msr">delete_outline</span> Q4 – Giảm bớt
+                  </button>
+                </div>
+              </div>
+
+              <div class="cards" id="eiCards"></div>
+
+              <div class="grid" style="grid-template-columns: 1.1fr 1.9fr; min-height:0;">
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Phân bố công việc theo ma trận</h3>
+                    <span class="badge" id="eiBadgeSummary">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartEisenhower"></canvas></div>
+                </div>
+
+                <div class="card tableWrap" style="min-height:0;">
+                  <div class="tableHead">
+                    <h3 id="eiTableTitle">Danh sách công việc theo Eisenhower</h3>
+                    <span class="badge" id="eiCount">—</span>
+                  </div>
+                  <div class="tableScroll">
+                    <table class="table" id="tblEisenhower"></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ALERTS -->
+          <!-- ALERTS -->
+<div class="tab" id="tab-alerts">
+  <div class="grid" style="grid-template-columns: 1.2fr 1fr; min-height:0;">
+    <!-- Bảng cảnh báo -->
+    <div class="card tableWrap">
+      <div class="tableHead">
+        <h3>Danh sách quá hạn / sắp đến hạn</h3>
+        <span class="badge" id="alertCount">—</span>
+      </div>
+      <div class="tableScroll">
+        <table class="table" id="tblAlerts"></table>
+      </div>
+    </div>
+
+    <!-- Cột bên phải: Quick actions + hôm nay -->
+    <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+      <div class="card">
+        <div style="font-weight:950; font-size:14px;">Quick actions</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <button class="btn" onclick="quickFilter('overdue')">
+            <span class="msr">bolt</span> Chỉ quá hạn
+          </button>
+          <button class="btn" onclick="quickFilter('due3')">
+            <span class="msr">event</span> Đến hạn 3 ngày
+          </button>
+          <button class="btn" onclick="quickFilter('dueToday')">
+            <span class="msr">today</span> Đến hạn hôm nay
+          </button>
+          <button class="btn" onclick="resetFilters()">
+            <span class="msr">restart_alt</span> Xóa lọc
+          </button>
+        </div>
+      </div>
+
+      <div class="card tableWrap" style="min-height:0;">
+        <div class="tableHead">
+          <h3>Công việc cần nhắc trong ngày</h3>
+          <span class="badge warn" id="dueTodayCount">—</span>
+        </div>
+        <div class="tableScroll">
+          <table class="table" id="tblDueToday"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+          <!-- SCHEDULE -->
+          <div class="tab" id="tab-schedule">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:950; font-size:14px;">Lịch công việc theo ngày</div>
+                  <div style="font-size:12px; color:var(--muted);">
+                    Mỗi ngày hiển thị số lượng công việc (theo khoảng Ngày bắt đầu → Hạn chót). Click ngày để xem danh sách dự án &amp; công việc bên phải.
+                  </div>
+                </div>
+                <div class="calControls">
+                  <button class="btn" onclick="schedulePrevMonth()"><span class="msr">chevron_left</span></button>
+                  <div class="chip">
+                    <span class="msr" style="color:var(--primary2);">calendar_today</span>
+                    <span id="calMonthLabel">Tháng —</span>
+                  </div>
+                  <button class="btn" onclick="scheduleNextMonth()"><span class="msr">chevron_right</span></button>
+                  <button class="btn primary" onclick="scheduleGoToday()">
+                    <span class="msr">today</span> Hôm nay
+                  </button>
+                </div>
+              </div>
+
+              <div class="card" style="min-height:0;">
+                <div class="calendarWrap">
+                  <div class="calHead">
+                    <div class="calTitle">Lịch tháng</div>
+                    <span class="badge" id="calSummary">—</span>
+                  </div>
+                  <div class="calGrid" id="calendarGrid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GANTT -->
+          <div class="tab" id="tab-gantt">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:950; font-size:14px;">Gantt Chart theo dự án</div>
+                  <div style="font-size:12px; color:var(--muted);">Chọn dự án hoặc click từ tab “Dự án” để xem ngay Gantt của toàn bộ công việc.</div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                  <div class="field" style="min-width:280px;">
+                    <label>Dự án</label>
+                    <select id="gProject"></select>
+                  </div>
+                  <button class="btn" onclick="drawGanttForSelected()"><span class="msr">auto_graph</span> Vẽ Gantt</button>
+                </div>
+              </div>
+
+              <div class="card" style="min-height:0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                  <div style="display:flex; flex-direction:column; gap:2px;">
+                    <div style="font-weight:950; font-size:13px;" id="ganttTitle">—</div>
+                    <div style="font-size:12px; color:var(--muted);" id="ganttSub">Chọn dự án để hiển thị Gantt</div>
+                  </div>
+                  <span class="badge" id="ganttCount">—</span>
+                </div>
+
+                <div id="ganttChart"></div>
+                <div style="margin-top:10px; font-size:12px; color:var(--muted); line-height:1.45;">
+                  Tip: Click vào một thanh trên Gantt để mở chi tiết công việc ở Drawer (bên phải).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SETTINGS (chỉ còn Danh mục) -->
+          <div class="tab" id="tab-settings">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card">
+                <div style="font-weight:950; font-size:14px;">Danh mục (dropdown)</div>
+                <div style="font-size:12px; color:var(--muted); margin-top:4px;">
+                  Đọc từ sheet “Danh mục”. Dùng cho các dropdown: Trạng thái công việc, Mức ưu tiên, Loại công việc, v.v.
+                </div>
+              </div>
+
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3>Danh mục hiện có</h3>
+                  <span class="badge" id="catalogCount">—</span>
+                </div>
+                <div class="tableScroll">
+                  <table class="table" id="tblCatalog"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /tabBody -->
+      </section>
+    </main>
+  </div>
+
+<script>
+/* =========================
+ * State
+ * ========================= */
+let DATA = null;
+let ACTIVE_TAB = "overview";
+let charts = { status:null, priority:null, trend:null, eisenhower:null };
+let paging = { tasks:{page:1, size:50} };
+let drawerContext = { type:null, item:null };
+
+let ganttReady = false;
+let ganttChart = null;
+
+/* Lịch công việc */
+let scheduleYear = null;
+let scheduleMonth = null;
+let scheduleSelectedISO = null;
+
+/* Eisenhower filter */
+let eisenhowerFilter = "all";
+
+const $ = (id) => document.getElementById(id);
+
+/* Luôn tắt loader nếu có lỗi JS */
+window.addEventListener("error", (e)=>{
+  try{ setLoading(false); }catch(_){}
+  try{ showToast("Lỗi JavaScript", e?.message || "Có lỗi trong Dashboard.", "error"); }catch(_){}
+  console.error("JS error:", e?.error || e);
+});
+window.addEventListener("unhandledrejection", (e)=>{
+  try{ setLoading(false); }catch(_){}
+  try{ showToast("Lỗi Promise", (e?.reason && (e.reason.message||String(e.reason))) || "Có lỗi bất ngờ.", "error"); }catch(_){}
+  console.error("Unhandled rejection:", e?.reason || e);
+});
+
+function showToast(title, msg, icon="info"){
+  const t = $("toast"); if (!t) return;
+  $("toastTitle").textContent = title;
+  $("toastMsg").textContent = msg;
+  $("toastIcon").textContent = icon;
+  t.classList.add("show");
+  setTimeout(()=> t.classList.remove("show"), 2800);
+}
+
+function setLoading(on, hint=""){
+  const mask = $("loaderMask");
+  if (!mask) return;
+  mask.style.display = on ? "flex" : "none";
+  const hintEl = $("loaderHint");
+  if (hintEl && hint) hintEl.textContent = hint;
+}
+
+/* =========================
+ * Boot
+ * ========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  bindUI();
+  initChartsLib();
+  loadData();
+});
+
+function bindUI(){
+  $("btnCollapse").addEventListener("click", ()=>{
+    $("app").classList.toggle("collapsed");
+  });
+
+  document.querySelectorAll(".navItem").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll(".navItem").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      setTab(el.dataset.tab);
+    });
+  });
+
+  $("q").addEventListener("input", debounce(()=>{ renderAll(); }, 200));
+
+  ["fFrom","fTo","fProject","fAssignee","fDept","fStatus","fPriority","fType"].forEach(id=>{
+    $(id).addEventListener("change", ()=> renderAll());
+  });
+
+  $("taskPageSize").addEventListener("change", ()=>{
+    paging.tasks.size = Number($("taskPageSize").value || 50);
+    paging.tasks.page = 1;
+    renderTasksTab();
+  });
+
+  $("gProject").addEventListener("change", ()=> drawGanttForSelected());
+}
+
+function initChartsLib(){
+  if (!window.google || !google.charts){
+    console.warn("Google Charts chưa sẵn sàng.");
+    return;
+  }
+  google.charts.load("current", { packages: ["gantt"], language: "vi" });
+  google.charts.setOnLoadCallback(() => {
+    ganttReady = true;
+    if (DATA) drawGanttForSelected();
+  });
+}
+
+/* =========================
+ * Data load
+ * ========================= */
+function loadData(){
+  setLoading(true, "Đang đọc dữ liệu từ Google Sheets…");
+  google.script.run
+    .withSuccessHandler((payload)=>{
+      try{
+        DATA = payload;
+
+        $("brandT1").textContent = payload?.meta?.appTitle || "PM Dashboard";
+        $("brandT2").textContent = `Timezone: ${payload?.meta?.tz || ""} | Today: ${payload?.meta?.todayISO || ""}`;
+        $("chipInfo").textContent = payload?.meta?.todayISO || "—";
+
+        if (scheduleYear === null || scheduleMonth === null){
+          const today = payload?.meta?.todayISO ? new Date(payload.meta.todayISO) : new Date();
+          if (!isNaN(today.getTime())){
+            scheduleYear = today.getFullYear();
+            scheduleMonth = today.getMonth();
+            scheduleSelectedISO = payload?.meta?.todayISO || null;
+          }
+        }
+
+        hydrateFilters();
+        hydrateSettings();
+        renderAll();
+        showToast("Sẵn sàng", "Dashboard đã tải xong dữ liệu.", "check_circle");
+      }catch(err){
+        console.error(err);
+        showToast("Lỗi hiển thị", err?.message ? err.message : String(err), "error");
+      }finally{
+        setLoading(false);
+      }
+    })
+    .withFailureHandler((err)=>{
+      console.error(err);
+      setLoading(false);
+      showToast("Lỗi tải dữ liệu", (err && err.message) ? err.message : String(err), "error");
+    })
+    .getInitData();
+}
+
+function refreshAll(){
+  setLoading(true, "Đang đồng bộ lại dữ liệu…");
+  google.script.run
+    .withSuccessHandler((payload)=>{
+      try{
+        DATA = payload;
+        hydrateFilters();
+        hydrateSettings();
+        renderAll();
+        showToast("Đã đồng bộ", "Dữ liệu đã được làm mới.", "sync");
+      }catch(err){
+        console.error(err);
+        showToast("Lỗi hiển thị", err?.message ? err.message : String(err), "error");
+      }finally{
+        setLoading(false);
+      }
+    })
+    .withFailureHandler((err)=>{
+      console.error(err);
+      setLoading(false);
+      showToast("Lỗi đồng bộ", (err && err.message) ? err.message : String(err), "error");
+    })
+    .getInitData();
+}
+
+/* =========================
+ * Tabs
+ * ========================= */
+function setTab(tab){
+  ACTIVE_TAB = tab;
+
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  $("tab-"+tab).classList.add("active");
+
+  const titles = {
+    overview:["Tổng quan","KPI, biểu đồ & danh sách cần xử lý"],
+    tasks:["Công việc","Tra cứu, lọc, cập nhật nhanh theo dự án/nhân sự/trạng thái"],
+    projects:["Dự án","Theo dõi tiến độ; click để xem Gantt và danh sách công việc"],
+    people:["Nhân sự","Workload, quá hạn và drill-down theo người"],
+    eisenhower:["Eisenhower","Ma trận quan trọng/khẩn cấp dựa trên 2 cột Quan trọng & Khẩn cấp"],
+    alerts:["Cảnh báo","Quá hạn / sắp đến hạn / log nhắc email"],
+    schedule:["Lịch công việc","Calendar theo ngày, dự án & nhân sự"],
+    gantt:["Gantt","Gantt chart theo dự án (click dự án để xem)"],
+    settings:["Danh mục","Danh mục dropdown: Trạng thái, ưu tiên, loại việc..."],
+  };
+  $("pageTitle").textContent = titles[tab]?.[0] || "Dashboard";
+  $("pageSub").textContent = titles[tab]?.[1] || "";
+
+  if (tab === "overview") renderOverviewTab();
+  if (tab === "tasks") renderTasksTab();
+  if (tab === "projects") renderProjectsTab();
+  if (tab === "people") renderPeopleTab();
+  if (tab === "eisenhower") renderEisenhowerTab();
+  if (tab === "alerts") renderAlertsTab();
+  if (tab === "schedule") renderScheduleTab();
+  if (tab === "gantt") drawGanttForSelected();
+  if (tab === "settings") renderSettingsTab();
+}
+
+function renderAll(){
+  if (!DATA) return;
+  try{
+    renderOverviewTab();
+    if (ACTIVE_TAB === "tasks") renderTasksTab();
+    if (ACTIVE_TAB === "projects") renderProjectsTab();
+    if (ACTIVE_TAB === "people") renderPeopleTab();
+    if (ACTIVE_TAB === "eisenhower") renderEisenhowerTab();
+    if (ACTIVE_TAB === "alerts") renderAlertsTab();
+    if (ACTIVE_TAB === "schedule") renderScheduleTab();
+    if (ACTIVE_TAB === "gantt") drawGanttForSelected();
+    if (ACTIVE_TAB === "settings") renderSettingsTab();
+  }catch(err){
+    console.error(err);
+    showToast("Lỗi render", err?.message ? err.message : String(err), "error");
+  }
+}
+
+/* =========================
+ * Filters
+ * ========================= */
+function hydrateFilters(){
+  const projects = DATA.projects || [];
+  const people = DATA.people || [];
+  const catalogs = DATA.catalogs || {};
+
+  fillSelect($("fProject"), ["", "Tất cả dự án"], projects.map(p=>[p.id, p.name || p.id]));
+  fillSelect($("fAssignee"), ["", "Tất cả nhân sự"], people.map(n=>[n.id, n.name || n.id]));
+  fillSelect($("fDept"), ["", "Tất cả bộ phận"], uniq(people.map(n=>n.department).filter(Boolean)).map(x=>[x,x]));
+  fillSelect($("fStatus"), ["", "Tất cả trạng thái"], (catalogs["Trạng thái công việc"]||[]).map(x=>[x,x]));
+  fillSelect($("fPriority"), ["", "Tất cả ưu tiên"], (catalogs["Mức ưu tiên"]||[]).map(x=>[x,x]));
+  fillSelect($("fType"), ["", "Tất cả loại việc"], (catalogs["Loại công việc"]||[]).map(x=>[x,x]));
+
+  fillSelect($("gProject"), ["", "Chọn dự án…"], projects.map(p=>[p.id, `${p.name||p.id} (${p.progressPct||0}%)`]));
+}
+
+function fillSelect(sel, firstOpt, options){
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = "";
+
+  if (firstOpt){
+    const [v, t] = firstOpt;
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = t;
+    sel.appendChild(o);
+  }
+
+  (options||[]).forEach(([v,t])=>{
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = t;
+    sel.appendChild(o);
+  });
+
+  if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
+}
+
+let overdueOnly = false;
+function toggleOverdue(){
+  overdueOnly = !overdueOnly;
+  $("tOverdue").classList.toggle("on", overdueOnly);
+  renderAll();
+}
+
+function resetFilters(){
+  $("fFrom").value = "";
+  $("fTo").value = "";
+  $("fProject").value = "";
+  $("fAssignee").value = "";
+  $("fDept").value = "";
+  $("fStatus").value = "";
+  $("fPriority").value = "";
+  $("fType").value = "";
+  overdueOnly = false;
+  $("tOverdue").classList.remove("on");
+  $("q").value = "";
+  paging.tasks.page = 1;
+  renderAll();
+}
+
+function quickFilter(kind){
+  resetFilters();
+  if (kind === "overdue"){
+    overdueOnly = true;
+    $("tOverdue").classList.add("on");
+    setTab("tasks");
+    renderAll();
+    return;
+  }
+  setTab("alerts");
+  renderAll();
+}
+
+function applyTaskFilters(tasks){
+  const q = ($("q").value || "").trim().toLowerCase();
+  const fFrom = $("fFrom").value ? new Date($("fFrom").value).getTime() : null;
+  const fTo = $("fTo").value ? new Date($("fTo").value).getTime() : null;
+
+  const fProject = $("fProject").value || "";
+  const fAssignee = $("fAssignee").value || "";
+  const fDept = $("fDept").value || "";
+  const fStatus = $("fStatus").value || "";
+  const fPriority = $("fPriority").value || "";
+  const fType = $("fType").value || "";
+
+  return (tasks||[]).filter(t=>{
+    if (q){
+      const bag = [
+        t.id, t.name, t.desc,
+        t.projectId, t.projectName,
+        t.assigneeId, t.assigneeName, t.assigneeEmail,
+        t.department, t.status, t.priority, t.type
+      ].join(" ").toLowerCase();
+      if (!bag.includes(q)) return false;
+    }
+
+    if (fFrom && t.dueMs && t.dueMs < fFrom) return false;
+    if (fTo && t.dueMs && t.dueMs > (fTo + 24*3600*1000 - 1)) return false;
+
+    if (fProject && t.projectId !== fProject) return false;
+    if (fAssignee && t.assigneeId !== fAssignee) return false;
+    if (fDept && (t.department||"") !== fDept) return false;
+    if (fStatus && (t.status||"") !== fStatus) return false;
+    if (fPriority && (t.priority||"") !== fPriority) return false;
+    if (fType && (t.type||"") !== fType) return false;
+
+    if (overdueOnly && !t.flags?.overdue) return false;
+
+    return true;
+  });
+}
+
+/* =========================
+ * Render: Overview
+ * ========================= */
+function renderOverviewTab(){
+  const tasks = applyTaskFilters(DATA.tasks || []);
+  const meta = DATA.meta || {};
+
+  const total = tasks.length;
+  const done = tasks.filter(t=>t.flags?.doneLike).length;
+  const doing = tasks.filter(t=>!t.flags?.doneLike && (t.status||"").toLowerCase().includes("đang làm")).length;
+  const blocked = tasks.filter(t=>!t.flags?.doneLike && (t.status||"").toLowerCase().includes("bị chặn")).length;
+  const waiting = tasks.filter(t=>!t.flags?.doneLike && (t.status||"").toLowerCase().includes("đang chờ")).length;
+  const overdue = tasks.filter(t=>t.flags?.overdue).length;
+  const due7 = tasks.filter(t=>t.flags?.due7).length;
+
+  const avgProgress = total ? Math.round(tasks.reduce((s,t)=>s+(t.progressPct||0),0)/total) : 0;
+
+  const kpis = [
+    { name:"Tổng công việc", val: total, badge:`${avgProgress}% hoàn chỉnh TB`, badgeCls:"" },
+    { name:"Hoàn thành/Hủy", val: done, badge:`${pct(done,total)}%`, badgeCls:"ok" },
+    { name:"Đang làm", val: doing, badge:`${pct(doing,total)}%`, badgeCls:"" },
+    { name:"Đang chờ", val: waiting, badge:`${pct(waiting,total)}%`, badgeCls:"" },
+    { name:"Bị chặn", val: blocked, badge:`${pct(blocked,total)}%`, badgeCls:"warn" },
+    { name:"Quá hạn", val: overdue, badge:`cần xử lý`, badgeCls:"danger" },
+  ];
+
+  $("kpiCards").innerHTML = kpis.map(x=>`
+    <div class="card" style="cursor:pointer;" onclick="kpiClick('${escapeAttr(x.name)}')">
+      <div class="kpi">
+        <div class="left">
+          <div class="name">${escapeHtml(x.name)}</div>
+          <div class="val">${formatNum(x.val)}</div>
+        </div>
+        <div class="badge ${x.badgeCls||""}">${escapeHtml(x.badge)}</div>
+      </div>
+    </div>
+  `).join("");
+
+  $("badgeOverdue").textContent = `${overdue} việc`;
+  $("badgeDue7").textContent = `${due7} việc`;
+  $("badgeStatus").textContent = `${total} việc`;
+  $("badgePriority").textContent = `${total} việc`;
+  $("badgeTrend").textContent = `Hôm nay: ${meta.todayISO || ""}`;
+
+  renderStatusChart(tasks);
+  renderPriorityChart(tasks);
+  renderTrendChart(tasks);
+
+  renderTaskMiniTable($("tblOverdue"), tasks.filter(t=>t.flags?.overdue).slice(0, 40));
+  renderTaskMiniTable($("tblDueSoon"), tasks.filter(t=>t.flags?.due7 && !t.flags?.overdue).sort((a,b)=>(a.dueMs||0)-(b.dueMs||0)).slice(0, 40));
+}
+
+function kpiClick(name){
+  if (name === "Quá hạn"){
+    overdueOnly = true;
+    $("tOverdue").classList.add("on");
+    setTab("tasks");
+    renderAll();
+  } else {
+    setTab("tasks");
+  }
+}
+
+function renderStatusChart(tasks){
+  const map = {};
+  tasks.forEach(t=>{
+    const k = t.status || "—";
+    map[k] = (map[k]||0) + 1;
+  });
+  const labels = Object.keys(map);
+  const data = labels.map(k=>map[k]);
+
+  if (charts.status) charts.status.destroy();
+  charts.status = new Chart($("chartStatus"), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data }] },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:"bottom", labels:{ boxWidth:10, boxHeight:10, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${ctx.raw}` } }
+      },
+      cutout: "70%"
+    }
+  });
+}
+
+function renderPriorityChart(tasks){
+  const map = {};
+  tasks.forEach(t=>{
+    const k = t.priority || "—";
+    map[k] = (map[k]||0) + 1;
+  });
+  const labels = Object.keys(map);
+  const data = labels.map(k=>map[k]);
+
+  if (charts.priority) charts.priority.destroy();
+  charts.priority = new Chart($("chartPriority"), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data }] },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:"bottom", labels:{ boxWidth:10, boxHeight:10, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${ctx.raw}` } }
+      },
+      cutout: "70%"
+    }
+  });
+}
+
+function renderTrendChart(tasks){
+  const today = DATA?.meta?.todayISO ? new Date(DATA.meta.todayISO) : new Date();
+  const days = 30;
+  const labels = [];
+  const counts = new Array(days).fill(0);
+
+  for (let i=0;i<days;i++){
+    const d = new Date(today.getTime() + i*24*3600*1000);
+    labels.push(fmtDateShort(d));
+  }
+  tasks.forEach(t=>{
+    if (!t.dueMs) return;
+    const diff = Math.floor((t.dueMs - today.getTime())/(24*3600*1000));
+    if (diff>=0 && diff<days) counts[diff] += 1;
+  });
+
+  if (charts.trend) charts.trend.destroy();
+  charts.trend = new Chart($("chartTrend"), {
+    type:"line",
+    data:{ labels, datasets:[{ label:"Số việc đến hạn", data: counts, tension:.35, fill:true }] },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit: 8 } },
+        y:{ beginAtZero:true, ticks:{ precision:0 } }
+      }
+    }
+  });
+}
+
+function renderTaskMiniTable(el, list){
+  el.innerHTML = `
+    <thead>
+      <tr>
+        <th>Công việc</th>
+        <th>Dự án</th>
+        <th>Phụ trách</th>
+        <th>Hạn chót</th>
+        <th>Trạng thái</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        (list||[]).map(t=>`
+          <tr class="rowClick" onclick="openTask('${escapeAttr(t.id)}')">
+            <td>
+              <div style="font-weight:900;">${escapeHtml(t.name || t.id)}</div>
+              <div class="sub">${escapeHtml(t.desc || "")}</div>
+            </td>
+            <td>${escapeHtml(t.projectName || t.projectId || "—")}</td>
+            <td>${escapeHtml(t.assigneeName || t.assigneeId || "—")}</td>
+            <td>${escapeHtml(t.dueISO || "—")}</td>
+            <td>${pillStatus(t)}</td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+}
+
+/* =========================
+ * Render: Tasks tab
+ * ========================= */
+function renderTasksTab(){
+  const tasks = applyTaskFilters(DATA.tasks || []);
+  const size = paging.tasks.size;
+  const total = tasks.length;
+  const pages = Math.max(1, Math.ceil(total/size));
+  paging.tasks.page = Math.min(paging.tasks.page, pages);
+  const page = paging.tasks.page;
+
+  $("taskCount").textContent = `${total} việc • trang ${page}/${pages}`;
+  $("taskTableTitle").textContent = `Danh sách công việc (đang lọc)`;
+
+  const slice = tasks.slice((page-1)*size, (page-1)*size + size);
+
+  $("tblTasks").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:260px;">Công việc</th>
+        <th>Dự án</th>
+        <th>Phụ trách</th>
+        <th>Bộ phận</th>
+        <th>Trạng thái</th>
+        <th>Ưu tiên</th>
+        <th>Loại</th>
+        <th>Hạn chót</th>
+        <th>%</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        slice.map(t=>`
+          <tr class="rowClick" onclick="openTask('${escapeAttr(t.id)}')">
+            <td>
+              <div style="font-weight:950;">${escapeHtml(t.name || t.id)}</div>
+              <div class="sub">${escapeHtml(t.desc || "")}</div>
+            </td>
+            <td>${escapeHtml(t.projectName || t.projectId || "—")}</td>
+            <td>${escapeHtml(t.assigneeName || t.assigneeId || "—")}</td>
+            <td>${escapeHtml(t.department || "—")}</td>
+            <td>${pillStatus(t)}</td>
+            <td>${escapeHtml(t.priority || "—")}</td>
+            <td>${escapeHtml(t.type || "—")}</td>
+            <td>${escapeHtml(t.dueISO || "—")}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="progress"><div style="width:${Math.min(100,Math.max(0,t.progressPct||0))}%"></div></div>
+                <b>${Math.round(t.progressPct||0)}%</b>
+              </div>
+            </td>
+            <td>
+              <button class="btn" onclick="event.stopPropagation(); openTask('${escapeAttr(t.id)}')">
+                <span class="msr">visibility</span> Xem
+              </button>
+            </td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+}
+function nextPage(kind){ if (kind==="tasks"){ paging.tasks.page += 1; renderTasksTab(); } }
+function prevPage(kind){ if (kind==="tasks"){ paging.tasks.page = Math.max(1, paging.tasks.page - 1); renderTasksTab(); } }
+function gotoFirstPage(kind){ if (kind==="tasks"){ paging.tasks.page = 1; renderTasksTab(); } }
+function gotoLastPage(kind){
+  if (kind==="tasks"){
+    const total = applyTaskFilters(DATA.tasks||[]).length;
+    const pages = Math.max(1, Math.ceil(total/(paging.tasks.size||50)));
+    paging.tasks.page = pages;
+    renderTasksTab();
+  }
+}
+
+/* =========================
+ * Render: Projects
+ * ========================= */
+function renderProjectsTab(){
+  const projects = DATA.projects || [];
+  $("projectCount").textContent = `${projects.length} dự án`;
+
+  $("tblProjects").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:260px;">Dự án</th>
+        <th>PM</th>
+        <th>Trạng thái</th>
+        <th>Thời gian</th>
+        <th>Mức độ hoàn chỉnh</th>
+        <th>Việc</th>
+        <th>Quá hạn</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        projects.map(p=>`
+          <tr class="rowClick" onclick="openProject('${escapeAttr(p.id)}')">
+            <td>
+              <div style="font-weight:950;">${escapeHtml(p.name || p.id)}</div>
+              <div class="sub">${escapeHtml(p.goal || "")}</div>
+            </td>
+            <td>${escapeHtml(p.managerName || p.managerId || "—")}</td>
+            <td>${projectStatusPill(p)}</td>
+            <td>${escapeHtml((p.startISO||"—")+" → "+(p.endISO||"—"))}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="progress"><div style="width:${Math.min(100,Math.max(0,p.progressPct||0))}%"></div></div>
+                <b>${Math.round(p.progressPct||0)}%</b>
+              </div>
+            </td>
+            <td><b>${formatNum(p.doneTasks||0)}</b> / ${formatNum(p.totalTasks||0)}</td>
+            <td>${p.overdueCount ? `<span class="badge danger">${p.overdueCount}</span>` : `<span class="badge ok">0</span>`}</td>
+            <td>
+              <button class="btn" onclick="event.stopPropagation(); goGantt('${escapeAttr(p.id)}')">
+                <span class="msr">bar_chart</span> Gantt
+              </button>
+            </td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+}
+
+function openProject(projectId){
+  const p = (DATA.projects||[]).find(x=>x.id===projectId);
+  if (!p) return;
+
+  drawerContext = { type:"project", item:p };
+
+  $("drawerTitle").textContent = `Dự án: ${p.name || p.id}`;
+  $("btnSaveQuickEdit").style.display = "none";
+
+  $("drawerBody").innerHTML = `
+    <div class="kv">
+      <div class="k">Mã dự án</div><div class="v">${escapeHtml(p.id)}</div>
+      <div class="k">Mục tiêu</div><div class="v wrap">${escapeHtml(p.goal||"—")}</div>
+      <div class="k">Quản lý</div><div class="v">${escapeHtml(p.managerName || p.managerId || "—")}</div>
+      <div class="k">Trạng thái</div><div class="v">${escapeHtml(p.status||"—")}</div>
+      <div class="k">Thời gian</div><div class="v">${escapeHtml((p.startISO||"—")+" → "+(p.endISO||"—"))}</div>
+      <div class="k">Mức độ hoàn chỉnh</div>
+      <div class="v">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="progress"><div style="width:${Math.min(100,Math.max(0,p.progressPct||0))}%"></div></div>
+          <b>${Math.round(p.progressPct||0)}%</b>
+        </div>
+      </div>
+      <div class="k">Công việc</div><div class="v"><b>${formatNum(p.doneTasks||0)}</b> / ${formatNum(p.totalTasks||0)}</div>
+      <div class="k">Quá hạn</div><div class="v">${p.overdueCount ? `<span class="badge danger">${p.overdueCount}</span>` : `<span class="badge ok">0</span>`}</div>
+      <div class="k">Ghi chú</div><div class="v wrap">${escapeHtml(p.note||"—")}</div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" onclick="goGantt('${escapeAttr(p.id)}')"><span class="msr">bar_chart</span> Mở Gantt</button>
+      <button class="btn" onclick="filterTasksByProject('${escapeAttr(p.id)}')"><span class="msr">checklist</span> Xem công việc</button>
+    </div>
+  `;
+
+  showDrawer();
+}
+
+function filterTasksByProject(projectId){
+  $("fProject").value = projectId;
+  setTab("tasks");
+  renderAll();
+  hideDrawer();
+}
+
+function goGantt(projectId){
+  $("gProject").value = projectId;
+  setTab("gantt");
+  drawGanttForSelected();
+  hideDrawer();
+}
+
+/* =========================
+ * Render: People
+ * ========================= */
+function renderPeopleTab(){
+  const people = DATA.people || [];
+  $("peopleCount").textContent = `${people.length} nhân sự`;
+
+  $("tblPeople").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:240px;">Nhân sự</th>
+        <th>Email</th>
+        <th>Bộ phận</th>
+        <th>Vai trò</th>
+        <th>Trạng thái</th>
+        <th>Đang làm</th>
+        <th>Quá hạn</th>
+        <th>Hoàn thành</th>
+        <th>Tổng trọng số</th>
+        <th>Độ khó TB</th>
+        <th>Số lần sửa</th>
+        <th>Đúng hạn</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        people.map(p=>`
+          <tr class="rowClick" onclick="openPerson('${escapeAttr(p.id)}')">
+            <td>
+              <div style="font-weight:950;">${escapeHtml(p.name || p.id)}</div>
+              <div class="sub">${escapeHtml(p.id)}</div>
+            </td>
+            <td>${escapeHtml(p.email || "—")}</td>
+            <td>${escapeHtml(p.department || "—")}</td>
+            <td>${escapeHtml(p.role || "—")}</td>
+            <td>${escapeHtml(p.status || "—")}</td>
+            <td><b>${formatNum(p.activeTasks||0)}</b></td>
+            <td>${(p.overdueTasks||0)
+              ? `<span class="badge danger">${p.overdueTasks}</span>`
+              : `<span class="badge ok">0</span>`}</td>
+            <td><b>${formatNum(p.completedTasks||0)}</b></td>
+            <td>${formatNum(p.totalWeight||0)}</td>
+            <td>${formatNum(p.avgDifficulty||0)}</td>
+            <td>${formatNum(p.totalRevisions||0)}</td>
+            <td>${personOnTimePill(p)}</td>
+            <td>
+              <button class="btn" onclick="event.stopPropagation(); filterTasksByPerson('${escapeAttr(p.id)}')">
+                <span class="msr">checklist</span> Công việc
+              </button>
+            </td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+}
+
+function openPerson(personId){
+  const p = (DATA.people||[]).find(x=>x.id===personId);
+  if (!p) return;
+
+  drawerContext = { type:"person", item:p };
+  $("drawerTitle").textContent = `Nhân sự: ${p.name || p.id}`;
+  $("btnSaveQuickEdit").style.display = "none";
+
+  $("drawerBody").innerHTML = `
+    <div class="kv">
+      <div class="k">Mã nhân sự</div><div class="v">${escapeHtml(p.id)}</div>
+      <div class="k">Họ tên</div><div class="v">${escapeHtml(p.name||"—")}</div>
+      <div class="k">Email</div><div class="v">${escapeHtml(p.email||"—")}</div>
+      <div class="k">Bộ phận</div><div class="v">${escapeHtml(p.department||"—")}</div>
+      <div class="k">Vai trò</div><div class="v">${escapeHtml(p.role||"—")}</div>
+      <div class="k">Trạng thái</div><div class="v">${escapeHtml(p.status||"—")}</div>
+      <div class="k">Đang làm</div><div class="v"><b>${formatNum(p.activeTasks||0)}</b></div>
+      <div class="k">Quá hạn</div>
+      <div class="v">${
+        (p.overdueTasks||0)
+          ? `<span class="badge danger">${p.overdueTasks}</span>`
+          : `<span class="badge ok">0</span>`
+      }</div>
+      <div class="k">Đã hoàn thành</div>
+      <div class="v"><b>${formatNum(p.completedTasks||0)}</b></div>
+      <div class="k">Tổng trọng số</div>
+      <div class="v">${formatNum(p.totalWeight||0)}</div>
+      <div class="k">Độ khó trung bình</div>
+      <div class="v">${formatNum(p.avgDifficulty||0)}</div>
+      <div class="k">Số lần sửa</div>
+      <div class="v">${formatNum(p.totalRevisions||0)}</div>
+      <div class="k">Hoàn thành đúng hạn</div>
+      <div class="v">${personOnTimePill(p)}</div>
+      <div class="k">Ghi chú</div>
+      <div class="v wrap">${escapeHtml(p.note||"—")}</div>
+    </div>
+
+    <div class="divider"></div>
+    <button class="btn" onclick="filterTasksByPerson('${escapeAttr(p.id)}')">
+      <span class="msr">checklist</span> Xem công việc
+    </button>
+  `;
+  showDrawer();
+}
+
+function filterTasksByPerson(personId){
+  $("fAssignee").value = personId;
+  setTab("tasks");
+  renderAll();
+}
+
+/* =========================
+ * Render: Eisenhower
+ * ========================= */
+function renderEisenhowerTab(){
+  const allTasks = applyTaskFilters(DATA.tasks || []);
+  const tasks = allTasks.filter(t=> !t.flags?.doneLike);
+  const total = tasks.length;
+
+  const groups = { Q1:[], Q2:[], Q3:[], Q4:[] };
+  tasks.forEach(t=>{
+    const q = classifyEisenhower(t);
+    groups[q].push(t);
+  });
+
+  const qMeta = [
+    { key:"Q1", title:"Q1 – Làm ngay", desc:"Quan trọng & Khẩn cấp", hint:"Xử lý ngay hôm nay.", badgeCls:"danger" },
+    { key:"Q2", title:"Q2 – Lên kế hoạch", desc:"Quan trọng & Không khẩn cấp", hint:"Đưa vào lịch & chia nhỏ.", badgeCls:"ok" },
+    { key:"Q3", title:"Q3 – Ủy quyền", desc:"Không quan trọng & Khẩn cấp", hint:"Giao cho người phù hợp.", badgeCls:"warn" },
+    { key:"Q4", title:"Q4 – Giảm bớt", desc:"Không quan trọng & Không khẩn cấp", hint:"Cân nhắc bỏ hoặc giản lược.", badgeCls:"" },
+  ];
+
+  $("eiBadgeSummary").textContent = total
+    ? `${total} việc chưa hoàn thành (đã áp dụng bộ lọc)`
+    : "Không có việc chưa hoàn thành trong bộ lọc hiện tại";
+
+  $("eiCards").innerHTML = qMeta.map(m=>{
+    const cnt = groups[m.key].length;
+    const share = total ? pct(cnt,total) : 0;
+    const extraCls = m.badgeCls ? ` ${m.badgeCls}` : "";
+    const shareText = total ? `${share}% việc chưa hoàn thành nằm ở nhóm này.` : "Không có việc nào trong nhóm này.";
+    const other = total - cnt;
+    const otherText = total && other > 0 ? `${formatNum(other)} việc ở nhóm khác` : (total ? "Tất cả đang trong nhóm này" : "");
+
+    return `
+      <div class="card eiCard ei-${m.key} ${eisenhowerFilter === m.key ? "eiActive" : ""}"
+           data-ei-card="${m.key}"
+           onclick="setEisenhowerFilter('${m.key}')">
+        <div class="eiHeader">
+          <div>
+            <div class="eiQuadrant">${escapeHtml(m.desc)}</div>
+            <div class="eiTitle">${escapeHtml(m.title)}</div>
+          </div>
+          <span class="badge${extraCls}">${escapeHtml(m.hint)}</span>
+        </div>
+        <div class="eiBig">${formatNum(cnt)}</div>
+        <div class="eiMetaRow">
+          <div class="eiHint">${escapeHtml(shareText)}</div>
+          <div class="eiPct">${escapeHtml(otherText)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const labels = qMeta.map(m=>m.key);
+  const data = qMeta.map(m=>groups[m.key].length);
+
+  if (charts.eisenhower) charts.eisenhower.destroy();
+  charts.eisenhower = new Chart($("chartEisenhower"), {
+    type:"bar",
+    data:{ labels, datasets:[{ label:"Số việc", data }] },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${ctx.raw}` } }
+      },
+      scales:{
+        x:{ ticks:{ maxRotation:0, minRotation:0 } },
+        y:{ beginAtZero:true, ticks:{ precision:0 } }
+      }
+    }
+  });
+
+  let flat = [];
+  qMeta.forEach(m=>{
+    groups[m.key].forEach(t=> flat.push({ t, q:m.key }));
+  });
+
+  let view = eisenhowerFilter === "all" ? flat : flat.filter(x=> x.q === eisenhowerFilter);
+
+  view.sort((a,b)=>{
+    const order = { Q1:0,Q2:1,Q3:2,Q4:3 };
+    const dq = order[a.q] - order[b.q];
+    if (dq !== 0) return dq;
+    const da = (a.t.daysLeft != null) ? a.t.daysLeft : getDaysLeft(a.t);
+    const db = (b.t.daysLeft != null) ? b.t.daysLeft : getDaysLeft(b.t);
+    if (da == null && db != null) return 1;
+    if (da != null && db == null) return -1;
+    if (da == null && db == null) return 0;
+    return da - db;
+  });
+
+  $("eiCount").textContent = `${view.length} việc`;
+  const titleMap = {
+    all:"Danh sách công việc theo Eisenhower",
+    Q1:"Danh sách Q1 – Làm ngay (Quan trọng & Khẩn cấp)",
+    Q2:"Danh sách Q2 – Lên kế hoạch (Quan trọng & Không khẩn cấp)",
+    Q3:"Danh sách Q3 – Ủy quyền (Không quan trọng & Khẩn cấp)",
+    Q4:"Danh sách Q4 – Giảm bớt (Không quan trọng & Không khẩn cấp)",
+  };
+  $("eiTableTitle").textContent = titleMap[eisenhowerFilter] || titleMap.all;
+
+  $("tblEisenhower").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:260px;">Công việc</th>
+        <th>Ma trận</th>
+        <th>Ưu tiên</th>
+        <th>Hạn chót</th>
+        <th>Ngày còn lại</th>
+        <th>Phụ trách</th>
+        <th>Dự án</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        view.map(({t,q})=>`
+          <tr class="rowClick" onclick="openTask('${escapeAttr(t.id)}')">
+            <td>
+              <div style="font-weight:950;">${escapeHtml(t.name || t.id)}</div>
+              <div class="sub">${escapeHtml(t.desc || "")}</div>
+            </td>
+            <td>${eisenhowerPill(q)}</td>
+            <td>${escapeHtml(t.priority || "—")}</td>
+            <td>${escapeHtml(t.dueISO || "—")}</td>
+            <td>${daysLeftPill(t)}</td>
+            <td>${escapeHtml(t.assigneeName || t.assigneeId || "—")}</td>
+            <td>${escapeHtml(t.projectName || t.projectId || "—")}</td>
+          </tr>
+        `).join("") || `
+          <tr><td colspan="7" style="padding:12px; font-size:13px; color:var(--muted);">
+            Không có công việc nào phù hợp với bộ lọc hiện tại.
+          </td></tr>
+        `
+      }
+    </tbody>
+  `;
+
+  highlightEisenhowerFilterButtons();
+}
+
+function setEisenhowerFilter(q){
+  eisenhowerFilter = q;
+  renderEisenhowerTab();
+}
+
+function highlightEisenhowerFilterButtons(){
+  document.querySelectorAll("[data-ei-filter]").forEach(btn=>{
+    const isActive = btn.dataset.eiFilter === eisenhowerFilter;
+    btn.classList.toggle("primary", isActive);
+  });
+  document.querySelectorAll("[data-ei-card]").forEach(card=>{
+    const isActive = eisenhowerFilter !== "all" && card.dataset.eiCard === eisenhowerFilter;
+    card.classList.toggle("eiActive", isActive);
+  });
+}
+
+function eisenhowerPill(q){
+  const meta = {
+    Q1:{ title:"Q1 – Làm ngay", cls:"s3" },
+    Q2:{ title:"Q2 – Lên kế hoạch", cls:"s4" },
+    Q3:{ title:"Q3 – Ủy quyền", cls:"s2" },
+    Q4:{ title:"Q4 – Giảm bớt", cls:"s1" },
+  }[q] || { title:q, cls:"s1" };
+  return `<span class="pill ${meta.cls}">${escapeHtml(meta.title)}</span>`;
+}
+
+function normalizeEiFlag(raw){
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (!s) return false;
+  if (["có","yes","y","true","x","✔","✓"].includes(s)) return true;
+  if (["không","ko","no","false","0","-","—"].includes(s)) return false;
+  if (s.includes("cao") || s.includes("high") || s.includes("quan trọng") || s.includes("khẩn") || s.includes("urgent") || s === "1") return true;
+  return false;
+}
+function classifyEisenhower(t){
+  const importantRaw = t.eiImportant ?? t.important ?? t.importance ?? t.eisenhowerImportant ?? t.flagImportant;
+  const urgentRaw = t.eiUrgent ?? t.urgent ?? t.urgency ?? t.eisenhowerUrgent ?? t.flagUrgent;
+  const important = normalizeEiFlag(importantRaw);
+  const urgent = normalizeEiFlag(urgentRaw);
+  if (important && urgent) return "Q1";
+  if (important && !urgent) return "Q2";
+  if (!important && urgent) return "Q3";
+  return "Q4";
+}
+
+/* =========================
+ * Render: Alerts
+ * ========================= */
+function renderAlertsTab(){
+  const tasks = applyTaskFilters(DATA.tasks || []);
+  const overdue = tasks.filter(t=>t.flags?.overdue);
+  const dueToday = tasks.filter(t=>t.flags?.dueToday);
+  const due7 = tasks.filter(t=>t.flags?.due7);
+
+  $("alertCount").textContent = `${overdue.length} quá hạn • ${due7.length} đến hạn 7 ngày`;
+  $("dueTodayCount").textContent = `${dueToday.length} việc`;
+
+  const list = [
+    ...overdue.sort((a,b)=>(a.dueMs||0)-(b.dueMs||0)),
+    ...tasks
+      .filter(t=>!t.flags?.overdue && t.flags?.due7)
+      .sort((a,b)=>(a.dueMs||0)-(b.dueMs||0))
+  ];
+
+  $("tblAlerts").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:260px;">Công việc</th>
+        <th>Dự án</th>
+        <th>Phụ trách</th>
+        <th>Hạn chót</th>
+        <th>Ngày còn lại</th>
+        <th>Log nhắc</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        list.slice(0, 250).map(t=>`
+          <tr class="rowClick" onclick="openTask('${escapeAttr(t.id)}')">
+            <td>
+              <div style="font-weight:950;">${escapeHtml(t.name || t.id)}</div>
+              <div class="sub">${pillStatus(t)} • ${escapeHtml(t.priority||"—")} • ${escapeHtml(t.type||"—")}</div>
+            </td>
+            <td>${escapeHtml(t.projectName || t.projectId || "—")}</td>
+            <td>${escapeHtml(t.assigneeName || t.assigneeId || "—")}</td>
+            <td>${escapeHtml(t.dueISO || "—")}</td>
+            <td>${daysLeftPill(t)}</td>
+            <td>${remindPill(t)}</td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+
+  // Bảng "Công việc cần nhắc trong ngày"
+  renderTaskMiniTable(
+    $("tblDueToday"),
+    dueToday.sort((a,b)=>(a.dueMs||0)-(b.dueMs||0)).slice(0, 60)
+  );
+}
+
+/* =========================
+ * Render: Schedule
+ * ========================= */
+function renderScheduleTab(){
+  const tasksAll = applyTaskFilters(DATA.tasks || []);
+
+  if (scheduleYear === null || scheduleMonth === null){
+    const today = DATA.meta?.todayISO ? new Date(DATA.meta.todayISO) : new Date();
+    if (!isNaN(today.getTime())){
+      scheduleYear = today.getFullYear();
+      scheduleMonth = today.getMonth();
+    }
+  }
+
+  const firstOfMonth = new Date(scheduleYear, scheduleMonth, 1);
+  const monthStartMs = new Date(scheduleYear, scheduleMonth, 1).getTime();
+  const monthEndMs = new Date(scheduleYear, scheduleMonth + 1, 0).getTime() + (24*3600*1000 - 1);
+
+  const tasksMonth = tasksAll.filter(t=>{
+    const r = taskRangeMs(t);
+    if (!r) return false;
+    const [a,b] = r;
+    return !(b < monthStartMs || a > monthEndMs);
+  });
+
+  const months = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+  $("calMonthLabel").textContent = `${months[scheduleMonth]} ${scheduleYear}`;
+  $("calSummary").textContent = `${tasksMonth.length} công việc có lịch trong tháng (theo bộ lọc)`;
+
+  const dowLabels = ["T2","T3","T4","T5","T6","T7","CN"];
+  let html = dowLabels.map(d=>`<div class="calDow">${d}</div>`).join("");
+
+  const startIndex = (firstOfMonth.getDay() + 6) % 7;
+  const cells = 42;
+  const todayISO = DATA.meta?.todayISO || "";
+
+  for (let i=0; i<cells; i++){
+    const date = new Date(scheduleYear, scheduleMonth, 1 - startIndex + i);
+    const iso = toISODateLocal(date);
+    const dayStartMs = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayEndMs = dayStartMs + 24*3600*1000 - 1;
+
+    const tasksDay = tasksMonth.filter(t=>{
+      const r = taskRangeMs(t);
+      if (!r) return false;
+      const [a,b] = r;
+      return !(b < dayStartMs || a > dayEndMs);
+    });
+    const count = tasksDay.length;
+    const isOther = date.getMonth() !== scheduleMonth;
+    const isToday = todayISO && iso === todayISO;
+
+    const cls = ["calDay"];
+    if (isOther) cls.push("otherMonth");
+    if (isToday) cls.push("today");
+    if (count>0) cls.push("hasTasks");
+
+    const labelCount = count>0 ? `${count} việc` : "—";
+    const dot = count>0 ? "•" : "";
+
+    html += `
+      <div class="${cls.join(" ")}" data-date="${iso}" onclick="openDaySchedule('${iso}')">
+        <div class="calDate">${date.getDate()}</div>
+        <div class="calCount">${labelCount}</div>
+        <div class="calDot">${dot}</div>
+      </div>
+    `;
+  }
+
+  $("calendarGrid").innerHTML = html;
+}
+
+function schedulePrevMonth(){
+  if (scheduleYear === null || scheduleMonth === null){
+    const today = new Date();
+    scheduleYear = today.getFullYear();
+    scheduleMonth = today.getMonth();
+  }
+  scheduleMonth -= 1;
+  if (scheduleMonth < 0){ scheduleMonth = 11; scheduleYear -= 1; }
+  renderScheduleTab();
+}
+function scheduleNextMonth(){
+  if (scheduleYear === null || scheduleMonth === null){
+    const today = new Date();
+    scheduleYear = today.getFullYear();
+    scheduleMonth = today.getMonth();
+  }
+  scheduleMonth += 1;
+  if (scheduleMonth > 11){ scheduleMonth = 0; scheduleYear += 1; }
+  renderScheduleTab();
+}
+function scheduleGoToday(){
+  const today = DATA?.meta?.todayISO ? new Date(DATA.meta.todayISO) : new Date();
+  if (!isNaN(today.getTime())){
+    scheduleYear = today.getFullYear();
+    scheduleMonth = today.getMonth();
+    scheduleSelectedISO = toISODateLocal(today);
+    renderScheduleTab();
+  }
+}
+
+function openDaySchedule(isoDate){
+  scheduleSelectedISO = isoDate;
+
+  const tasksAll = applyTaskFilters(DATA.tasks || []);
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return;
+
+  const dayStartMs = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayEndMs = dayStartMs + 24*3600*1000 - 1;
+
+  const tasksDay = tasksAll.filter(t=>{
+    const r = taskRangeMs(t);
+    if (!r) return false;
+    const [a,b] = r;
+    return !(b < dayStartMs || a > dayEndMs);
+  });
+
+  drawerContext = { type:"day", item:{ dateISO: isoDate } };
+  $("drawerTitle").textContent = `Lịch ngày ${fmtDateVNFromISO(isoDate)}`;
+  $("btnSaveQuickEdit").style.display = "none";
+
+  if (!tasksDay.length){
+    $("drawerBody").innerHTML = `
+      <div style="font-size:13px; color:var(--muted);">
+        Không có công việc nào trong ngày này (theo bộ lọc hiện tại).
+      </div>
+    `;
+    showDrawer();
+    return;
+  }
+
+  const byProject = {};
+  tasksDay.forEach(t=>{
+    const key = t.projectId || "_no_project";
+    if (!byProject[key]) byProject[key] = [];
+    byProject[key].push(t);
+  });
+
+  const projectsArr = Object.keys(byProject).map(pid=>{
+    const proj = (DATA.projects||[]).find(p=>p.id===pid);
+    return {
+      id: pid,
+      name: proj?.name || (pid === "_no_project" ? "Không có dự án" : pid),
+      tasks: byProject[pid]
+    };
+  }).sort((a,b)=> a.name.localeCompare(b.name,"vi"));
+
+  let html = `
+    <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">
+      Tổng <b>${tasksDay.length}</b> công việc trong ngày, thuộc <b>${projectsArr.length}</b> dự án.
+    </div>
+  `;
+
+  html += `<div style="display:flex; flex-direction:column; gap:8px;">`;
+
+  projectsArr.forEach((p, idx)=>{
+    const sectionId = `dayProj_${idx}`;
+    html += `
+      <div style="border:1px solid rgba(15,23,42,.08); border-radius:12px; overflow:hidden; background:rgba(255,255,255,.9);">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; cursor:pointer;" onclick="toggleDayProject('${sectionId}')">
+          <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+            <div style="font-weight:900; font-size:13px;">${escapeHtml(p.name)}</div>
+            <div style="font-size:11px; color:var(--muted);">${p.tasks.length} công việc</div>
+          </div>
+          <span class="msr" id="${sectionId}_icon">${idx===0 ? "expand_less" : "expand_more"}</span>
+        </div>
+        <div id="${sectionId}_body" style="display:${idx===0 ? "block" : "none"}; border-top:1px solid rgba(15,23,42,.06);">
+          ${
+            p.tasks.map(t=>`
+              <div class="rowClick" style="padding:8px 10px; border-bottom:1px solid rgba(15,23,42,.04);" onclick="openTask('${escapeAttr(t.id)}')">
+                <div style="font-weight:900; font-size:13px;">${escapeHtml(t.name || t.id)}</div>
+                <div class="sub">
+                  ${escapeHtml(t.assigneeName || t.assigneeId || "—")} •
+                  ${pillStatus(t)} •
+                  Hạn: ${escapeHtml(t.dueISO || "—")}
+                </div>
+              </div>
+            `).join("") || `<div style="padding:8px 10px; font-size:12px; color:var(--muted);">Không có công việc.</div>`
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  $("drawerBody").innerHTML = html;
+  showDrawer();
+}
+
+function toggleDayProject(id){
+  const body = $(id+"_body");
+  const icon = $(id+"_icon");
+  if (!body || !icon) return;
+  const show = body.style.display === "none";
+  body.style.display = show ? "block" : "none";
+  icon.textContent = show ? "expand_less" : "expand_more";
+}
+
+/* =========================
+ * Gantt
+ * ========================= */
+function drawGanttForSelected(){
+  if (!DATA || !ganttReady || !window.google || !google.visualization) return;
+
+  const pid = $("gProject").value || "";
+  if (!pid){
+    $("ganttTitle").textContent = "Chưa chọn dự án";
+    $("ganttSub").textContent = "Hãy chọn 1 dự án để hiển thị Gantt Chart.";
+    $("ganttCount").textContent = "—";
+    $("ganttChart").innerHTML = "";
+    return;
+  }
+
+  const p = (DATA.projects||[]).find(x=>x.id===pid);
+  const tasks = (DATA.tasks||[]).filter(t=>t.projectId===pid)
+    .filter(t=>t.startMs || t.dueMs)
+    .map(t=>normalizeForGantt(t))
+    .filter(Boolean);
+
+  $("ganttTitle").textContent = `Gantt: ${p?.name || pid}`;
+  $("ganttSub").textContent = `${tasks.length} công việc có ngày bắt đầu/hạn chót`;
+  $("ganttCount").textContent = `${tasks.length} task`;
+
+  if (!tasks.length){
+    $("ganttChart").innerHTML = `<div style="padding:14px;color:var(--muted);">Không có công việc đủ dữ liệu ngày để vẽ Gantt (cần Ngày bắt đầu hoặc Hạn chót).</div>`;
+    return;
+  }
+
+  const dataTable = new google.visualization.DataTable();
+  dataTable.addColumn("string", "Task ID");
+  dataTable.addColumn("string", "Task Name");
+  dataTable.addColumn("string", "Resource");
+  dataTable.addColumn("date", "Start Date");
+  dataTable.addColumn("date", "End Date");
+  dataTable.addColumn("number", "Duration");
+  dataTable.addColumn("number", "Percent Complete");
+  dataTable.addColumn("string", "Dependencies");
+
+  dataTable.addRows(tasks.map(x=>[
+    x.id, x.name, x.resource, x.start, x.end, null, x.pct, null
+  ]));
+
+  const options = {
+    height: Math.min(680, 52 + tasks.length * 34),
+    gantt: {
+      trackHeight: 30,
+      barHeight: 18,
+      labelStyle: { fontName: "Roboto", fontSize: 12 },
+      criticalPathEnabled: false,
+    }
+  };
+
+  ganttChart = new google.visualization.Gantt($("ganttChart"));
+  google.visualization.events.removeAllListeners(ganttChart);
+
+  google.visualization.events.addListener(ganttChart, "select", ()=>{
+    const sel = ganttChart.getSelection();
+    if (!sel || !sel.length) return;
+    const row = sel[0].row;
+    const taskId = dataTable.getValue(row, 0);
+    openTask(taskId);
+  });
+
+  ganttChart.draw(dataTable, options);
+}
+
+function normalizeForGantt(t){
+  let startMs = t.startMs;
+  let endMs = t.dueMs;
+
+  if (!startMs && !endMs) return null;
+  if (!startMs && endMs) startMs = endMs - 24*3600*1000;
+  if (startMs && !endMs) endMs = startMs + 24*3600*1000;
+
+  const start = new Date(startMs);
+  const end = new Date(endMs);
+  if (end.getTime() <= start.getTime()){
+    end.setTime(start.getTime() + 24*3600*1000);
+  }
+
+  return {
+    id: t.id,
+    name: (t.name || t.id).slice(0, 60),
+    resource: t.assigneeName || t.department || "—",
+    start,
+    end,
+    pct: Math.round(t.progressPct || 0)
+  };
+}
+
+/* =========================
+ * Settings (chỉ Danh mục)
+ * ========================= */
+function hydrateSettings(){
+  renderSettingsTab();
+}
+
+function renderSettingsTab(){
+  const c = DATA.catalogs || {};
+  const keys = Object.keys(c);
+  $("catalogCount").textContent = `${keys.length} nhóm`;
+
+  $("tblCatalog").innerHTML = `
+    <thead>
+      <tr>
+        <th style="min-width:220px;">Danh mục</th>
+        <th>Giá trị</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${
+        keys.map(k=>`
+          <tr>
+            <td style="font-weight:950;">${escapeHtml(k)}</td>
+            <td style="white-space:normal;">
+              ${(c[k]||[]).map(v=>`<span class="pill s1" style="margin:2px 6px 2px 0;">${escapeHtml(v)}</span>`).join("") || "—"}
+            </td>
+          </tr>
+        `).join("")
+      }
+    </tbody>
+  `;
+}
+
+/* =========================
+ * Drawer: Task detail + quick edit
+ * ========================= */
+function openTask(taskId){
+  const t = (DATA.tasks||[]).find(x=>x.id===taskId);
+  if (!t) return;
+
+  drawerContext = { type:"task", item: t };
+
+  $("drawerTitle").textContent = `Công việc: ${t.name || t.id}`;
+  $("btnSaveQuickEdit").style.display = "inline-flex";
+
+  const statusOptions = (DATA.catalogs?.["Trạng thái công việc"]||[]).map(x=>`<option value="${escapeAttr(x)}">${escapeHtml(x)}</option>`).join("");
+
+  $("drawerBody").innerHTML = `
+    <div class="kv">
+      <div class="k">Mã công việc</div><div class="v">${escapeHtml(t.id)}</div>
+      <div class="k">Dự án</div><div class="v">${escapeHtml(t.projectName || t.projectId || "—")}</div>
+      <div class="k">Phụ trách</div><div class="v">${escapeHtml(t.assigneeName || t.assigneeId || "—")}</div>
+      <div class="k">Email</div><div class="v">${escapeHtml(t.assigneeEmail || "—")}</div>
+      <div class="k">Bộ phận</div><div class="v">${escapeHtml(t.department || "—")}</div>
+      <div class="k">Người giao</div><div class="v">${escapeHtml(t.assigner || "—")}</div>
+      <div class="k">Ngày bắt đầu</div><div class="v">${escapeHtml(t.startISO || "—")}</div>
+      <div class="k">Hạn chót</div><div class="v">${escapeHtml(t.dueISO || "—")}</div>
+      <div class="k">Ngày còn lại</div><div class="v">${daysLeftPill(t)}</div>
+      <div class="k">Ngày hoàn thành</div><div class="v">${escapeHtml(t.completeISO || "—")}</div>
+      <div class="k">Loại việc</div><div class="v">${escapeHtml(t.type || "—")}</div>
+      <div class="k">Ưu tiên</div><div class="v">${escapeHtml(t.priority || "—")}</div>
+      <div class="k">Trọng số</div><div class="v">${t.weight ? formatNum(t.weight) : "—"}</div>
+      <div class="k">Độ khó</div><div class="v">${escapeHtml(t.difficultyLabel || (t.difficulty ? (t.difficulty + "/5") : "—"))}</div>
+      <div class="k">Số lần sửa</div><div class="v">${t.reviseCount ? formatNum(t.reviseCount) : "—"}</div>
+      <div class="k">Mô tả</div><div class="v wrap">${escapeHtml(t.desc || "—")}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-weight:950; font-size:13px; margin-bottom:8px;">Cập nhật nhanh</div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      <div class="field" style="min-width:0;">
+        <label>Trạng thái</label>
+        <select id="qeStatus">${statusOptions}</select>
+      </div>
+      <div class="field" style="min-width:0;">
+        <label>% hoàn chỉnh</label>
+        <input id="qePct" type="number" min="0" max="100" value="${Math.round(t.progressPct||0)}"
+          style="height:38px;border-radius:12px;border:1px solid var(--border);padding:0 10px;background:rgba(255,255,255,.92)"/>
+      </div>
+
+      <div class="field" style="grid-column: 1 / -1; min-width:0;">
+        <label>Ghi chú</label>
+        <textarea id="qeNote" rows="3" style="border-radius:12px;border:1px solid var(--border);padding:10px;background:rgba(255,255,255,.92);resize:vertical;">${escapeHtml(t.note||"")}</textarea>
+      </div>
+
+      <div class="field" style="grid-column: 1 / -1; min-width:0;">
+        <label>Liên kết</label>
+        <input id="qeLink" type="text" value="${escapeAttr(t.link||"")}"
+          style="height:38px;border-radius:12px;border:1px solid var(--border);padding:0 10px;background:rgba(255,255,255,.92)"/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="display:grid; gap:8px;">
+      <div class="chip"><span class="msr" style="color:var(--primary2);">history</span>
+        <span>Log nhắc: ${remindPill(t)}</span>
+      </div>
+    </div>
+  `;
+
+  setSelectValue("qeStatus", t.status || "");
+  showDrawer();
+}
+
+function setSelectValue(id, value){
+  const el = $(id);
+  if (!el) return;
+  if ([...el.options].some(o=>o.value===value)) el.value = value;
+}
+
+function saveQuickEdit(){
+  if (!drawerContext || drawerContext.type !== "task") return;
+  const t = drawerContext.item;
+
+  const newStatus = $("qeStatus")?.value ?? t.status;
+  let newPct = Number($("qePct")?.value ?? (t.progressPct||0));
+  newPct = Math.max(0, Math.min(100, isNaN(newPct)?0:newPct));
+  const newNote = $("qeNote")?.value ?? t.note;
+  const newLink = $("qeLink")?.value ?? t.link;
+
+  const fraction = Math.round(newPct) / 100;
+
+  const updates = {
+    "Trạng thái": newStatus,
+    "Tỷ lệ hoàn thành": fraction,
+    "Ghi chú": newNote,
+    "Liên kết": newLink
+  };
+
+  setLoading(true, "Đang lưu cập nhật công việc…");
+  google.script.run
+    .withSuccessHandler(()=>{
+      setLoading(false);
+      showToast("Đã lưu", "Công việc đã được cập nhật.", "check_circle");
+      hideDrawer();
+      refreshAll();
+    })
+    .withFailureHandler((err)=>{
+      setLoading(false);
+      showToast("Lỗi lưu", (err && err.message) ? err.message : String(err), "error");
+    })
+    .updateTask({ rowNumber: t.rowNumber, updates });
+}
+
+function showDrawer(){ $("drawerMask").classList.add("show"); }
+function hideDrawer(){ $("drawerMask").classList.remove("show"); }
+function closeDrawer(e){ hideDrawer(); }
+
+function openInSheetFromDrawer(){
+  if (!drawerContext || !drawerContext.item) return;
+  const item = drawerContext.item;
+
+  const sn = DATA?.meta?.sheetNames || {};
+  let sheetName = "";
+  if (drawerContext.type === "task") sheetName = sn.TASKS || "";
+  if (drawerContext.type === "project") sheetName = sn.PROJECTS || "";
+  if (drawerContext.type === "person") sheetName = sn.PEOPLE || "";
+
+  if (!sheetName || !item.rowNumber) return;
+
+  google.script.run
+    .withSuccessHandler(()=> showToast("Đã mở", `Đã chuyển đến ${sheetName} dòng ${item.rowNumber}`, "open_in_new"))
+    .withFailureHandler((err)=> showToast("Lỗi", (err && err.message) ? err.message : String(err), "error"))
+    .openRow(sheetName, item.rowNumber);
+}
+
+/* =========================
+ * Export CSV
+ * ========================= */
+function exportCurrent(kind){
+  let rows = [];
+  if (kind === "tasks"){
+    const list = applyTaskFilters(DATA.tasks||[]);
+    rows = list.map(t=>({
+      "Mã công việc": t.id,
+      "Tên công việc": t.name,
+      "Dự án": t.projectName || t.projectId,
+      "Phụ trách": t.assigneeName || t.assigneeId,
+      "Email": t.assigneeEmail,
+      "Bộ phận": t.department,
+      "Trạng thái": t.status,
+      "Ưu tiên": t.priority,
+      "Loại": t.type,
+      "Ngày bắt đầu": t.startISO,
+      "Hạn chót": t.dueISO,
+      "Ngày hoàn thành": t.completeISO,
+      "Trọng số": t.weight,
+      "Độ khó": t.difficultyLabel || (t.difficulty || ""),
+      "Số lần sửa": t.reviseCount,
+      "% hoàn chỉnh": t.progressPct,
+      "Ghi chú": t.note,
+      "Liên kết": t.link
+    }));
+  }
+  if (kind === "projects"){
+    rows = (DATA.projects||[]).map(p=>({
+      "Mã dự án": p.id,
+      "Tên dự án": p.name,
+      "Mục tiêu": p.goal,
+      "Quản lý": p.managerName || p.managerId,
+      "Trạng thái": p.status,
+      "Ngày bắt đầu": p.startISO,
+      "Ngày kết thúc": p.endISO,
+      "Tổng việc": p.totalTasks,
+      "Hoàn thành": p.doneTasks,
+      "Mức độ hoàn chỉnh %": p.progressPct,
+      "Quá hạn": p.overdueCount,
+      "Ghi chú": p.note
+    }));
+  }
+  if (kind === "people"){
+    rows = (DATA.people||[]).map(p=>({
+      "Mã nhân sự": p.id,
+      "Họ tên": p.name,
+      "Email": p.email,
+      "Bộ phận": p.department,
+      "Vai trò": p.role,
+      "Trạng thái": p.status,
+      "Đang làm": p.activeTasks,
+      "Quá hạn": p.overdueTasks,
+      "Hoàn thành": p.completedTasks,
+      "Tổng trọng số": p.totalWeight,
+      "Độ khó TB": p.avgDifficulty,
+      "Số lần sửa": p.totalRevisions,
+      "Hoàn thành đúng hạn": personOnTimePillPlain(p),
+      "Ghi chú": p.note
+    }));
+  }
+
+  if (!rows.length){
+    showToast("Không có dữ liệu", "Không có dòng để export.", "info");
+    return;
+  }
+
+  const csv = toCSV(rows);
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `export_${kind}_${(DATA.meta?.todayISO||"")}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* =========================
+ * Helpers
+ * ========================= */
+function escapeHtml(str){
+  return String(str ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+function formatNum(x){
+  const n = Number(x);
+  if (isNaN(n)) return String(x ?? "");
+  return n.toLocaleString("vi-VN");
+}
+function pct(a,b){
+  if (!b) return 0;
+  return Math.round((a/b)*100);
+}
+function uniq(arr){
+  return [...new Set(arr || [])];
+}
+function debounce(fn, wait){
+  let t;
+  return (...args)=>{
+    clearTimeout(t);
+    t = setTimeout(()=>fn(...args), wait);
+  };
+}
+function truthy(v){
+  const s = String(v ?? "").trim().toLowerCase();
+  return v === true || v === 1 || s === "1" || s === "có" || s === "yes" || s === "true" || s === "x";
+}
+
+function fmtDateShort(d){
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  return `${dd}/${mm}`;
+}
+function fmtDateVNFromISO(iso){
+  const s = String(iso||"");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const [y,m,d] = s.split("-");
+  return `${d}/${m}/${y}`;
+}
+function toISODateLocal(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function getTodayMsStart(){
+  const t = DATA?.meta?.todayISO ? new Date(DATA.meta.todayISO) : new Date();
+  return new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
+}
+function getDaysLeft(t){
+  if (typeof t.daysLeft === "number") return t.daysLeft;
+  if (!t.dueMs) return null;
+  const todayStart = getTodayMsStart();
+  return Math.floor((t.dueMs - todayStart) / (24*3600*1000));
+}
+function daysLeftPill(t){
+  const dl = getDaysLeft(t);
+  if (dl == null) return `<span class="pill s1">—</span>`;
+  if (dl < 0) return `<span class="pill s3">Quá hạn ${Math.abs(dl)}d</span>`;
+  if (dl === 0) return `<span class="pill s2">Hôm nay</span>`;
+  if (dl <= 7) return `<span class="pill s2">Còn ${dl}d</span>`;
+  return `<span class="pill s1">Còn ${dl}d</span>`;
+}
+
+function pillStatus(t){
+  const s = String(t.status||"").toLowerCase();
+  if (t.flags?.doneLike || s.includes("hoàn") || s.includes("xong") || s.includes("done")) return `<span class="pill s4">Hoàn thành</span>`;
+  if (t.flags?.overdue) return `<span class="pill s3">Quá hạn</span>`;
+  if (t.flags?.dueToday) return `<span class="pill s2">Đến hạn hôm nay</span>`;
+  if (t.flags?.due7) return `<span class="pill s2">Sắp đến hạn</span>`;
+  if (s.includes("bị chặn") || s.includes("blocked")) return `<span class="pill s2">Bị chặn</span>`;
+  if (!t.status) return `<span class="pill s1">—</span>`;
+  return `<span class="pill s1">${escapeHtml(t.status)}</span>`;
+}
+
+function projectStatusPill(p){
+  const s = String(p.status||"").toLowerCase();
+  if (s.includes("hoàn") || s.includes("done") || (p.progressPct||0) >= 100) return `<span class="pill s4">Hoàn thành</span>`;
+  if ((p.overdueCount||0) > 0) return `<span class="pill s3">Có quá hạn</span>`;
+  if (s.includes("đang") || s.includes("in progress")) return `<span class="pill s1">Đang làm</span>`;
+  if (!p.status) return `<span class="pill s1">—</span>`;
+  return `<span class="pill s1">${escapeHtml(p.status)}</span>`;
+}
+
+function remindPill(t){
+  const parts = [];
+  if (truthy(t.remind3)) parts.push("3d");
+  if (truthy(t.remind1)) parts.push("1d");
+  if (truthy(t.remindToday)) parts.push("Today");
+  const last = t.lastSent ? String(t.lastSent) : "";
+  const text = parts.length ? `Đã nhắc: ${parts.join(", ")}${last ? " • " + last : ""}` : (last ? `Lần gần nhất: ${last}` : "—");
+  return `<span class="pill s1">${escapeHtml(text)}</span>`;
+}
+
+function personOnTimePill(p){
+  const v = p.onTimePct ?? p.onTimeRate ?? p.onTime ?? null;
+  const n = (v == null) ? null : Number(v);
+  if (n == null || isNaN(n)) return `<span class="pill s1">—</span>`;
+  const pctVal = (n <= 1) ? Math.round(n*100) : Math.round(n);
+  if (pctVal >= 80) return `<span class="pill s4">${pctVal}% đúng hạn</span>`;
+  if (pctVal >= 50) return `<span class="pill s2">${pctVal}% đúng hạn</span>`;
+  return `<span class="pill s3">${pctVal}% đúng hạn</span>`;
+}
+function personOnTimePillPlain(p){
+  const v = p.onTimePct ?? p.onTimeRate ?? p.onTime ?? "";
+  const n = Number(v);
+  if (isNaN(n)) return String(v ?? "");
+  const pctVal = (n <= 1) ? Math.round(n*100) : Math.round(n);
+  return `${pctVal}%`;
+}
+
+/* Range cho lịch: lấy Start->Due (nếu thiếu thì +-1 ngày) */
+function taskRangeMs(t){
+  let startMs = t.startMs;
+  let endMs = t.dueMs;
+  if (!startMs && !endMs) return null;
+  if (!startMs && endMs) startMs = endMs - 24*3600*1000;
+  if (startMs && !endMs) endMs = startMs + 24*3600*1000;
+  if (endMs < startMs) endMs = startMs;
+  return [startMs, endMs];
+}
+
+function toCSV(rows){
+  if (!rows || !rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const esc = (v)=>{
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    if (/[",\n]/.test(s)){
+      return '"' + s.replace(/"/g,'""') + '"';
+    }
+    return s;
+  };
+  const lines = [];
+  lines.push(headers.map(esc).join(","));
+  rows.forEach(row=>{
+    lines.push(headers.map(h=>esc(row[h])).join(","));
+  });
+  return lines.join("\r\n");
+}
+</script>
+</body>
+</html>

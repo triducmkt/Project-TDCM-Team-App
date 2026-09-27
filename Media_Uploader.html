@@ -1,0 +1,595 @@
+<style>
+    /* 🚀 BỘ CSS THẺ CARD CẢM ỨNG (ACCORDION) DÀNH CHO MOBILE & LAPTOP */
+    .media-grid-container {
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+        gap: 30px; 
+        align-items: start;
+        width: 100%;
+    }
+    
+    .media-card {
+        background: #FFFFFF; 
+        border-radius: 20px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); 
+        border: 1px solid rgba(0,0,0,0.02); 
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out;
+        width: 100%; /* Ép thẻ luôn bung hết 100% khung chứa */
+        box-sizing: border-box;
+    }
+    
+    .media-card-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: #FFF; position: relative; z-index: 10; cursor: default; }
+    .media-card-body { padding: 0 24px 24px 24px; display: block; }
+    .media-toggle-icon { display: none; color: #4285F4; font-size: 18px; font-weight: 900; transition: transform 0.3s; }
+
+    /* 📱 MOBILE RESPONSIVE: Ép 2 thẻ rộng bằng nhau, bung full viền màn hình */
+    @media (max-width: 768px) {
+        .task-page-container { padding: 16px !important; width: 100vw !important; overflow-x: hidden !important; box-sizing: border-box; }
+        .media-grid-container { display: flex; flex-direction: column; gap: 16px; width: 100% !important; margin: 0 !important; }
+        .media-card { width: 100% !important; border-radius: 16px; margin: 0 !important; }
+        .media-card-header { padding: 16px 20px; cursor: pointer; border-bottom: 1px dashed transparent; transition: 0.3s;}
+        .media-card-body { display: none; padding: 0 20px 20px 20px; }
+        .media-toggle-icon { display: block; }
+        
+        /* Trạng thái thẻ đang mở */
+        .media-card.is-expanded .media-card-body { display: block; animation: fadeIn 0.4s ease; }
+        .media-card.is-expanded .media-card-header { border-bottom: 1px dashed rgba(0,0,0,0.08); }
+        .media-card.is-expanded .media-toggle-icon { transform: rotate(180deg); }
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Dropdown Tree */
+    .tree-select { width: 100%; padding: 12px 14px; border: 1px solid #D1D5DB; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 13.5px; outline: none; background: #F9FAFB; cursor: pointer; }
+    .tree-select:focus { border-color: #4285F4; background: #FFF; box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1); }
+
+    /* 🚀 BỘ CSS THUMBNAIL GRID (DÀNH CHO KHUNG PREVIEW TỆP) */
+    .media-thumb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 12px;
+        align-items: start;
+    }
+    .media-thumb-item {
+        aspect-ratio: 1/1;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        overflow: hidden;
+        position: relative;
+        background: #F8FAFC;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+    .media-thumb-item:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); border-color: #93C5FD; }
+    .media-thumb-img { width: 100%; height: 100%; object-fit: cover; }
+    .media-thumb-label {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: rgba(0,0,0,0.7); color: #FFF; font-size: 9.5px;
+        padding: 4px 6px; text-align: center; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis; font-weight: 600;
+        backdrop-filter: blur(4px);
+    }
+    .media-vid-icon { position: absolute; top: 4px; right: 4px; font-size: 11px; background: rgba(0,0,0,0.6); color: #FFF; border-radius: 50%; padding: 4px; line-height: 1; }
+    /* 🚀 BỘ CSS ĐỒNG BỘ HEADER MOBILE VÀ PROFILE RÚT GỌN */
+    @media (max-width: 768px) {
+        .media-topbar-wrapper { flex-direction: row !important; align-items: center !important; width: 100% !important; gap: 12px !important; }
+        .media-title-text { font-size: 19px !important; white-space: normal !important; line-height: 1.3 !important; flex: 1 !important; text-align: left !important; }
+        
+        /* Ép hiển thị avatar rút gọn, ẩn tên */
+        .media-auth-name { display: none !important; } 
+        .media-auth-container { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
+        .media-auth-avatar > div { border: 2px solid #FFF !important; box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important; }
+    }
+</style>
+
+<div class="task-page-container" style="padding: 24px; max-width: 1100px; margin: 0 auto;">
+    
+    <div class="task-topbar" style="margin-bottom: 24px;">
+        <div class="topbar-header-row media-topbar-wrapper" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <button class="btn-home-house" onclick="if(typeof loadMenuPage === 'function') loadMenuPage('Home');" title="Trở về Trang chủ" style="flex-shrink: 0; margin-right: 12px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </button>            
+            <h1 class="premium-title-gradient media-title-text" style="margin: 0; flex: 1;">UPLOAD TƯ LIỆU MEDIA TEAM</h1>
+            <div id="mediaAuthContainer" style="flex-shrink: 0; display: flex; justify-content: flex-end;"></div>
+        </div>
+    </div>
+
+    <div class="media-grid-container">
+        
+        <div class="media-card is-expanded"> <div class="media-card-header" onclick="toggleMediaCard(this)">
+                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 900; color: #1A56B5; text-transform: uppercase; margin: 0;">📂 QUẢN LÝ KHO TƯ LIỆU</h4>
+                <span class="media-toggle-icon">▼</span>
+            </div>
+            
+            <div class="media-card-body">
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 10px;">Thư mục đang chọn:</div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <select id="selParentFolder" class="tree-select" onchange="syncFolderSelection(this.value)">
+                            <option value="">⏳ Đang tải cấu trúc thư mục...</option>
+                        </select>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="newFolderName" placeholder="Tạo thư mục con tại đây..." style="flex: 1; padding: 12px 14px; border: 1px solid #D1D5DB; border-radius: 12px; font-family: inherit; font-size: 13.5px; outline: none;">
+                            <button onclick="executeCreateFolder()" id="btnCreateFolder" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFF; border: none; padding: 0 20px; border-radius: 12px; font-weight: 800; font-size: 20px; cursor: pointer; transition: 0.3s; flex-shrink: 0;" title="Tạo Thư mục">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #334155;">Preview Tệp trong thư mục</div>
+                    <button onclick="loadMediaFiles(document.getElementById('selParentFolder').value)" style="background: #E8F0FE; border: none; color: #1A73E8; border-radius: 8px; padding: 6px 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.2s;">🔄 LÀM MỚI</button>
+                </div>
+                
+                <div id="mediaFilesContainer" style="background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 16px; height: 280px; overflow-y: auto; padding: 16px; margin-bottom: 20px;">
+                    <div style="text-align: center; color: #999; font-size: 13px; margin-top: 40px;">Đang quét kho dữ liệu...</div>
+                </div>
+
+                <!-- CẬP NHẬT: NÚT PREMIUM MỞ KHO TƯ LIỆU CONTENT ĐỒNG BỘ -->
+                <button id="btnOpenHubFromUploader" class="btn-add-task-premium" onclick="openMediaHubModal()" style="width: 100%; height: 50px; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: 'Montserrat', sans-serif;  color: #fff; font-size: 14px; font-weight: 900; text-transform: uppercase; background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); border-radius: 16px; box-shadow: 0 8px 20px rgba(66, 133, 244, 0.35); border: none; cursor: pointer; transition: 0.3s; margin-top: 20px;">
+                    <span style="font-size: 18px;">🗂️</span> KHO TƯ LIỆU CONTENT
+                </button>
+            </div>
+        </div>
+
+        <div class="media-card">
+            <div class="media-card-header" onclick="toggleMediaCard(this)">
+                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 900; color: #1A56B5; text-transform: uppercase; margin: 0;">📤 UPLOAD TƯ LIỆU MỚI</h4>
+                <span class="media-toggle-icon">▼</span>
+            </div>
+            
+            <div class="media-card-body">
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">Nơi lưu trữ (Thư mục đích):</div>
+                    <select id="selTargetFolder" class="tree-select" onchange="syncFolderSelection(this.value)">
+                        <option value="">⏳ Đang tải cấu trúc thư mục...</option>
+                    </select>
+                </div>
+
+                <div style="background: #F8FAFC; border: 2px dashed #93C5FD; border-radius: 16px; padding: 30px 20px; text-align: center; transition: 0.3s;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📥</div>
+                    <div style="font-weight: 800; color: #1E3A8A; font-size: 14px; margin-bottom: 8px;">Bấm chọn file (Ảnh / Video)</div>
+                    <div style="font-size: 12px; color: #DC2626; margin-bottom: 24px; font-style: italic; font-weight: 700;">⚠️ Nên up mỗi 5 file/lần để tránh nghẽn mạng</div>
+                    
+                    <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display: none;" onchange="handleMediaFilesSelect(this)">
+                    <button onclick="document.getElementById('mediaFileInput').click()" style="background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); color: #FFF; border: none; padding: 12px 24px; border-radius: 12px; font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 20px rgba(66,133,244,0.3); transition: 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        + CHỌN FILE TỪ MÁY
+                    </button>
+                </div>
+                
+                <div id="globalProgressContainer" style="display: none; padding: 18px 20px; background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span id="globalProgressText" style="font-size: 14px; font-weight: 900; color: #166534;">Đang tải lên: 0 / 0 tư liệu</span>
+                            <span id="globalProgressBytes" style="font-size: 12px; font-weight: 700; color: #15803D;">0 MB / 0 MB</span>
+                        </div>
+                        <button onclick="cancelSmartUpload()" style="background: #EF4444; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#DC2626'">🛑 HỦY TOÀN BỘ</button>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #DCFCE7; border-radius: 4px; overflow: hidden;">
+                        <div id="globalProgressBar" style="width: 0%; height: 100%; background: linear-gradient(135deg, #10B981 0%, #059669 100%); transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <div id="mediaPreviewList" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;"></div>
+                
+                <button id="btnSubmitMedia" onclick="submitMediaUpload()" style="display: none; width: 100%; margin-top: 16px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFF; border: none; padding: 16px; border-radius: 12px; font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 8px 25px rgba(16,185,129,0.3); transition: 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    🚀 BẮT ĐẦU TẢI LÊN DRIVE
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+var selectedMediaFiles = [];
+var globalFolderTree = [];
+
+// 🚀 HÀM KHỞI TẠO ĐƯỢC APP GỌI TỰ ĐỘNG KHI VÀO TRANG
+function initMedia_Uploader() {
+    loadFolderTree(); // Kéo cây thư mục trước, sau đó tự động kích hoạt loadMediaFiles
+    
+    let authContainer = document.getElementById('mediaAuthContainer');
+    if (authContainer && typeof appUser !== 'undefined') {
+        let ui = typeof buildUniversalAvatar === 'function' ? buildUniversalAvatar(appUser.name, 40) : {avtHtml: ""};
+        authContainer.innerHTML = `
+            <div class="media-auth-container" style="background: #FFF; padding: 6px 14px 6px 6px; border-radius: 50px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div class="media-auth-avatar">${ui.avtHtml}</div> 
+                <span class="media-auth-name" style="font-weight: 800; font-size: 14px; color: #111;">${appUser.name}</span>
+            </div>`;
+    }
+}
+
+// 📱 HÀM GẬP/MỞ THẺ MOBILE
+function toggleMediaCard(headerEl) {
+    if(window.innerWidth > 768) return; 
+    let card = headerEl.parentElement;
+    card.classList.toggle('is-expanded');
+}
+
+// 🚀 ĐỒNG BỘ HAI Ô DROPDOWN VÀ LOAD ẢNH THEO THƯ MỤC
+function syncFolderSelection(folderId) {
+    document.getElementById('selParentFolder').value = folderId;
+    document.getElementById('selTargetFolder').value = folderId;
+    loadMediaFiles(folderId); // Gọi Backend kéo ảnh ở thư mục mới này
+}
+
+// ==========================================
+// CÂY THƯ MỤC & HIỂN THỊ FILE THUMBNAIL
+// ==========================================
+function loadFolderTree() {
+    google.script.run
+        .withSuccessHandler(res => {
+            if(res.success) {
+                globalFolderTree = res.data;
+                renderFolderTreeOptions();
+                // 🚀 Sau khi có cây thư mục, tự động load file của thư mục Gốc đầu tiên
+                if(globalFolderTree.length > 0) {
+                    syncFolderSelection(globalFolderTree[0].id);
+                }
+            } else {
+                document.getElementById('selParentFolder').innerHTML = `<option value="">⚠️ Lỗi tải thư mục</option>`;
+                document.getElementById('selTargetFolder').innerHTML = `<option value="">⚠️ Lỗi tải thư mục</option>`;
+            }
+        })
+        .getMediaFolderTree();
+}
+
+function renderFolderTreeOptions() {
+    let html = "";
+    globalFolderTree.forEach(f => {
+        let indent = "";
+        for(let i=0; i < f.level; i++) { indent += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"; }
+        let prefix = f.level === 0 ? "" : " ├─ 📁 ";
+        html += `<option value="${f.id}">${indent}${prefix}${f.name}</option>`;
+    });
+    document.getElementById('selParentFolder').innerHTML = html;
+    document.getElementById('selTargetFolder').innerHTML = html;
+}
+
+function loadMediaFiles(folderId) {
+    let container = document.getElementById('mediaFilesContainer');
+    container.innerHTML = `<div style="text-align: center; padding: 30px; display: flex; flex-direction: column; align-items: center; width: 100%;"><div class="spinner-arrow-rotate" style="width: 24px; height: 24px; border-width: 3px; margin-bottom: 12px; border-top-color: #1A56B5;"></div><span style="color: #666; font-size: 12px; font-weight: 600;">Đang tải tệp gần đây...</span></div>`;
+    
+    // Gửi thư mục đang chọn lên Backend
+    let targetId = folderId || document.getElementById('selParentFolder').value;
+
+    google.script.run
+        .withSuccessHandler(res => {
+            if(!res.success) { container.innerHTML = `<div style="color:#DC2626; font-size:12px; text-align:center; margin-top:20px;">Lỗi: ${res.message}</div>`; return; }
+            if(res.data.length === 0) { container.innerHTML = `<div style="text-align: center; color: #999; font-size: 12.5px; margin-top: 30px; font-style: italic; width: 100%;">Thư mục này hiện đang trống.</div>`; return; }
+            
+            // 🚀 VẼ GIAO DIỆN LƯỚI THUMBNAIL CHO TỪNG FILE
+            let html = `<div class="media-thumb-grid">`;
+            res.data.forEach(f => {
+                let isVid = f.mimeType.includes('video');
+                let isImg = f.mimeType.includes('image');
+                
+                if (isImg || isVid) {
+                    let vidIcon = isVid ? `<div class="media-vid-icon">🎥</div>` : "";
+                    html += `
+                    <a href="${f.url}" target="_blank" title="${f.name}" class="media-thumb-item">
+                        <img src="${f.thumbUrl}" class="media-thumb-img" loading="lazy">
+                        ${vidIcon}
+                        <div class="media-thumb-label">${f.name}</div>
+                    </a>`;
+                } else {
+                    // Nếu là File PDF, Zip, Doc... thì hiện Icon File lớn
+                    html += `
+                    <a href="${f.url}" target="_blank" title="${f.name}" class="media-thumb-item" style="flex-direction: column;">
+                        <div style="font-size: 32px; margin-bottom: 6px;">📄</div>
+                        <div class="media-thumb-label">${f.name}</div>
+                    </a>`;
+                }
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        })
+        .getMediaFolderFiles(targetId);
+}
+
+function executeCreateFolder() {
+    let parentId = document.getElementById('selParentFolder').value;
+    let folderName = document.getElementById('newFolderName').value.trim();
+    let btn = document.getElementById('btnCreateFolder');
+    
+    if(!parentId || !folderName) { alert("Vui lòng chọn Vị trí và nhập Tên thư mục!"); return; }
+    
+    btn.innerHTML = "⏳"; btn.disabled = true;
+    let sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : JSON.parse(localStorage.getItem('appUserSession'));
+
+    google.script.run
+        .withFailureHandler(err => { alert("Lỗi: " + err); btn.innerHTML = "+"; btn.disabled = false; })
+        .withSuccessHandler(res => {
+            btn.innerHTML = "+"; btn.disabled = false;
+            if(res.success) {
+                alert("✅ Tạo thư mục [" + folderName + "] thành công!");
+                document.getElementById('newFolderName').value = "";
+                loadFolderTree(); // Load lại cây để cập nhật nhánh vừa đẻ ra
+            } else { alert(res.message); }
+        })
+        .createNewMediaFolder(parentId, folderName, sessionUser);
+}
+
+// ==========================================
+// 🚀 ĐỘNG CƠ SMART UPLOAD V1.0 (VÔ HẠN FILE + CHUNKING + ĐA LUỒNG)
+// ==========================================
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB mỗi khúc
+const MAX_CONCURRENT = 3; // Luôn giữ 3 xe tải chạy song song trên đường cao tốc
+let isSmartUploading = false;
+let smartToken = { value: "", expiresAt: 0 };
+let globalUploadStats = { totalBytes: 0, uploadedBytes: 0, totalFiles: 0, doneFiles: 0 };
+
+function handleMediaFilesSelect(input) {
+    if (!input.files || input.files.length === 0) return;
+    
+    // 🚀 ĐÃ GỠ BỎ GIỚI HẠN 5 FILE - BẠN CÓ THỂ CHỌN HÀNG TRĂM FILE!
+    Array.from(input.files).forEach(file => {
+        selectedMediaFiles.push({
+            id: "media_" + Date.now() + "_" + Math.floor(Math.random() * 1000), 
+            fileObj: file,
+            name: file.name,
+            mimeType: file.type,
+            size: (file.size / (1024*1024)).toFixed(2) + " MB",
+            progress: 0,
+            uploadedBytes: 0, // Lưu lượng đã up của riêng file này
+            status: "pending" 
+        });
+    });
+    
+    renderMediaPreview();
+    input.value = ""; 
+}
+
+function removeMediaFile(index) {
+    if (isSmartUploading && selectedMediaFiles[index].status === "uploading") {
+        alert("⚠️ Không thể xóa file đang trong quá trình tải!"); return;
+    }
+    selectedMediaFiles.splice(index, 1);
+    renderMediaPreview();
+}
+
+function renderMediaPreview() {
+    let previewBox = document.getElementById('mediaPreviewList');
+    let btnSubmit = document.getElementById('btnSubmitMedia');
+    
+    if (selectedMediaFiles.length === 0) {
+        previewBox.innerHTML = "";
+        btnSubmit.style.display = "none";
+        return;
+    }
+    
+    let html = "";
+    selectedMediaFiles.forEach((f, idx) => {
+        let isVid = f.mimeType.includes('video');
+        let icon = isVid ? "🎥" : "🖼️";
+        let hideBtn = (f.status === "uploading" || f.status === "done") ? "display: none;" : "display: flex;";
+        let showProg = f.status === "pending" ? "display: none;" : "display: block;";
+        let barColor = f.status === "error" ? "#EF4444" : "#10B981";
+        let statusText = f.status === "uploading" ? `Đang tải: ${f.progress}%` : (f.status === "done" ? "✅ Tải thành công" : "❌ Lỗi: Chờ thử lại...");
+
+        html += `
+        <div style="padding: 14px; background: #F8FAFC; border: 1px solid #DBEAFE; border-radius: 12px; opacity: ${f.status === 'done' ? '0.6' : '1'}; transition: 0.3s;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                    <span style="font-size: 24px;">${icon}</span>
+                    <div style="display: flex; flex-direction: column; overflow: hidden;">
+                        <span style="font-size: 14px; font-weight: 800; color: #1E3A8A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">${f.name}</span>
+                        <span style="font-size: 12px; color: #64748B; margin-top: 4px; font-weight: 500;">${f.size}</span>
+                    </div>
+                </div>
+                <button class="btn-remove-media" onclick="removeMediaFile(${idx})" style="background: rgba(239, 68, 68, 0.1); border: none; font-size: 16px; color: #EF4444; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; ${hideBtn} justify-content: center; align-items: center; transition: 0.2s;" onmouseover="this.style.background='#EF4444'; this.style.color='#FFF';">✖</button>
+            </div>
+            <div style="width: 100%; height: 6px; background: #E5E7EB; border-radius: 3px; margin-top: 12px; overflow: hidden; ${showProg}">
+                <div id="prog_${f.id}" style="width: ${f.progress}%; height: 100%; background: ${barColor}; transition: width 0.2s linear;"></div>
+            </div>
+            <div id="progText_${f.id}" style="font-size: 11.5px; font-weight: 700; color: ${barColor}; text-align: right; margin-top: 6px; ${showProg}">
+                ${statusText}
+            </div>
+        </div>`;
+    });
+    previewBox.innerHTML = html;
+    btnSubmit.style.display = isSmartUploading ? "none" : "block"; // Giấu nút Up khi đang chạy
+}
+
+// 🧠 QUẢN LÝ VÒNG ĐỜI TOKEN (45 Phút tự làm mới)
+async function getSmartToken() {
+    if (Date.now() > smartToken.expiresAt) {
+        smartToken.value = await new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej).getDriveAccessToken());
+        smartToken.expiresAt = Date.now() + 45 * 60 * 1000; 
+    }
+    return smartToken.value;
+}
+
+// 🛑 PHANH KHẨN CẤP
+function cancelSmartUpload() {
+    if(confirm("Bạn có chắc chắn muốn hủy quá trình tải lên? Các file đang tải dở sẽ bị ngưng!")) {
+        isSmartUploading = false;
+        document.getElementById('globalProgressContainer').style.display = "none";
+        document.getElementById('btnSubmitMedia').style.display = "block";
+        alert("Đã nhận lệnh hủy! Sẽ dừng ngay sau khi xử lý xong luồng hiện tại.");
+    }
+}
+
+// 🚀 TRÁI TIM ĐIỀU PHỐI ĐA LUỒNG
+async function submitMediaUpload() {
+    let targetFolderId = document.getElementById('selTargetFolder').value;
+    if(!targetFolderId) { alert("⚠️ Vui lòng chọn Thư mục đích để lưu trữ!"); return; }
+
+    let pendingFiles = selectedMediaFiles.filter(f => f.status === "pending" || f.status === "error");
+    if (pendingFiles.length === 0) return;
+
+    // Reset Global Stats
+    isSmartUploading = true;
+    globalUploadStats = { totalBytes: 0, uploadedBytes: 0, totalFiles: pendingFiles.length, doneFiles: 0 };
+    pendingFiles.forEach(f => globalUploadStats.totalBytes += f.fileObj.size);
+
+    document.getElementById('btnSubmitMedia').style.display = "none";
+    document.getElementById('globalProgressContainer').style.display = "block";
+    updateGlobalUI();
+
+    try {
+        // Tạo Đội Công Nhân (Workers) chạy song song
+        let workers = [];
+        for (let i = 0; i < MAX_CONCURRENT; i++) {
+            workers.push(smartWorkerProcess(targetFolderId));
+        }
+        
+        // Đợi tất cả công nhân làm xong
+        await Promise.all(workers);
+
+        if(isSmartUploading) {
+            alert("✅ KIỆT TÁC! Đã hoàn tất tải lên toàn bộ kho tư liệu!");
+            // Dọn dẹp các file đã up thành công, giữ lại file lỗi (nếu có)
+            selectedMediaFiles = selectedMediaFiles.filter(f => f.status !== "done");
+            document.getElementById('globalProgressContainer').style.display = "none";
+            renderMediaPreview();
+            loadMediaFiles(targetFolderId); // Tự động load lưới ảnh thư mục đích
+        }
+        
+    } catch (err) { alert("Hệ thống gián đoạn: " + err); } 
+    finally {
+        isSmartUploading = false;
+        document.getElementById('btnSubmitMedia').style.display = "block";
+    }
+}
+
+// 👷 CÔNG NHÂN TẢI FILE (Tự bốc file trong hàng đợi)
+async function smartWorkerProcess(folderId) {
+    while (isSmartUploading) {
+        let fileData = selectedMediaFiles.find(f => f.status === "pending" || f.status === "error");
+        if (!fileData) break; // Hết việc!
+
+        fileData.status = "uploading";
+        renderMediaPreview();
+
+        try {
+            await uploadWithChunking(fileData, folderId);
+            if(isSmartUploading) {
+                fileData.status = "done";
+                globalUploadStats.doneFiles++;
+                renderMediaPreview();
+                updateGlobalUI();
+            }
+        } catch(e) {
+            if(isSmartUploading) {
+                fileData.status = "error";
+                console.error("Lỗi file " + fileData.name + ": ", e);
+                renderMediaPreview();
+            }
+        }
+    }
+}
+
+// 🪚 THUẬT TOÁN CƯA FILE (CHUNKING) VÀ TỰ CHỮA LÀNH (RETRY)
+async function uploadWithChunking(fileData, folderId) {
+    let token = await getSmartToken();
+    let file = fileData.fileObj;
+    
+    // 1. Gõ cửa Google, xin tạo một đường ống Resumable
+    let metadata = { name: fileData.name, parents: [folderId] };
+    let locationUrl = await new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-Upload-Content-Type', fileData.mimeType);
+        xhr.setRequestHeader('X-Upload-Content-Length', file.size);
+        xhr.onload = () => {
+            if (xhr.status === 200) resolve(xhr.getResponseHeader('Location'));
+            else reject("Khởi tạo ống tải thất bại: " + xhr.responseText);
+        };
+        xhr.onerror = () => reject("Mất mạng khi khởi tạo");
+        xhr.send(JSON.stringify(metadata));
+    });
+
+    // 2. Băm file và Bơm lên
+    let start = 0;
+    let retryCount = 0;
+
+    while (start < file.size && isSmartUploading) {
+        let end = Math.min(start + CHUNK_SIZE, file.size);
+        let chunk = file.slice(start, end);
+        
+        try {
+            token = await getSmartToken(); // Đảm bảo chìa khóa luôn mới
+            let res = await sendChunkPromise(locationUrl, chunk, start, end - 1, file.size, token, fileData);
+            
+            if (res.code === 308) {
+                // Đã nhận khúc này, bơm khúc tiếp theo
+                start = end;
+                retryCount = 0; // Hồi máu retry
+            } else if (res.code === 200 || res.code === 201) {
+                // Khúc cuối cùng đã xong -> Bắn lệnh set quyền View
+                await new Promise((resPerm, rejPerm) => {
+                    google.script.run.withSuccessHandler(resPerm).withFailureHandler(rejPerm).finalizeDriveFilePermissions(res.driveId);
+                });
+                return; // Xong file!
+            } else { throw new Error("Mã trạng thái lạ: " + res.code); }
+            
+        } catch(err) {
+            retryCount++;
+            if (retryCount > 3) throw new Error("Thất bại sau 3 lần rớt mạng liên tục.");
+            // CƠ CHẾ EXPONENTIAL BACKOFF: Đợi 2s, 4s, 8s rồi thử bơm lại khúc này
+            await new Promise(r => setTimeout(r, Math.pow(2, retryCount) * 1000));
+        }
+    }
+}
+
+// 📦 LỆNH BƠM 1 KHÚC DỮ LIỆU VÀ CẬP NHẬT GIAO DIỆN
+function sendChunkPromise(url, chunkBlob, start, end, totalSize, token, fileData) {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open('PUT', url, true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.setRequestHeader('Content-Range', `bytes ${start}-${end}/${totalSize}`);
+        
+        // Bắt sự kiện thanh tiến độ siêu mượt
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable && isSmartUploading) {
+                // Tiến độ File
+                let uploadedThisChunk = e.loaded;
+                let filePercent = Math.round(((start + uploadedThisChunk) / totalSize) * 100);
+                fileData.progress = filePercent;
+                
+                // Cập nhật DOM trực tiếp để tránh giật hình
+                let pBar = document.getElementById('prog_' + fileData.id);
+                let pText = document.getElementById('progText_' + fileData.id);
+                if (pBar) pBar.style.width = filePercent + '%';
+                if (pText) pText.innerText = 'Đang tải: ' + filePercent + '%';
+
+                // Tiến độ Global
+                let prevUploaded = fileData.uploadedBytes;
+                fileData.uploadedBytes = start + uploadedThisChunk;
+                globalUploadStats.uploadedBytes += (fileData.uploadedBytes - prevUploaded);
+                updateGlobalUI();
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 308) resolve({ code: 308 });
+            else if (xhr.status === 200 || xhr.status === 201) resolve({ code: xhr.status, driveId: JSON.parse(xhr.responseText).id });
+            else reject(xhr.responseText);
+        };
+        xhr.onerror = () => reject("Mạng chập chờn");
+        xhr.send(chunkBlob);
+    });
+}
+
+// 📊 CẬP NHẬT UI BẢNG ĐIỀU KHIỂN TỔNG
+function updateGlobalUI() {
+    let textEl = document.getElementById('globalProgressText');
+    let bytesEl = document.getElementById('globalProgressBytes');
+    let barEl = document.getElementById('globalProgressBar');
+    if (!textEl || !bytesEl || !barEl) return;
+
+    let globalPercent = globalUploadStats.totalBytes > 0 ? Math.round((globalUploadStats.uploadedBytes / globalUploadStats.totalBytes) * 100) : 0;
+    
+    textEl.innerText = `Đang tải lên: ${globalUploadStats.doneFiles} / ${globalUploadStats.totalFiles} tư liệu`;
+    bytesEl.innerText = `${(globalUploadStats.uploadedBytes / (1024*1024)).toFixed(1)} MB / ${(globalUploadStats.totalBytes / (1024*1024)).toFixed(1)} MB`;
+    barEl.style.width = globalPercent + '%';
+}
+</script>

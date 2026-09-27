@@ -1,0 +1,131 @@
+Bước 1: Gửi code cấu hình Biến Ma trận & Hàm ghi Lịch sử (writeLog) vào Code.gs.
+
+Bước 2: Cập nhật lại các hàm lưu dữ liệu (như saveChanges, saveModalNoteChanges) ở Backend để gắn "Trạm gác cổng".
+
+Bước 3: Cập nhật hàm bindEditableAttrs ở Frontend để khóa giao diện theo trạng thái.
+-------------------
+1. Khối Cấu hình (Configuration Registry)
+Thay vì hardcode, tôi sẽ tạo một biến CONFIG trong file Code.gs. Đây là nơi bạn kiểm soát toàn bộ "luật chơi" của App.
+
+Mapping Layer (Bản đồ cột): Một đối tượng JSON nối tên hiển thị (Frontend) với Tên tiêu đề cột thật trong Sheet.
+
+Ví dụ: {"Tên TASK": "Tên công việc", "Nhận xét sửa task": "Nhận xét", ...}
+
+=> Nếu sau này bạn đổi tên cột "Tên công việc" trên sheet thành "Nội dung việc", bạn chỉ cần sửa 1 dòng trong file Code.gs, toàn bộ hệ thống vẫn chạy ổn định.
+
+Locked Statuses (Trạng thái khóa): Một hàm getLockedStatuses() sẽ tự động quét cột B (dòng 12+) trong sheet "Danh mục" để lấy danh sách từ khóa khóa task (ví dụ: "Hoàn thành", "Chờ Up").
+
+Role Matrix (Ma trận quyền): Khai báo quy tắc cho từng Role.
+
+2. Khối Trạm gác (Validation Engine - Backend)
+Chúng ta sẽ không kiểm tra quyền rải rác nữa mà tập trung vào một hàm kiểm tra duy nhất: canPerformAction(userPhone, taskRowData, actionType, fieldName).
+
+Luồng hoạt động của Trạm gác:
+
+Xác thực vai trò: App nhận SĐT Zalo của user từ session.
+
+Kiểm tra Trạng thái (Khối 1): Hàm kiểm tra xem taskData.Status có nằm trong danh sách khóa không. Nếu có => CHẶN (trừ Quản lý).
+
+Kiểm tra Quyền sở hữu (requireOwnership): Nếu role là Freelancer => Kiểm tra xem taskData.AssigneePhone có bằng userPhone không. Nếu không khớp => CHẶN.
+
+Kiểm tra Nhóm cột (Khối 2): Hàm tra cứu xem fieldName người dùng đang sửa có nằm trong danh sách được phép của role đó không. Nếu không nằm trong danh sách => CHẶN.
+
+3. Khối Nhật ký (Audit Log Module)
+Sẽ có một hàm chuyên dụng logAction(userPhone, action, details).
+
+Vị trí: Mọi thao tác lưu dữ liệu (saveChanges, saveModalNoteChanges, ...) đều phải đi qua hàm này trước khi ghi vào sheet "Công việc".
+
+Cơ chế:
+
+Xác định sheet "Lịch sử".
+
+Dùng lệnh tìm dòng trống cuối cùng bắt đầu từ dòng 12 (như bạn yêu cầu).
+
+Ghi các thông tin: [Thời gian] | [User] | [Thao tác] | [Đối tượng/ID Task] | [Giá trị cũ -> Giá trị mới].
+
+Lưu ý: Việc lưu giá trị cũ -> mới sẽ giúp bạn sau này truy cứu trách nhiệm rất rõ ràng (Ai đã sửa gì, khi nào).
+-------------------
+Dưới đây là bức tranh toàn cảnh về luồng hoạt động của hệ thống từ lúc người dùng mở link cho đến khi dữ liệu được ghi vào sheet Lịch sử, với các tác nhân và hàm cụ thể:
+
+GIAI ĐOẠN 1: Khởi tạo và Bước qua Cửa Chính (Initialization)
+Tác nhân: Người dùng (Trình duyệt web) & Google Server (Backend).
+
+Hành động: Người dùng bấm vào link Web App.
+
+Luồng xử lý:
+
+Google Server nhận yêu cầu và chạy hàm doGet(e) (trong Code.gs).
+
+Hàm này gọi file bộ khung Index.html, gắn các thẻ meta và ném về cho trình duyệt.
+
+Trên trình duyệt, ngay khi Index.html tải xong, nó tự động gọi hàm loadMenuPage('Home') để tải giao diện Trang chủ mặc định. Lúc này, người dùng đang mang thân phận mặc định là "Khách lạ".
+
+GIAI ĐOẠN 2: Cấp "Thẻ Bài" và Khởi động Trạm Gác Nút (Authentication & UI Setup)
+Tác nhân: File Login.html (Frontend) & File Code.gs (Backend).
+
+Hành động: Hệ thống tự động nạp "Hiến pháp" và người dùng đăng nhập.
+
+Luồng xử lý:
+
+File Login.html chạy ngầm hàm loadPermissionsMatrix().
+
+Hàm này gọi API getEditPermissionsMatrix() trên Backend. Backend lập tức trả về cục dữ liệu chứa ROLE_MATRIX (Ma trận quyền) và FIELD_MAP (Bản đồ cột).
+
+Frontend nhận dữ liệu, lưu vào localStorage (appPermissions, appFieldMap) để dùng dần mà không cần hỏi lại Server.
+
+Trình duyệt tự động kích hoạt controlUiButtonsByPermission(). Trạm gác này đi tuần tra toàn bộ trang, tìm các nút có gắn thẻ data-action (như "Thêm Task") và tô xám/khóa lại vì User đang là "Khách lạ".
+
+Người dùng nhập SĐT + Pass. Hàm executeLogin() gọi về Backend qua verifyUserLogin(). Nếu đúng, Frontend cập nhật biến appUser (Ví dụ: Role "Freelancer") và chạy lại Trạm gác nút một lần nữa để mở khóa những nút được phép.
+
+GIAI ĐOẠN 3: Truy cập Bảng Task và Trạm Gác 1 (UI Gatekeeper)
+Tác nhân: Người dùng & File Task_list.html (Frontend).
+
+Hành động: Người dùng click vào menu "Bảng Task".
+
+Luồng xử lý:
+
+Hàm loadMenuPage('Task_list') chạy. Ngay tại cửa, "Page Guard" (Trạm gác trang) kiểm tra xem Role hiện tại có chữ "Task_list" trong mảng allowedPages không. Nếu có, cho qua.
+
+Hệ thống bơm ruột file Task_list.html vào màn hình và chạy initTask_list(). Hàm này gọi Backend lấy danh sách công việc (getTasksList) và dữ liệu Dropdown (getDropdownData).
+
+Trạm Gác 1 (Bảo vệ UI) kích hoạt: Khi hệ thống bắt đầu vẽ từng hàng công việc lên bảng (hàm renderFilteredView), nó sẽ gọi hàm bindEditableAttrs() cho từng ô.
+
+Hàm này đẩy dữ liệu vào checkFieldPermission() để hỏi Ma Trận: "Task này trạng thái Đang làm, người làm là A, tài khoản đang đăng nhập là A, vai trò Freelancer. Có cho sửa ô Link Nộp không?".
+
+Nếu Ma trận đáp "CÓ": Cấp class .editable-dashed-cell. (Giao diện hiển thị viền đứt, bấm vào được).
+
+Nếu Ma trận đáp "KHÔNG": Ép thành HTML văn bản tĩnh (Read-only). Người dùng không thể bấm.
+
+GIAI ĐOẠN 4: Thao tác sửa dữ liệu và Trạm Gác 2 (Backend Gatekeeper)
+Tác nhân: Người dùng, Task_list.html (Frontend) & Code.gs (Backend).
+
+Hành động: Người dùng bấm vào một ô (được phép sửa) và gõ dữ liệu mới.
+
+Luồng xử lý:
+
+Sự kiện Click kích hoạt hàm activateUnifiedCellEditing() (hoặc handleManagerDblClick với Quản lý). Thẻ input/select hiện ra để người dùng chọn.
+
+Người dùng chọn xong/bấm ra ngoài, hàm saveChanges() chạy. Lệnh updateTaskCell(row, col, value, appUser) mang theo "thẻ căn cước" của người dùng bay qua mạng lên Google Server.
+
+Trạm Gác 2 (Bảo vệ Database) chặn lại: Tại file Code.gs, hàm updateTaskCell không vội lưu ngay. Nó đọc lại dòng dữ liệu thật đang nằm trên Sheet.
+
+Nó lật ROLE_MATRIX ra kiểm tra 3 chốt: Cột này có được phép sửa không? Task này đã đóng băng chưa? Task này có đúng là của người đang xin sửa không?
+
+Nếu Hacker dùng F12 gửi lệnh giả mạo, bước 4 này sẽ bắt thóp và trả về success: false. Frontend nhận được sẽ alert cảnh báo và khôi phục text cũ.
+
+GIAI ĐOẠN 5: Ghi nhận và Lưu Vết Lịch Sử (Audit Log)
+Tác nhân: File Code.gs & File AuditLog.gs (Backend).
+
+Hành động: Vượt qua Trạm Gác 2, dữ liệu được ghi và hệ thống bật camera lưu vết.
+
+Luồng xử lý:
+
+Nếu Trạm Gác 2 xác nhận hợp lệ, Backend dùng lệnh sheet.getRange().setValue() để ghi dữ liệu mới vào đúng ô trên bảng "Công việc".
+
+Ngay lập tức, hàm writeLog() được gọi. Nó mang theo Tên người sửa, Tên hành động, Đối tượng bị sửa, Giá trị cũ và Giá trị mới.
+
+Bên trong AuditLog.gs, hệ thống gộp các thông tin này thành một mảng dữ liệu và dùng lệnh setValues() ghi "bụp" một lần vào dòng trống tiếp theo của sheet "Lịch sử".
+
+Backend trả thông báo {success: true} về lại Frontend.
+
+Frontend nhận tin vui, xóa chữ "Đang lưu..." và cập nhật số liệu mới lên giao diện cho người dùng thấy. Quá trình kết thúc an toàn và hoàn hảo.

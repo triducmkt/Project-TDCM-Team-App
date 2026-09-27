@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HR Performance Dashboard</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --font: "Roboto", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+
+      /* Design tokens yêu cầu */
+      --bg:#F6F9FF;
+      --panel:#FFFFFF;
+      --panel2:#F1F6FF;
+
+      --ink:#0B1220;
+      --muted:#667085;
+
+      --primary:#2563EB;
+      --primary2:#1D4ED8;
+      --accent:#38BDF8;
+
+      --danger:#EF4444;
+      --warning:#F59E0B;
+      --success:#22C55E;
+
+      --border: rgba(15, 23, 42, 0.10);
+      --shadow: 0 10px 30px rgba(2, 6, 23, .10);
+      --shadow2: 0 6px 18px rgba(2, 6, 23, .08);
+
+      --radius:16px;
+      --radius2:22px;
+
+      --sidebarW: 260px;
+      --sidebarW2: 78px;
+
+      --hTop: 68px;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; margin:0; }
+    body{
+      font-family: var(--font);
+      background:
+        radial-gradient(1200px 800px at 10% 10%, rgba(56,189,248,.18), transparent 60%),
+        radial-gradient(1200px 800px at 90% 20%, rgba(37,99,235,.18), transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      overflow:hidden; /* chỉ scroll trong content */
+    }
+
+    .app{
+      height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebarW) 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      background: rgba(255,255,255,.8);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius2);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow2);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      min-width:0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 14px 12px;
+      border-bottom:1px solid var(--border);
+    }
+    .brandLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .logo{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      letter-spacing:.3px;
+      box-shadow:0 10px 20px rgba(37,99,235,.25);
+    }
+    .brandTitle{
+      line-height:1.1;
+      min-width:0;
+    }
+    .brandTitle .t1{
+      font-weight:900;
+      font-size:14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brandTitle .t2{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .iconBtn{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .iconBtn:hover{
+      transform:translateY(-1px);
+      box-shadow:var(--shadow2);
+    }
+    .msr{
+      font-family:"Material Symbols Rounded";
+      font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;
+      font-size:20px;
+      color:var(--ink);
+    }
+
+    .nav{
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      overflow:auto;
+    }
+    .navItem{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid transparent;
+      cursor:pointer;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .navItem:hover{
+      background:rgba(37,99,235,.06);
+      border-color:rgba(37,99,235,.12);
+    }
+    .navItem.active{
+      background:linear-gradient(180deg,rgba(37,99,235,.14),rgba(56,189,248,.10));
+      border-color:rgba(37,99,235,.2);
+    }
+    .navTxt{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .navTxt .label{
+      font-size:13px;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .navTxt .sub{
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .sidebarFooter{
+      padding:10px 12px 13px;
+      border-top:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.9);
+      font-size:12px;
+      color:var(--muted);
+      min-width:0;
+    }
+    .chip b{ color:var(--ink); }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:var(--success);
+      box-shadow:0 0 0 4px rgba(34,197,94,.18);
+    }
+
+    /* COLLAPSED SIDEBAR */
+    .app.collapsed{
+      grid-template-columns:var(--sidebarW2) 1fr;
+    }
+    .app.collapsed .brandTitle,
+    .app.collapsed .navTxt,
+    .app.collapsed .chip span{
+      display:none;
+    }
+    .app.collapsed .brand{
+      justify-content:center;
+    }
+    .app.collapsed .brandLeft{
+      justify-content:center;
+    }
+    .app.collapsed .chip{
+      justify-content:center;
+      width:100%;
+    }
+
+    /* MAIN LAYOUT */
+    .main{
+      height:calc(100vh - 32px);
+      display:grid;
+      grid-template-rows: var(--hTop) 1fr;
+      gap:16px;
+      min-width:0;
+    }
+
+    .topbar{
+      background:rgba(255,255,255,.8);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius2);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow2);
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      min-width:0;
+    }
+    .topLeft{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .pageTitle{
+      font-weight:900;
+      font-size:16px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .pageSub{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .topRight{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .search{
+      width:320px;
+      max-width:100%;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.92);
+      padding:8px 10px;
+      transition:.15s ease;
+    }
+    .search:focus-within{
+      border-color:rgba(37,99,235,.35);
+      box-shadow:0 0 0 6px rgba(37,99,235,.12);
+    }
+    .search input{
+      border:0;
+      outline:0;
+      background:transparent;
+      width:100%;
+      font-size:13px;
+      color:var(--ink);
+    }
+
+    .btn{
+      height:40px;
+      padding:0 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.95);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:var(--shadow2);
+    }
+    .btn.primary{
+      border-color:rgba(37,99,235,.25);
+      background:linear-gradient(135deg,rgba(37,99,235,.95),rgba(56,189,248,.9));
+      color:#fff;
+    }
+    .btn.primary .msr{
+      color:#fff;
+    }
+
+    /* CONTENT WRAPPER */
+    .content{
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius2);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow2);
+      display:grid;
+      grid-template-rows:auto 1fr;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
+    }
+
+    /* FILTER BAR */
+    .filters{
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:flex-end;
+      background:linear-gradient(180deg,rgba(241,246,255,.95),rgba(255,255,255,.8));
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:180px;
+    }
+    .field.small{ min-width:150px; }
+    .field label{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    select, input[type="date"], input[type="text"]{
+      height:38px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.95);
+      padding:0 10px;
+      font-size:13px;
+      outline:none;
+    }
+    select:focus, input[type="date"]:focus, input[type="text"]:focus{
+      border-color:rgba(37,99,235,.35);
+      box-shadow:0 0 0 6px rgba(37,99,235,.12);
+    }
+
+    /* TABS + SCROLL */
+    .tabBody{
+      padding:12px;
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+    .tab{
+      display:none;
+      min-height:0;
+    }
+    .tab.active{
+      display:block;
+    }
+    .grid{
+      display:grid;
+      gap:12px;
+      min-height:0;
+    }
+
+    /* KPI CARDS */
+    .cards{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+/* Màn hình rộng vẫn giữ 3 cột
+   => 6 KPI = 2 hàng, không còn dồn thành 1 hàng */
+@media (min-width:1280px){
+  .cards{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+    .card{
+      background:rgba(255,255,255,.9);
+      border-radius:var(--radius);
+      border:1px solid var(--border);
+      box-shadow:0 10px 30px rgba(2,6,23,.04);
+      padding:12px;
+      min-width:0;
+    }
+    .kpi{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .kpi .left{
+      min-width:0;
+    }
+    .kpiName{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .kpiVal{
+      font-size:22px;
+      font-weight:900;
+      margin-top:6px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(241,246,255,.9);
+      font-size:12px;
+      font-weight:800;
+      color:var(--primary2);
+      white-space:nowrap;
+    }
+    .badge.ok{
+      background:rgba(34,197,94,.12);
+      border-color:rgba(34,197,94,.2);
+      color:var(--success);
+    }
+    .badge.warn{
+      background:rgba(245,158,11,.12);
+      border-color:rgba(245,158,11,.2);
+      color:var(--warning);
+    }
+    .badge.danger{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.2);
+      color:var(--danger);
+    }
+
+    /* CHARTS */
+    .charts{
+      display:grid;
+      grid-template-columns:1.2fr 1.2fr 1.6fr;
+      gap:12px;
+      min-height:0;
+    }
+    @media (max-width:1220px){
+      .charts{
+        grid-template-columns:1fr;
+      }
+    }
+    .chartBox{
+      height:320px;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .chartTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:8px;
+    }
+    .chartTitle h3{
+      margin:0;
+      font-size:13px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .chartCanvas{
+      flex:1;
+      min-height:0;
+    }
+    .chartCanvas canvas{
+      width:100% !important;
+      height:100% !important;
+    }
+
+    /* TABLES */
+    .tableWrap{
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      height:100%;
+    }
+    .tableHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+      flex-wrap:wrap;
+    }
+    .tableHead h3{
+      margin:0;
+      font-size:13px;
+      font-weight:900;
+    }
+    .tableScroll{
+      flex:1;
+      min-height:0;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.08);
+      background:rgba(255,255,255,.88);
+      overflow:auto;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th, td{
+      padding:9px 10px;
+      border-bottom:1px solid rgba(15,23,42,.06);
+      text-align:left;
+      vertical-align:top;
+      white-space:nowrap;
+    }
+    th{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:900;
+      position:sticky;
+      top:0;
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(8px);
+      z-index:1;
+    }
+    td .sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:320px;
+    }
+    .rowClick{
+      cursor:pointer;
+    }
+    .rowClick:hover{
+      background:rgba(37,99,235,.05);
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.9);
+      font-size:11px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .pill.s1{
+      border-color:rgba(37,99,235,.2);
+      background:rgba(37,99,235,.06);
+      color:var(--primary2);
+    }
+    .pill.s2{
+      border-color:rgba(245,158,11,.25);
+      background:rgba(245,158,11,.08);
+      color:var(--warning);
+    }
+    .pill.s3{
+      border-color:rgba(239,68,68,.25);
+      background:rgba(239,68,68,.08);
+      color:var(--danger);
+    }
+    .pill.s4{
+      border-color:rgba(34,197,94,.25);
+      background:rgba(34,197,94,.08);
+      color:var(--success);
+    }
+
+    .progress{
+      width:140px;
+      max-width:100%;
+      height:8px;
+      border-radius:999px;
+      background:rgba(15,23,42,.06);
+      overflow:hidden;
+      border:1px solid rgba(15,23,42,.06);
+    }
+    .progress > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,rgba(37,99,235,.95),rgba(56,189,248,.95));
+      border-radius:999px;
+      transition:width .2s ease;
+    }
+
+    /* DRAWER */
+    .drawerMask{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.45);
+      display:none;
+      align-items:stretch;
+      justify-content:flex-end;
+      z-index:99;
+    }
+    .drawerMask.show{
+      display:flex;
+    }
+    .drawer{
+      width:430px;
+      max-width:100%;
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(12px);
+      border-left:1px solid rgba(255,255,255,.5);
+      box-shadow:-20px 0 60px rgba(2,6,23,.3);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-width:0;
+    }
+    .drawerTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .drawerTop h3{
+      margin:0;
+      font-size:14px;
+      font-weight:900;
+    }
+    .drawerBody{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.08);
+      background:rgba(255,255,255,.9);
+      padding:12px;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:8px 10px;
+    }
+    .k{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .v{
+      font-size:13px;
+      font-weight:600;
+      min-width:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .v.wrap{
+      white-space:pre-wrap;
+      overflow:visible;
+      text-overflow:initial;
+    }
+    .divider{
+      height:1px;
+      background:rgba(15,23,42,.1);
+      margin:10px 0;
+    }
+
+    /* LOADER */
+    .loaderMask{
+      position:fixed;
+      inset:0;
+      background:rgba(246,249,255,.75);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:120;
+      backdrop-filter:blur(10px);
+    }
+    .loader{
+      width:520px;
+      max-width:calc(100vw - 40px);
+      background:rgba(255,255,255,.95);
+      border-radius:22px;
+      border:1px solid rgba(15,23,42,.1);
+      box-shadow:var(--shadow);
+      padding:18px 18px 16px;
+    }
+    .loaderTop{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .spinner{
+      width:44px;
+      height:44px;
+      border-radius:18px;
+      background:linear-gradient(135deg,rgba(37,99,235,.98),rgba(56,189,248,.9));
+      display:grid;
+      place-items:center;
+      color:#fff;
+      box-shadow:0 12px 24px rgba(37,99,235,.25);
+      position:relative;
+      overflow:hidden;
+    }
+    .spinner::after{
+      content:"";
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      border:3px solid rgba(255,255,255,.8);
+      border-top-color:#fff;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+    .loaderTop .txt .t1{
+      font-weight:900;
+      font-size:14px;
+    }
+    .loaderTop .txt .t2{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(15,23,42,.08);
+      overflow:hidden;
+      margin-top:14px;
+      border:1px solid rgba(15,23,42,.08);
+    }
+    .bar > div{
+      height:100%;
+      width:30%;
+      background:linear-gradient(90deg,rgba(37,99,235,.95),rgba(56,189,248,.95));
+      border-radius:999px;
+      animation:loading 1.2s ease-in-out infinite;
+    }
+    @keyframes loading{
+      0%{ transform:translateX(-60%); width:30%; }
+      50%{ transform:translateX(70%); width:60%; }
+      100%{ transform:translateX(-60%); width:30%; }
+    }
+
+    /* TOAST */
+    .toast{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      background:rgba(255,255,255,.96);
+      border-radius:16px;
+      border:1px solid rgba(15,23,42,.12);
+      padding:10px 12px;
+      display:none;
+      align-items:flex-start;
+      gap:10px;
+      box-shadow:var(--shadow2);
+      max-width:420px;
+      z-index:130;
+    }
+    .toast.show{
+      display:flex;
+    }
+    .toast .title{
+      font-weight:900;
+      font-size:13px;
+    }
+    .toast .msg{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width:980px){
+      .app{
+        grid-template-columns:1fr;
+      }
+      .sidebar{
+        display:none;
+      }
+      .search{
+        width:220px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- LOADER -->
+  <div class="loaderMask" id="loaderMask">
+    <div class="loader">
+      <div class="loaderTop">
+        <div class="spinner"></div>
+        <div class="txt">
+          <div class="t1">Đang tải dữ liệu nhân sự…</div>
+          <div class="t2" id="loaderHint">Đọc Công việc &amp; Nhân sự để tính KPI, vi phạm deadline, điểm đánh giá.</div>
+        </div>
+      </div>
+      <div class="bar"><div></div></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="msr" id="toastIcon">info</span>
+    <div>
+      <div class="title" id="toastTitle">Thông báo</div>
+      <div class="msg" id="toastMsg"></div>
+    </div>
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawerMask" id="drawerMask" onclick="hideDrawer()">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <div class="drawerTop">
+        <h3 id="drawerTitle">Chi tiết</h3>
+        <button class="iconBtn" onclick="hideDrawer()" title="Đóng">
+          <span class="msr">close</span>
+        </button>
+      </div>
+      <div class="drawerBody" id="drawerBody"></div>
+      <div class="divider"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" id="btnSeeTasks" style="display:none;"><span class="msr">checklist</span> Xem công việc</button>
+      </div>
+      <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45;">
+        Gợi ý: sử dụng bộ lọc trên thanh Filter để đánh giá từng giai đoạn hoặc từng phòng ban.
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brandLeft">
+          <div class="logo">HR</div>
+          <div class="brandTitle">
+            <div class="t1" id="brandT1">HR Performance Dashboard</div>
+            <div class="t2" id="brandT2">Đánh giá &amp; kỷ luật nhân sự</div>
+          </div>
+        </div>
+        <button class="iconBtn" id="btnCollapse" title="Thu gọn / Mở rộng">
+          <span class="msr">menu_open</span>
+        </button>
+      </div>
+
+      <div class="nav">
+        <div class="navItem active" data-tab="overview">
+          <span class="msr">space_dashboard</span>
+          <div class="navTxt">
+            <div class="label">Tổng quan</div>
+            <div class="sub">KPI deadline &amp; điểm đánh giá</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="people">
+          <span class="msr">group</span>
+          <div class="navTxt">
+            <div class="label">Nhân sự</div>
+            <div class="sub">Bảng điểm chi tiết từng người</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="tasks">
+          <span class="msr">assignment</span>
+          <div class="navTxt">
+            <div class="label">Công việc</div>
+            <div class="sub">Danh sách việc + vi phạm deadline</div>
+          </div>
+        </div>
+
+        <div class="navItem" data-tab="compare">
+          <span class="msr">leaderboard</span>
+          <div class="navTxt">
+            <div class="label">So sánh nhân sự</div>
+            <div class="sub">Biểu đồ xếp hạng theo điểm</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebarFooter">
+        <div class="chip">
+          <span class="dot"></span>
+          <span>Ngày dữ liệu: <b id="chipInfo">—</b></span>
+        </div>
+        <button class="iconBtn" onclick="refreshAll()" title="Làm mới dữ liệu">
+          <span class="msr">refresh</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="topbar">
+        <div class="topLeft">
+          <div class="pageTitle" id="pageTitle">Tổng quan hiệu suất nhân sự</div>
+          <div class="pageSub" id="pageSub">Tỷ lệ hoàn thành đúng hạn, vi phạm deadline &amp; điểm đánh giá</div>
+        </div>
+
+        <div class="topRight">
+          <div class="search">
+            <span class="msr" style="color:var(--muted);">search</span>
+            <input id="q" type="text" placeholder="Tìm nhân sự / công việc / phòng ban..." />
+          </div>
+          <button class="btn" onclick="resetFilters()">
+            <span class="msr">filter_alt_off</span> Reset
+          </button>
+          <button class="btn primary" onclick="refreshAll()">
+            <span class="msr">sync</span> Tải lại
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <!-- FILTERS -->
+        <div class="filters">
+          <div class="field small">
+            <label>Từ ngày (Hạn chót)</label>
+            <input type="date" id="fFrom" />
+          </div>
+          <div class="field small">
+            <label>Đến ngày (Hạn chót)</label>
+            <input type="date" id="fTo" />
+          </div>
+          <div class="field">
+            <label>Nhân sự</label>
+            <select id="fPerson"></select>
+          </div>
+          <div class="field">
+            <label>Bộ phận</label>
+            <select id="fDept"></select>
+          </div>
+          <div class="field">
+            <label>Xếp hạng</label>
+            <select id="fRating"></select>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="tabBody">
+          <!-- OVERVIEW TAB -->
+          <div class="tab active" id="tab-overview">
+            <div class="grid" style="grid-template-rows:auto auto 1fr;">
+              <div class="cards" id="kpiCards"></div>
+
+              <div class="charts">
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Đúng hạn vs Trễ deadline</h3>
+                    <span class="badge" id="badgeOnTime">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartOnTime"></canvas></div>
+                </div>
+
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Điểm trung bình theo nhân sự (Top 8)</h3>
+                    <span class="badge" id="badgeScore">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartScore"></canvas></div>
+                </div>
+
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Vi phạm deadline theo phòng ban</h3>
+                    <span class="badge" id="badgeDeptLate">—</span>
+                  </div>
+                  <div class="chartCanvas"><canvas id="chartDept"></canvas></div>
+                </div>
+              </div>
+
+              <div class="grid" style="grid-template-columns:1.4fr 1fr; min-height:0;">
+                <div class="card tableWrap">
+                  <div class="tableHead">
+                    <h3>Nhân sự vi phạm deadline nhiều</h3>
+                    <span class="badge danger" id="badgeTopLate">—</span>
+                  </div>
+                  <div class="tableScroll">
+                    <table id="tblTopLate"></table>
+                  </div>
+                </div>
+
+                <div class="card tableWrap">
+                  <div class="tableHead">
+                    <h3>Nhân sự điểm cao</h3>
+                    <span class="badge ok" id="badgeTopScore">—</span>
+                  </div>
+                  <div class="tableScroll">
+                    <table id="tblTopScore"></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PEOPLE TAB -->
+          <div class="tab" id="tab-people">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:900; font-size:14px;">Bảng điểm nhân sự</div>
+                  <div style="font-size:12px; color:var(--muted);">
+                    Mỗi dòng là một nhân sự với điểm đánh giá, tỷ lệ đúng hạn, trung bình độ trễ, trọng số &amp; số lần bị trả về.
+                  </div>
+                </div>
+              </div>
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3>Danh sách nhân sự</h3>
+                  <span class="badge" id="peopleCount">—</span>
+                </div>
+                <div class="tableScroll">
+                  <table id="tblPeople"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TASKS TAB -->
+          <div class="tab" id="tab-tasks">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:900; font-size:14px;">Danh sách công việc</div>
+                  <div style="font-size:12px; color:var(--muted);">
+                    Thể hiện hạn chót, ngày hoàn thành thực tế, số ngày trễ, trọng số, độ khó và số lần bị trả về cho từng công việc.
+                  </div>
+                </div>
+                <div style="font-size:12px; color:var(--muted);">
+                  Tối đa 300 dòng đầu theo bộ lọc hiện tại.
+                </div>
+              </div>
+
+              <div class="card tableWrap" style="min-height:0;">
+                <div class="tableHead">
+                  <h3>Công việc theo nhân sự</h3>
+                  <span class="badge" id="taskCount">—</span>
+                </div>
+                <div class="tableScroll">
+                  <table id="tblTasks"></table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMPARE TAB -->
+          <div class="tab" id="tab-compare">
+            <div class="grid" style="grid-template-rows:auto 1fr; min-height:0;">
+              <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="font-weight:900; font-size:14px;">So sánh nhân sự theo điểm &amp; đúng hạn</div>
+                  <div style="font-size:12px; color:var(--muted);">
+                    Biểu đồ thanh thể hiện điểm đánh giá; click vào tên nhân sự trong bảng để xem chi tiết.
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid" style="grid-template-columns: 1.4fr 1fr; min-height:0;">
+                <div class="card chartBox">
+                  <div class="chartTitle">
+                    <h3>Xếp hạng điểm (Top 15)</h3>
+                    <span class="badge" id="badgeCompare">—</span>
+                  </div>
+                  <div class="chartCanvas">
+                    <canvas id="chartCompare"></canvas>
+                  </div>
+                </div>
+
+                <div class="card tableWrap">
+                  <div class="tableHead">
+                    <h3>Bảng xếp hạng nhanh</h3>
+                  </div>
+                  <div class="tableScroll">
+                    <table id="tblCompare"></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /tabBody -->
+      </section>
+    </main>
+  </div>
+
+<script>
+  /* ========================
+   * STATE
+   * ======================== */
+  let DATA = null;
+  let RAW_TASKS = [];
+  let RAW_PEOPLE = [];
+  let PEOPLE_STATS = [];
+  let ACTIVE_TAB = "overview";
+
+  const charts = {
+    onTime:null,
+    score:null,
+    dept:null,
+    compare:null
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function setLoading(on, hint){
+    $("loaderMask").style.display = on ? "flex" : "none";
+    if (hint) $("loaderHint").textContent = hint;
+  }
+
+  function showToast(title, msg, icon="info"){
+    $("toastTitle").textContent = title;
+    $("toastMsg").textContent = msg;
+    $("toastIcon").textContent = icon;
+    $("toast").classList.add("show");
+    setTimeout(()=> $("toast").classList.remove("show"), 2800);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.Chart && Chart.defaults) {
+      Chart.defaults.font.family = '"Roboto", system-ui, -apple-system, sans-serif';
+    }
+    bindUI();
+    loadData();
+  });
+
+  function bindUI(){
+    $("btnCollapse").addEventListener("click", () => {
+      $("app").classList.toggle("collapsed");
+    });
+
+    document.querySelectorAll(".navItem").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        document.querySelectorAll(".navItem").forEach(x=>x.classList.remove("active"));
+        el.classList.add("active");
+        setTab(el.dataset.tab);
+      });
+    });
+
+    $("q").addEventListener("input", debounce(()=>renderAll(), 220));
+
+    ["fFrom","fTo","fPerson","fDept","fRating"].forEach(id=>{
+      const el = $(id);
+      if (el) el.addEventListener("change", ()=> renderAll());
+    });
+
+    $("btnSeeTasks").addEventListener("click", ()=>{
+      if (!drawerContext || !drawerContext.personId) return;
+      $("fPerson").value = drawerContext.personId;
+      setTab("tasks");
+      renderAll();
+      hideDrawer();
+    });
+  }
+
+  /* ========================
+   * LOAD DATA (FIX LOADER)
+   * ======================== */
+  function loadData(){
+    if (!(google && google.script && google.script.run)) {
+      // chạy ngoài môi trường Apps Script (debug cục bộ)
+      setLoading(false);
+      showToast("Môi trường", "Không tìm thấy google.script.run. Vui lòng mở trong Google Sheets.", "error");
+      return;
+    }
+
+    setLoading(true, "Đang đọc dữ liệu từ Google Sheets…");
+
+    google.script.run
+      .withSuccessHandler(function(payload){
+        try{
+          const data = (payload && typeof payload === "object") ? payload : {};
+          DATA = data;
+          RAW_TASKS = Array.isArray(data.tasks) ? data.tasks : [];
+          RAW_PEOPLE = Array.isArray(data.people) ? data.people : [];
+
+          const meta = data.meta || {};
+          $("brandT1").textContent = meta.appTitle || "HR Performance Dashboard";
+          $("brandT2").textContent = meta.todayISO ? ("Today: " + meta.todayISO) : "Đánh giá & kỷ luật nhân sự";
+          $("chipInfo").textContent = meta.todayISO || "—";
+
+          hydrateFilters();
+          renderAll();
+          showToast("Sẵn sàng", "Dashboard nhân sự đã tải xong dữ liệu.", "check_circle");
+        }catch(err){
+          console.error(err);
+          showToast("Lỗi hiển thị dữ liệu", String(err), "error");
+        }finally{
+          setLoading(false);
+        }
+      })
+      .withFailureHandler(function(err){
+        console.error(err);
+        setLoading(false);
+        showToast("Lỗi tải dữ liệu", (err && err.message) ? err.message : String(err), "error");
+      })
+      .getInitData();   // dùng chung với dashboard chính
+  }
+
+  function refreshAll(){
+    if (!(google && google.script && google.script.run)) return;
+
+    setLoading(true, "Đang đồng bộ lại dữ liệu nhân sự…");
+
+    google.script.run
+      .withSuccessHandler(function(payload){
+        try{
+          const data = (payload && typeof payload === "object") ? payload : {};
+          DATA = data;
+          RAW_TASKS = Array.isArray(data.tasks) ? data.tasks : [];
+          RAW_PEOPLE = Array.isArray(data.people) ? data.people : [];
+
+          const meta = data.meta || {};
+          $("brandT1").textContent = meta.appTitle || "HR Performance Dashboard";
+          $("brandT2").textContent = meta.todayISO ? ("Today: " + meta.todayISO) : "Đánh giá & kỷ luật nhân sự";
+          $("chipInfo").textContent = meta.todayISO || "—";
+
+          hydrateFilters();
+          renderAll();
+          showToast("Đã đồng bộ", "Dữ liệu đã được làm mới.", "sync");
+        }catch(err){
+          console.error(err);
+          showToast("Lỗi hiển thị dữ liệu", String(err), "error");
+        }finally{
+          setLoading(false);
+        }
+      })
+      .withFailureHandler(function(err){
+        console.error(err);
+        setLoading(false);
+        showToast("Lỗi đồng bộ", (err && err.message) ? err.message : String(err), "error");
+      })
+      .getInitData();
+  }
+
+  /* ========================
+   * FILTERS
+   * ======================== */
+  function hydrateFilters(){
+    const people = RAW_PEOPLE || [];
+    fillSelect($("fPerson"), ["","Tất cả nhân sự"], people.map(p=>[p.id, p.name || p.id]));
+    fillSelect($("fDept"), ["","Tất cả bộ phận"], uniq(people.map(p=>p.department).filter(Boolean)).map(x=>[x,x]));
+    fillSelect($("fRating"), ["","Tất cả xếp hạng"], [
+      ["A+","A+"],["A","A"],["B","B"],["C","C"],["D","D"]
+    ]);
+  }
+
+  function fillSelect(sel, firstOpt, options){
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = "";
+    if (firstOpt){
+      const o = document.createElement("option");
+      o.value = firstOpt[0];
+      o.textContent = firstOpt[1];
+      sel.appendChild(o);
+    }
+    (options||[]).forEach(([v,t])=>{
+      const o = document.createElement("option");
+      o.value = v;
+      o.textContent = t;
+      sel.appendChild(o);
+    });
+    if ([...sel.options].some(o=>o.value === cur)) sel.value = cur;
+  }
+
+  function resetFilters(){
+    ["fFrom","fTo","fPerson","fDept","fRating"].forEach(id=>{
+      const el = $(id);
+      if (el) el.value = "";
+    });
+    $("q").value = "";
+    renderAll();
+  }
+
+  /* ========================
+   * TAB SWITCH
+   * ======================== */
+  function setTab(tab){
+    ACTIVE_TAB = tab;
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    const el = $("tab-" + tab);
+    if (el) el.classList.add("active");
+
+    const map = {
+      overview:["Tổng quan hiệu suất nhân sự","Tỷ lệ đúng hạn, trễ deadline & các KPI chính"],
+      people:["Bảng điểm nhân sự","Chi tiết từng nhân sự theo điểm, deadline và số lần trả về"],
+      tasks:["Danh sách công việc","Liệt kê công việc gắn với nhân sự để đánh giá kỷ luật"],
+      compare:["So sánh nhân sự","Biểu đồ xếp hạng điểm & tỷ lệ đúng hạn"]
+    };
+    $("pageTitle").textContent = (map[tab] || ["Dashboard"])[0];
+    $("pageSub").textContent   = (map[tab] || ["",""])[1] || "";
+
+    renderAll();
+  }
+
+  /* ========================
+   * MAIN RENDER
+   * ======================== */
+  function renderAll(){
+    if (!DATA) return;
+
+    const tasks = getFilteredTasks();
+    PEOPLE_STATS = buildPeopleStats(tasks);
+
+    if (ACTIVE_TAB === "overview") renderOverviewTab(tasks, PEOPLE_STATS);
+    if (ACTIVE_TAB === "people")   renderPeopleTab(PEOPLE_STATS);
+    if (ACTIVE_TAB === "tasks")    renderTasksTab(tasks);
+    if (ACTIVE_TAB === "compare")  renderCompareTab(PEOPLE_STATS);
+  }
+
+  const MS_DAY = 24*3600*1000;
+
+  function getFilteredTasks(){
+    const q = ($("q").value || "").trim().toLowerCase();
+    const fFrom = $("fFrom").value ? new Date($("fFrom").value).getTime() : null;
+    const fTo   = $("fTo").value ? new Date($("fTo").value).getTime() + MS_DAY - 1 : null;
+    const fPerson = $("fPerson").value || "";
+    const fDept   = $("fDept").value || "";
+
+    return (RAW_TASKS || []).map(t => enrichTask(t)).filter(t=>{
+      if (q){
+        const bag = [
+          t.id, t.name, t.desc,
+          t.assigneeId, t.assigneeName,
+          t.department, t.projectId, t.projectName
+        ].join(" ").toLowerCase();
+        if (!bag.includes(q)) return false;
+      }
+
+      const due = t.dueTime;
+      if (fFrom && (!due || due < fFrom)) return false;
+      if (fTo && (!due || due > fTo)) return false;
+      if (fPerson && t.assigneeId !== fPerson) return false;
+      if (fDept && (t.department || "") !== fDept) return false;
+
+      return true;
+    });
+  }
+
+  function enrichTask(t){
+    const copy = Object.assign({}, t);
+    let dueTime = null;
+    if (t.dueMs) dueTime = Number(t.dueMs);
+    else if (t.dueISO) {
+      const d = parseDateAny(t.dueISO);
+      if (d) dueTime = d.getTime();
+    }
+    copy.dueTime = dueTime;
+
+    let compTime = null;
+    if (t.completeMs) compTime = Number(t.completeMs);
+    else if (t.completeISO){
+      const d2 = parseDateAny(t.completeISO);
+      if (d2) compTime = d2.getTime();
+    }
+    copy.completeTime = compTime;
+
+    const doneLike = t.flags && t.flags.doneLike
+      ? true
+      : (String(t.status || "").toLowerCase().includes("hoàn thành") ||
+         String(t.status || "").toLowerCase().includes("hủy"));
+
+    copy.finished = !!(compTime || doneLike);
+
+    let delayDays = null;
+    if (compTime && dueTime){
+      delayDays = Math.round((compTime - dueTime)/MS_DAY);
+    }
+    copy.delayDays = delayDays;
+
+    copy.late = copy.finished && typeof delayDays === "number" && delayDays > 0;
+    copy.onTime = copy.finished && typeof delayDays === "number" && delayDays <= 0;
+
+    copy.weightNum = toNumber(t.weight);
+    copy.difficultyNum = toNumber(t.difficulty || (t.difficultyLabel || "").match(/\d+/)?.[0]);
+    copy.reviseNum = toNumber(t.reviseCount);
+
+    return copy;
+  }
+
+  /* ========================
+   * PEOPLE STATS
+   * ======================== */
+  let drawerContext = null;
+
+  function buildPeopleStats(tasks){
+    const peopleMap = {};
+    const peopleRaw = RAW_PEOPLE || [];
+
+    tasks.forEach(t=>{
+      const id = t.assigneeId || t.assigneeName || "";
+      if (!id) return;
+
+      if (!peopleMap[id]){
+        const p = peopleRaw.find(x=>x.id === id) || {};
+        peopleMap[id] = {
+          id,
+          name: p.name || t.assigneeName || id,
+          email: p.email || t.assigneeEmail || "",
+          department: p.department || t.department || "",
+          role: p.role || "",
+          total:0,
+          completed:0,
+          onTime:0,
+          late:0,
+          sumDelay:0,
+          countDelay:0,
+          sumWeight:0,
+          countWeight:0,
+          sumDiff:0,
+          countDiff:0,
+          returns:0
+        };
+      }
+      const ps = peopleMap[id];
+      ps.total += 1;
+      if (t.finished) ps.completed += 1;
+      if (t.onTime) ps.onTime += 1;
+      if (t.late){
+        ps.late += 1;
+        if (typeof t.delayDays === "number"){
+          ps.sumDelay += t.delayDays;
+          ps.countDelay += 1;
+        }
+      }
+      if (t.weightNum > 0){
+        ps.sumWeight += t.weightNum;
+        ps.countWeight += 1;
+      }
+      if (t.difficultyNum > 0){
+        ps.sumDiff += t.difficultyNum;
+        ps.countDiff += 1;
+      }
+      if (t.reviseNum > 0){
+        ps.returns += t.reviseNum;
+      }
+    });
+
+    const list = Object.values(peopleMap).map(p=>{
+      const completionRate = p.total ? (p.completed/p.total*100) : 0;
+      const onTimeRate = p.completed ? (p.onTime/p.completed*100) : 0;
+      const avgDelay = p.countDelay ? (p.sumDelay/p.countDelay) : 0;
+      const avgWeight = p.countWeight ? (p.sumWeight/p.countWeight) : 0;
+      const avgDiff = p.countDiff ? (p.sumDiff/p.countDiff) : 0;
+
+      let score = completionRate*0.4 + onTimeRate*0.6;
+      const penalty = Math.min(25, avgDelay*2 + p.returns*1.5);
+      score = Math.max(0, Math.min(100, score - penalty));
+
+      let rating = "C";
+      if (score >= 95) rating = "A+";
+      else if (score >= 85) rating = "A";
+      else if (score >= 75) rating = "B";
+      else if (score >= 60) rating = "C";
+      else rating = "D";
+
+      return {
+        ...p,
+        completionRate,
+        onTimeRate,
+        avgDelay,
+        avgWeight,
+        avgDifficulty: avgDiff,
+        score,
+        rating
+      };
+    });
+
+    const fRating = $("fRating") ? $("fRating").value : "";
+    const filtered = fRating ? list.filter(p=>p.rating === fRating) : list;
+
+    return filtered.sort((a,b)=> b.score - a.score);
+  }
+
+  /* ========================
+   * OVERVIEW TAB
+   * ======================== */
+  function renderOverviewTab(tasks, peopleStats){
+    const totalTasks = tasks.length;
+    const totalPeople = peopleStats.length;
+    const completed = tasks.filter(t=>t.finished).length;
+    const onTimeTasks = tasks.filter(t=>t.onTime).length;
+    const lateTasks = tasks.filter(t=>t.late).length;
+
+    const avgDelay = lateTasks
+      ? (tasks.filter(t=>t.late && typeof t.delayDays==="number").reduce((s,t)=>s+t.delayDays,0)/lateTasks)
+      : 0;
+    const avgScore = peopleStats.length
+      ? peopleStats.reduce((s,p)=>s + p.score,0)/peopleStats.length
+      : 0;
+
+    const avgOnTimeRate = peopleStats.length
+      ? peopleStats.reduce((s,p)=>s + p.onTimeRate,0)/peopleStats.length
+      : 0;
+
+    const topLatePerson = [...peopleStats].sort((a,b)=>b.late-a.late)[0];
+
+    const kpis = [
+      {name:"Tổng nhân sự", val:totalPeople, badge:`${formatNum(totalTasks)} công việc`, cls:""},
+      {name:"Công việc đã hoàn thành", val:completed, badge:`${pct(completed,totalTasks)}% tổng số việc`, cls:"ok"},
+      {name:"Đúng hạn", val:onTimeTasks, badge:`${pct(onTimeTasks,completed)}% trong số việc đã hoàn thành`, cls:"ok"},
+      {name:"Trễ deadline", val:lateTasks, badge:`Trễ TB ${avgDelay.toFixed(1)} ngày`, cls:lateTasks ? "danger":"ok"},
+      {name:"Điểm trung bình", val:avgScore.toFixed(1), badge:`Tỉ lệ đúng hạn TB ${avgOnTimeRate.toFixed(1)}%`, cls:""},
+      {name:"Nhân sự trễ nhiều", val: topLatePerson ? topLatePerson.late : 0, badge: topLatePerson ? topLatePerson.name : "—", cls: topLatePerson && topLatePerson.late ? "warn" : "" }
+    ];
+
+    $("kpiCards").innerHTML = kpis.map(x=>`
+      <div class="card">
+        <div class="kpi">
+          <div class="left">
+            <div class="kpiName">${escapeHtml(x.name)}</div>
+            <div class="kpiVal">${formatNum(x.val)}</div>
+          </div>
+          <div class="badge ${x.cls || ""}">${escapeHtml(x.badge)}</div>
+        </div>
+      </div>
+    `).join("");
+
+    $("badgeOnTime").textContent = `${onTimeTasks} đúng hạn • ${lateTasks} trễ`;
+    $("badgeScore").textContent = `${peopleStats.length} nhân sự`;
+    $("badgeDeptLate").textContent = `${lateTasks} việc trễ`;
+    $("badgeTopLate").textContent = `${Math.min(15, peopleStats.length)} dòng`;
+    $("badgeTopScore").textContent = `${Math.min(15, peopleStats.length)} dòng`;
+
+    renderOnTimeChart(tasks);
+    renderScoreChart(peopleStats);
+    renderDeptChart(tasks);
+
+    // bảng top vi phạm deadline
+    const topLate = [...peopleStats].sort((a,b)=>b.late-a.late).slice(0,15);
+    $("tblTopLate").innerHTML = `
+      <thead>
+        <tr>
+          <th>Nhân sự</th>
+          <th>Phòng ban</th>
+          <th>Việc trễ</th>
+          <th>Trễ TB (ngày)</th>
+          <th>Điểm</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          topLate.map(p=>`
+            <tr class="rowClick" onclick="openPerson('${escapeAttr(p.id)}')">
+              <td>
+                <div style="font-weight:900;">${escapeHtml(p.name)}</div>
+                <div class="sub">${escapeHtml(p.id)}</div>
+              </td>
+              <td>${escapeHtml(p.department || "—")}</td>
+              <td>${p.late ? `<span class="badge danger">${formatNum(p.late)}</span>` : "0"}</td>
+              <td>${p.late ? p.avgDelay.toFixed(1) : "0.0"}</td>
+              <td>${p.score.toFixed(1)}</td>
+            </tr>
+          `).join("")
+        }
+      </tbody>
+    `;
+
+    // bảng top điểm cao
+    const topScore = [...peopleStats].sort((a,b)=>b.score-a.score).slice(0,15);
+    $("tblTopScore").innerHTML = `
+      <thead>
+        <tr>
+          <th>Nhân sự</th>
+          <th>Phòng ban</th>
+          <th>Điểm</th>
+          <th>Xếp hạng</th>
+          <th>Đúng hạn</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          topScore.map(p=>`
+            <tr class="rowClick" onclick="openPerson('${escapeAttr(p.id)}')">
+              <td>
+                <div style="font-weight:900;">${escapeHtml(p.name)}</div>
+                <div class="sub">${escapeHtml(p.id)}</div>
+              </td>
+              <td>${escapeHtml(p.department || "—")}</td>
+              <td>${p.score.toFixed(1)}</td>
+              <td><span class="badge ok">${escapeHtml(p.rating)}</span></td>
+              <td>${p.onTimeRate.toFixed(1)}%</td>
+            </tr>
+          `).join("")
+        }
+      </tbody>
+    `;
+  }
+
+  function renderOnTimeChart(tasks){
+    const completed = tasks.filter(t=>t.finished);
+    const onTime = completed.filter(t=>t.onTime).length;
+    const late = completed.filter(t=>t.late).length;
+
+    const ctx = $("chartOnTime");
+    if (!ctx) return;
+    if (charts.onTime) charts.onTime.destroy();
+
+    charts.onTime = new Chart(ctx, {
+      type:"doughnut",
+      data:{
+        labels:["Đúng hạn","Trễ deadline"],
+        datasets:[{
+          data:[onTime, late],
+          backgroundColor:["#22C55E","#EF4444"]
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:"bottom", labels:{ boxWidth:10, boxHeight:10, usePointStyle:true } },
+          tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${ctx.raw}` } }
+        },
+        cutout:"65%"
+      }
+    });
+  }
+
+  function renderScoreChart(peopleStats){
+    const top = [...peopleStats].sort((a,b)=>b.score-a.score).slice(0,8);
+    const labels = top.map(p=>p.name);
+    const scores = top.map(p=>Number(p.score.toFixed(1)));
+
+    const ctx = $("chartScore");
+    if (!ctx) return;
+    if (charts.score) charts.score.destroy();
+
+    charts.score = new Chart(ctx, {
+      type:"bar",
+      data:{
+        labels,
+        datasets:[{
+          label:"Điểm",
+          data:scores
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          y:{ beginAtZero:true, max:100, ticks:{ stepSize:20 } }
+        },
+        plugins:{
+          legend:{ display:false }
+        }
+      }
+    });
+  }
+
+  function renderDeptChart(tasks){
+    const map = {};
+    tasks.forEach(t=>{
+      const dept = t.department || "Khác";
+      if (!map[dept]) map[dept] = {total:0, late:0};
+      map[dept].total += 1;
+      if (t.late) map[dept].late += 1;
+    });
+
+    const labels = Object.keys(map);
+    const late = labels.map(d=>map[d].late);
+    const onTime = labels.map(d=>map[d].total - map[d].late);
+
+    const ctx = $("chartDept");
+    if (!ctx) return;
+    if (charts.dept) charts.dept.destroy();
+
+    charts.dept = new Chart(ctx,{
+      type:"bar",
+      data:{
+        labels,
+        datasets:[
+          { label:"Đúng hạn", data:onTime },
+          { label:"Trễ deadline", data:late }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ stacked:true },
+          y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } }
+        }
+      }
+    });
+  }
+
+  /* ========================
+   * PEOPLE TAB
+   * ======================== */
+  function renderPeopleTab(peopleStats){
+    $("peopleCount").textContent = `${peopleStats.length} nhân sự`;
+
+    $("tblPeople").innerHTML = `
+      <thead>
+        <tr>
+          <th style="min-width:220px;">Nhân sự</th>
+          <th>Bộ phận</th>
+          <th>Vai trò</th>
+          <th>Tổng việc</th>
+          <th>Hoàn thành</th>
+          <th>Đúng hạn</th>
+          <th>Trễ deadline</th>
+          <th>Trễ TB (ngày)</th>
+          <th>Trọng số TB</th>
+          <th>Độ khó TB</th>
+          <th>Số lần trả về</th>
+          <th>Điểm</th>
+          <th>Xếp hạng</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          peopleStats.map(p=>`
+            <tr class="rowClick" onclick="openPerson('${escapeAttr(p.id)}')">
+              <td>
+                <div style="font-weight:900;">${escapeHtml(p.name)}</div>
+                <div class="sub">${escapeHtml(p.email || p.id)}</div>
+              </td>
+              <td>${escapeHtml(p.department || "—")}</td>
+              <td>${escapeHtml(p.role || "—")}</td>
+              <td>${formatNum(p.total)}</td>
+              <td>${formatNum(p.completed)}</td>
+              <td>${formatNum(p.onTime)} (${p.onTimeRate.toFixed(1)}%)</td>
+              <td>${p.late ? `<span class="badge danger">${formatNum(p.late)}</span>` : "0"}</td>
+              <td>${p.late ? p.avgDelay.toFixed(1) : "0.0"}</td>
+              <td>${p.avgWeight.toFixed(1)}</td>
+              <td>${p.avgDifficulty.toFixed(1)}</td>
+              <td>${p.returns ? formatNum(p.returns) : "0"}</td>
+              <td>${p.score.toFixed(1)}</td>
+              <td><span class="badge ${p.rating.startsWith("A") ? "ok" : (p.rating==="D"?"danger":"warn")}">${escapeHtml(p.rating)}</span></td>
+            </tr>
+          `).join("")
+        }
+      </tbody>
+    `;
+  }
+
+  function openPerson(personId){
+    const p = PEOPLE_STATS.find(x=>x.id === personId);
+    if (!p) return;
+
+    drawerContext = { type:"person", personId:personId };
+
+    $("drawerTitle").textContent = `Nhân sự: ${p.name}`;
+    $("btnSeeTasks").style.display = "inline-flex";
+
+    $("drawerBody").innerHTML = `
+      <div class="kv">
+        <div class="k">Mã / Email</div><div class="v">${escapeHtml(p.id)}${p.email ? " • " + escapeHtml(p.email) : ""}</div>
+        <div class="k">Bộ phận</div><div class="v">${escapeHtml(p.department || "—")}</div>
+        <div class="k">Vai trò</div><div class="v">${escapeHtml(p.role || "—")}</div>
+        <div class="k">Tổng việc</div><div class="v">${formatNum(p.total)}</div>
+        <div class="k">Hoàn thành</div><div class="v">${formatNum(p.completed)} (${p.completionRate.toFixed(1)}%)</div>
+        <div class="k">Đúng hạn</div><div class="v">${formatNum(p.onTime)} (${p.onTimeRate.toFixed(1)}%)</div>
+        <div class="k">Trễ deadline</div><div class="v">${p.late ? `<span class="badge danger">${p.late}</span>` : "0"}</div>
+        <div class="k">Trễ TB</div><div class="v">${p.late ? p.avgDelay.toFixed(2) + " ngày" : "0 ngày"}</div>
+        <div class="k">Trọng số TB</div><div class="v">${p.avgWeight.toFixed(2)}</div>
+        <div class="k">Độ khó TB</div><div class="v">${p.avgDifficulty.toFixed(2)}</div>
+        <div class="k">Số lần trả về</div><div class="v">${p.returns ? formatNum(p.returns) : "0"}</div>
+        <div class="k">Điểm</div><div class="v">${p.score.toFixed(1)} / 100</div>
+        <div class="k">Xếp hạng</div><div class="v">${escapeHtml(p.rating)}</div>
+      </div>
+    `;
+    showDrawer();
+  }
+
+  /* ========================
+   * TASKS TAB
+   * ======================== */
+  function renderTasksTab(tasks){
+    $("taskCount").textContent = `${tasks.length} công việc (hiển thị tối đa 300)`;
+
+    const slice = tasks.slice(0,300);
+
+    $("tblTasks").innerHTML = `
+      <thead>
+        <tr>
+          <th style="min-width:260px;">Công việc</th>
+          <th>Nhân sự</th>
+          <th>Bộ phận</th>
+          <th>Dự án</th>
+          <th>Hạn chót</th>
+          <th>Hoàn thành</th>
+          <th>Trễ (ngày)</th>
+          <th>Trọng số</th>
+          <th>Độ khó</th>
+          <th>Số lần trả về</th>
+          <th>% Hoàn chỉnh</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          slice.map(t=>`
+            <tr class="rowClick" onclick="openTask('${escapeAttr(t.id)}')">
+              <td>
+                <div style="font-weight:900;">${escapeHtml(t.name || t.id)}</div>
+                <div class="sub">${escapeHtml(t.desc || "")}</div>
+              </td>
+              <td>${escapeHtml(t.assigneeName || t.assigneeId || "—")}</td>
+              <td>${escapeHtml(t.department || "—")}</td>
+              <td>${escapeHtml(t.projectName || t.projectId || "—")}</td>
+              <td>${escapeHtml(t.dueISO || "—")}</td>
+              <td>${escapeHtml(t.completeISO || "—")}</td>
+              <td>${
+                t.finished
+                  ? (t.delayDays === null ? "—"
+                    : (t.delayDays <= 0 ? `<span class="badge ok">Đúng hạn</span>`
+                      : `<span class="badge danger">Trễ ${t.delayDays} ngày</span>`))
+                  : "Chưa hoàn thành"
+              }</td>
+              <td>${t.weightNum ? t.weightNum : "—"}</td>
+              <td>${t.difficultyNum ? t.difficultyNum : "—"}</td>
+              <td>${t.reviseNum ? t.reviseNum : "0"}</td>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="progress"><div style="width:${Math.min(100,Math.max(0, Math.round(t.progressPct || 0)))}%;"></div></div>
+                  <span>${Math.round(t.progressPct || 0)}%</span>
+                </div>
+              </td>
+            </tr>
+          `).join("")
+        }
+      </tbody>
+    `;
+  }
+
+  function openTask(taskId){
+    const list = getFilteredTasks();
+    const t = list.find(x=>x.id === taskId);
+    if (!t) return;
+
+    drawerContext = { type:"task", personId: t.assigneeId || "" };
+    $("btnSeeTasks").style.display = drawerContext.personId ? "inline-flex" : "none";
+    $("drawerTitle").textContent = `Công việc: ${t.name || t.id}`;
+
+    $("drawerBody").innerHTML = `
+      <div class="kv">
+        <div class="k">Mã công việc</div><div class="v">${escapeHtml(t.id)}</div>
+        <div class="k">Tên công việc</div><div class="v wrap">${escapeHtml(t.name || "—")}</div>
+        <div class="k">Nhân sự</div><div class="v">${escapeHtml(t.assigneeName || t.assigneeId || "—")}</div>
+        <div class="k">Bộ phận</div><div class="v">${escapeHtml(t.department || "—")}</div>
+        <div class="k">Dự án</div><div class="v">${escapeHtml(t.projectName || t.projectId || "—")}</div>
+        <div class="k">Hạn chót</div><div class="v">${escapeHtml(t.dueISO || "—")}</div>
+        <div class="k">Ngày hoàn thành</div><div class="v">${escapeHtml(t.completeISO || "—")}</div>
+        <div class="k">Trễ deadline</div>
+        <div class="v">${
+          t.finished
+            ? (t.delayDays === null ? "—"
+              : (t.delayDays <= 0 ? "Đúng hạn" : `Trễ ${t.delayDays} ngày`))
+            : "Chưa hoàn thành"
+        }</div>
+        <div class="k">Trọng số</div><div class="v">${t.weightNum || "—"}</div>
+        <div class="k">Độ khó</div><div class="v">${t.difficultyNum || "—"}</div>
+        <div class="k">Số lần trả về</div><div class="v">${t.reviseNum || 0}</div>
+        <div class="k">Trạng thái</div><div class="v">${escapeHtml(t.status || "—")}</div>
+        <div class="k">% hoàn chỉnh</div><div class="v">${Math.round(t.progressPct || 0)}%</div>
+        <div class="k">Mô tả</div><div class="v wrap">${escapeHtml(t.desc || "—")}</div>
+      </div>
+    `;
+    showDrawer();
+  }
+
+  /* ========================
+   * COMPARE TAB
+   * ======================== */
+  function renderCompareTab(peopleStats){
+    const top = [...peopleStats].sort((a,b)=>b.score-a.score).slice(0,15);
+
+    $("badgeCompare").textContent = `${top.length} nhân sự`;
+
+    const labels = top.map(p=>p.name);
+    const scores = top.map(p=>Number(p.score.toFixed(1)));
+    const onTimeRates = top.map(p=>Number(p.onTimeRate.toFixed(1)));
+
+    const ctx = $("chartCompare");
+    if (!ctx) return;
+    if (charts.compare) charts.compare.destroy();
+
+    charts.compare = new Chart(ctx,{
+      type:"bar",
+      data:{
+        labels,
+        datasets:[
+          { label:"Điểm", data:scores },
+          { label:"Đúng hạn %", data:onTimeRates }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        indexAxis:"y",
+        scales:{
+          x:{ beginAtZero:true, max:100 }
+        }
+      }
+    });
+
+    $("tblCompare").innerHTML = `
+      <thead>
+        <tr>
+          <th>Thứ hạng</th>
+          <th>Nhân sự</th>
+          <th>Điểm</th>
+          <th>Xếp hạng</th>
+          <th>Đúng hạn</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          top.map((p,idx)=>`
+            <tr class="rowClick" onclick="openPerson('${escapeAttr(p.id)}')">
+              <td>#${idx+1}</td>
+              <td>
+                <div style="font-weight:900;">${escapeHtml(p.name)}</div>
+                <div class="sub">${escapeHtml(p.department || "—")}</div>
+              </td>
+              <td>${p.score.toFixed(1)}</td>
+              <td>${escapeHtml(p.rating)}</td>
+              <td>${p.onTimeRate.toFixed(1)}%</td>
+            </tr>
+          `).join("")
+        }
+      </tbody>
+    `;
+  }
+
+  /* ========================
+   * DRAWER CONTROL
+   * ======================== */
+  function showDrawer(){
+    $("drawerMask").classList.add("show");
+  }
+  function hideDrawer(){
+    $("drawerMask").classList.remove("show");
+  }
+
+  /* ========================
+   * HELPERS
+   * ======================== */
+  function parseDateAny(input){
+    const s = String(input || "").trim();
+    if (!s) return null;
+
+    if (/\d{4}-\d{2}-\d{2}T/.test(s)){
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (m){
+      const dd = Number(m[1]);
+      const mm = Number(m[2]) - 1;
+      const yy = Number(m[3]);
+      const hh = Number(m[4] || 0);
+      const mi = Number(m[5] || 0);
+      const ss = Number(m[6] || 0);
+      const d = new Date(yy, mm, dd, hh, mi, ss);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  }
+
+  function formatNum(n){
+    const num = Number(n || 0);
+    if (!isFinite(num)) return "0";
+    return num.toLocaleString("vi-VN");
+  }
+  function pct(a,b){
+    if (!b) return 0;
+    return Math.round(a/b*100);
+  }
+  function uniq(arr){
+    return [...new Set(arr)];
+  }
+  function debounce(fn, ms){
+    let t;
+    return (...args)=>{
+      clearTimeout(t);
+      t = setTimeout(()=>fn(...args), ms);
+    };
+  }
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+  function escapeAttr(str){
+    return escapeHtml(str).replace(/"/g,"&quot;");
+  }
+  function toNumber(v){
+    if (v === null || typeof v === "undefined") return 0;
+    const s = String(v).replace(",",".");
+    const n = Number(s);
+    return isNaN(n) ? 0 : n;
+  }
+</script>
+</body>
+</html>

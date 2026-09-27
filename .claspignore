@@ -1,0 +1,13 @@
+**/**
+!*.gs
+!*.html
+!appsscript.json
+!*.json
+.clasp.json
+.claspignore
+.gitignore
+node_modules/
+*.md
+*.rar
+*.zip
+.git/

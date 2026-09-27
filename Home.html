@@ -1,0 +1,638 @@
+<!-- =========================================================================
+       [VÙNG 1: GIAO DIỆN MOBILE NATIVE - FULL SCREEN - KHÔNG GIẢ LẬP]
+       ========================================================================= -->
+    <div class="mobile-view-section">
+       
+        <!-- Header di động -->
+        <header class="top-header-mobile">
+            <div class="mb-avatar-left" onclick="toggleLoginAction()" style="cursor: pointer; position: relative; z-index: 9999;">👤</div>
+            
+            <div class="mb-brand-center">
+                <img src="https://lh3.googleusercontent.com/d/1kav3NxxTY1OcqolSur1T7X6Jco5SZ_Vu" alt="Trí Đức Car Media" class="app-logo-img">                            
+            </div>            
+            <div class="mb-bell-right" onclick="openGlobalChatModal()" style="cursor: pointer;">🔔</div>
+        </header>
+ 
+        <!-- Thân trang di động -->
+        <main class="mb-body">
+            <div id="mobileWelcomeBox" class="mb-intro"></div>
+ 
+            <!-- Khối Xếp Hình Interlocking Mobile -->
+            <div class="mb-workspace">
+                
+                <div style="position: absolute; top: 45px; left: 45px; right: 35px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 10;">
+                    
+                    <a class="mb-btn-task" onclick="loadMenuPage('Task_list', this)" style="position: relative; top: auto; left: auto; width: 100%; margin: 0;">
+                        <span class="mb-task-icon">⚡</span>
+                        <div class="mb-task-text-group">
+                            <span class="mb-task-eyebrow">Production Hub</span>
+                            <h3 class="mb-task-title">BẢNG TASK<br>CONTENT</h3>
+                        </div>
+                    </a>
+
+                    <!-- 2. Nút Upload Media Mobile -->
+                    <a id="btnMediaMobile" onclick="loadMenuPage('Media_Uploader', this)" style="display: none; background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); color: #fff; padding: 8px 0px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.4); font-family: 'Montserrat', sans-serif; font-size: 11.5px; font-weight: 800; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 8px 20px rgba(66, 133, 244, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.2); text-decoration: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); text-transform: uppercase; letter-spacing: 0.5px; width: 145px; box-sizing: border-box;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        UPLOAD MEDIA
+                    </a>
+
+                    <!-- 3. Nút Mở Kho Media Gốc Mobile -->
+                    <a id="btnHubMobile" onclick="openMediaHubModal()" style="display: flex; background: #EEF2FF; color: #1E40AF; border: 1px dashed #93C5FD; padding: 8px 0px; border-radius: 10px; font-family: 'Montserrat', sans-serif; font-size: 9.8px; font-weight: 800; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); text-decoration: none; cursor: pointer; transition: 0.3s; text-transform: uppercase; width: 145px; box-sizing: border-box;">
+                        🗂️ KHO TƯ LIỆU CONTENT
+                    </a>
+                    
+                </div>
+                
+                <a class="mb-puzzle-small mb-btn-tq" onclick="openDashboardModal()" style="cursor: pointer;">
+                    <span class="icon">📊</span>
+                    <span class="title">Tổng quan<br>Hiệu suất Team</span>
+                </a>
+                
+                <a class="mb-puzzle-small mb-btn-tn" onclick="openIncomeModal()">
+                    <span class="icon">💵</span>
+                    <span class="title">Thu nhập<br>Freelancers</span>
+                </a>                
+                
+            </div>
+ 
+            <!-- Bảng Tôn Vinh Mobile -->
+            <section class="mb-honoring">
+                <div class="mb-honoring-header">
+                    <h2 class="mb-honoring-title">🏆 Top Freelancer Tháng <span id="currentMonthTop">5/2026</span></h2>
+                    <span style="font-size: 11px; color: var(--color-blue); font-weight: 800; background: rgba(66,133,244,0.1); padding: 4px 10px; border-radius: 100px;">Real-time</span>
+                </div>
+                <div id="topFreelancerHomeBox" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="text-align:center; padding:20px; color:#999; font-size:13px;">
+                        Đang tải dữ liệu xếp hạng...
+                    </div>
+                </div>
+            </section>
+        </main> 
+        
+    </div>
+  
+
+    <!-- =========================================================================
+       [VÙNG 2: GIAO DIỆN PC / LAPTOP / TABLET NGANG - LAYOUT RỘNG]
+       ========================================================================= -->
+    <div class="desktop-view-section">
+       
+        <!-- Sidebar Menu Trái Cố Định -->
+        <aside class="dt-sidebar">
+            <div style="display: flex; flex-direction: column; min-height: calc(100vh - 50px); justify-content: space-between;">
+                <div>
+                    <div class="dt-logo-block">
+                        <img src="https://lh3.googleusercontent.com/d/1kav3NxxTY1OcqolSur1T7X6Jco5SZ_Vu" alt="Trí Đức Car Media" class="app-logo-img-laptop">                
+                    </div>
+                    <div id="sidebarAuthContainer" style="margin-top: -50px; position: relative; z-index: 10;"></div>
+                </div>      
+                
+                <div id="sidebarAppVersion" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12px; color: #12151C; text-align: center; opacity: 0.5; letter-spacing: 0.5px; margin-top: 40px; padding-top: 15px; border-top: 1px dashed rgba(0,0,0,0.05); width: 100%;">
+                    </div>
+            </div>      
+        </aside>
+ 
+        <!-- Khung Nội Dung Trung Tâm Máy Tính -->
+        <main class="dt-main-content">
+           
+            <!-- Top Header Navbar Laptop -->
+            <div class="dt-top-navbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; width: 100%;">
+                <div id="laptopWelcomeBox" class="dt-page-headline"></div>
+                <div class="dt-actions-group">                    
+                    <div class="dt-icon-btn" onclick="openGlobalChatModal()" style="cursor: pointer;">🔔</div>
+                </div>
+            </div>
+ 
+            <div class="dt-grid-layout">
+               
+                <section class="dt-panel-workspace">
+                    
+                    <div class="dt-workspace-cards-container">
+                        <a class="dt-card-large" onclick="loadMenuPage('Task_list', this)" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="flex: 1; padding-right: 24px; text-align: left;">
+                                <span style="display: block; font-family: 'Montserrat', sans-serif; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.85); font-weight: 800; margin-bottom: 10px;">🚀 Production Hub</span>
+                                
+                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 38px; font-weight: 900; color: #FFFFFF; margin: 0; line-height: 1.25; letter-spacing: -1px; text-shadow: 2px 4px 12px rgba(0,0,0,0.2);">
+                                    BẢNG TASK CONTENT<br>DỰ ÁN
+                                </h3>
+                                
+                                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: rgba(255,255,255,0.9); margin-top: 16px; font-weight: 500; line-height: 1.6; max-width: 95%;">Truy cập danh sách task & theo dõi tiến độ thực hiện các task content dành cho FREELANCERS của team TRÍ ĐỨC CAR MEDIA tại đây.</p>
+                            </div>
+                            
+                            <span class="icon" style="font-size: 76px; flex-shrink: 0; filter: drop-shadow(0 12px 20px rgba(0,0,0,0.25)); line-height: 1;">⚡</span>
+                        </a>
+                       
+                        <div class="dt-cards-subrow">
+                            <a class="dt-card-small" onclick="openDashboardModal()" style="cursor: pointer;">
+                                <span class="icon">📊</span>
+                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 800; color: #12151C; margin: 0 0 10px 0; letter-spacing: -0.3px;">Tổng quan Hiệu suất Team</h4>
+                                <p style="font-family: 'Inter', sans-serif; font-size: 14.5px; color: #4A5568; font-weight: 500; line-height: 1.55; margin: 0;">Đánh giá hiệu suất team thông qua biểu đồ dữ liệu real-time.</p>
+                            </a>
+
+                            <a class="dt-card-small" onclick="openIncomeModal()" style="cursor: pointer;">
+                                <span class="icon">💵</span>
+                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 800; color: #12151C; margin: 0 0 5px 0; letter-spacing: -0.3px;">Thu nhập Freelancers</h4>
+                                <p style="font-family: 'Inter', sans-serif; font-size: 14.5px; color: #4A5568; font-weight: 500; line-height: 1.55; margin: 0;">Theo dõi báo cáo thu nhập freelancer.</p>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+ 
+                <!-- Cột Phải: Bảng Vinh Danh Thành Viên Nổi Bật -->
+                <section class="dt-panel-honoring">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 class="dt-panel-title" style="font-size: 20px;">🏆 Top Freelancer <span id="homeTopMonthTitle">Tháng ...</span></h3>
+                        <span style="font-size: 12px; background: rgba(66,133,244,0.1); color: var(--color-blue); padding: 6px 14px; border-radius: 100px; font-weight: 800;">Bảng vàng</span>
+                    </div>
+                    
+                    <div id="topFreelancerHomeBox" style="width: 100%; overflow-x: auto;">
+                        <div style="text-align:center; padding:30px; color:#999; font-size:13px;">Đang tính toán dữ liệu...</div>
+                    </div>
+
+                    <!-- 🚀 NÚT KHO MEDIA (LAPTOP) -->
+                    <button id="btnMediaLaptop" onclick="loadMenuPage('Media_Uploader', this)" style="display: none; width: 100%; margin-top: 24px; padding: 18px; border-radius: 20px; background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); color: #FFF; border: none; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 15px 30px rgba(66, 133, 244, 0.25); transition: 0.3s; align-items: center; justify-content: center; gap: 10px;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <span style="font-size: 20px;">☁️</span> UPLOAD MEDIA TƯ LIỆU TEAM
+                    </button>
+
+                    <!-- 3. Nút Mở Kho Media Giao diện Laptop (Đã nâng cấp UI Premium độc nhất ID) -->
+                    <a id="btnHubLaptop" onclick="openMediaHubModal()" style="display: flex; background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); color: #fff; padding: 14px 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.3); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 12px 25px rgba(66, 133, 244, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2); text-decoration: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); text-transform: uppercase; letter-spacing: 0.5px; width: 100%; box-sizing: border-box; margin-top: 12px;">
+                        <span style="font-size: 16px; flex-shrink: 0;">🗂️</span> MỞ KHO TƯ LIỆU CONTENT
+                    </a>
+                </section>
+ 
+            </div>
+        </main>
+    </div>
+    
+<script>
+    // 🚀 CẤU HÌNH PHIÊN BẢN APP (Thay đổi xyz và ddmmyy tại đây mỗi khi deploy)
+    window.APP_VERSION = "v.301.180726";
+
+    function initHome() {
+        // 1. Vẽ giao diện Login/Avatar bên Sidebar 
+        renderSidebarAuth(); 
+        
+        // 🚀 2. BỔ SUNG: Ép hệ thống bơm câu chào Welcome Box (cho cả Khách và User) mỗi khi load trang Home
+        if (typeof updateProfileWidget === 'function') {
+            updateProfileWidget();
+        }
+
+        // 🚀 3. KÍCH HOẠT QUẢN LÝ TẢI TRƯỚC TÀI NGUYÊN
+        if (typeof PreloadAssetsManager !== 'undefined') {
+            PreloadAssetsManager.init();
+        }
+
+        // 🚀 4. PHÂN QUYỀN: BẬT NÚT QUẢN LÝ MEDIA DÀNH RIÊNG CHO ADMIN & QUẢN LÝ
+        setTimeout(() => {
+            let sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : JSON.parse(localStorage.getItem('appUserSession'));
+            if (sessionUser && (sessionUser.role === 'Quản lý' || sessionUser.role === 'Admin')) {
+                let btnMob = document.getElementById('btnMediaMobile');
+                let btnLap = document.getElementById('btnMediaLaptop');
+                if (btnMob) btnMob.style.display = 'flex';
+                if (btnLap) btnLap.style.display = 'flex';
+            }
+        }, 300);
+    }
+
+    // Hàm render Giao diện Sidebar (Form Đăng nhập <-> Hồ sơ Avatar)
+    function renderSidebarAuth() {
+        const container = document.getElementById('sidebarAuthContainer');
+        if (!container) return;
+
+        const isGuest = !appUser || appUser.role === 'Khách lạ';
+
+        if (isGuest) {
+            // 🔴 TRẠNG THÁI 1: CHƯA ĐĂNG NHẬP -> HIỂN THỊ FORM
+            container.innerHTML = `
+                <div style="background: #F9F9FB; padding: 24px 20px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03);">
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 900; margin: 0 0 20px 0; color: #12151C; text-align: center; letter-spacing: -0.5px;">ĐĂNG NHẬP</h3>
+                    
+                    <div style="margin-bottom: 14px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #656973; margin-bottom: 8px; display: block;">SĐT Zalo</label>
+                        <input type="tel" id="sbLoginPhone" placeholder="09xx..." onkeydown="if(event.key === 'Enter') executeSidebarLogin()" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #E5E7EB; outline: none; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #656973; margin-bottom: 8px; display: block;">Mật khẩu</label>
+                        <input type="password" id="sbLoginPass" placeholder="Nhập mật khẩu..." onkeydown="if(event.key === 'Enter') executeSidebarLogin()" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #E5E7EB; outline: none; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box;">
+                    </div>
+                    
+                    <button id="btnSbLogin" onclick="executeSidebarLogin()" style="width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #4285F4 0%, #1A56B5 100%); color: #fff; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 8px 15px rgba(66, 133, 244, 0.25); transition: 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">XÁC NHẬN</button>
+                    
+                    <div id="sbLoginError" style="color: #D93025; font-size: 12px; font-weight: 600; margin-top: 14px; text-align: center; min-height: 15px;"></div>
+                </div>
+            `;
+        } else {                        
+            // 🟢 TRẠNG THÁI 2: ĐÃ ĐĂNG NHẬP -> GIAO DIỆN PROFILE TRỰC TIẾP TRÊN SIDEBAR
+            // 🚀 Gọi Lõi Avatar chung với kích thước 110px
+            let ui = typeof buildUniversalAvatar === 'function' ? buildUniversalAvatar(appUser.name, 110) : { avtHtml: "" };
+
+            container.innerHTML = `
+                <div style="background: #F9FAFB; padding: 20px 16px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center;">
+                    
+                    <div style="position: relative; margin-bottom: 12px; display: flex; justify-content: center;">
+                        <input type="file" id="sbAvatarInput" accept="image/*" style="display: none;" onchange="previewSidebarAvatar(this)">
+                        
+                        <div id="sbAvatarPreview" style="cursor: pointer; position: relative;" onclick="document.getElementById('sbAvatarInput').click()">
+                            ${ui.avtHtml}
+                        </div>                        
+                        
+                        <button onclick="document.getElementById('sbAvatarInput').click()" style="position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: #12151C; color: #FFF; border: 3px solid #FFF; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📷</button>
+                    </div>                    
+                    
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 900; color: #12151C; margin: 0 0 6px 0; text-align: center; letter-spacing: -0.5px;">${appUser.name}</h3>
+                    <span style="font-size: 11px; font-weight: 700; color: #1A56B5; background: rgba(66,133,244,0.12); padding: 4px 12px; border-radius: 12px; margin-bottom: 24px;">${appUser.role}</span>
+
+                    <div style="width: 100%; margin-bottom: 12px;">
+                        
+                        <div style="margin-bottom: 10px;">
+                            <div onclick="toggleSbCard('sbCardColor')" id="header_sbCardColor" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #FFF; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12px; color: #12151C;">🎨 Màu sắc yêu thích</span>
+                                <span id="chev_sbCardColor" style="font-size: 10px; color: #656973; transition: 0.3s;">▼</span>
+                            </div>
+                            <div id="sbCardColor" style="display: none; padding: 12px; background: #FFF; border: 1px solid #E5E7EB; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;" id="sbColorPalette"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div onclick="toggleSbCard('sbCardSecurity')" id="header_sbCardSecurity" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #FFF; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12px; color: #12151C;">🔒 Đổi Tên & Mật khẩu</span>
+                                <span id="chev_sbCardSecurity" style="font-size: 10px; color: #656973; transition: 0.3s;">▼</span>
+                            </div>
+                            <div id="sbCardSecurity" style="display: none; padding: 12px; background: #FFF; border: 1px solid #E5E7EB; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="font-size: 11px; font-weight: 700; color: #555; margin-bottom: 6px; display: block;">Tên đăng nhập mới</label>
+                                    <input type="tel" id="sbInputPhone" value="${appUser.phone || ''}" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-family: 'Inter', sans-serif; font-size: 13px; background: #F9FAFB; box-sizing: border-box;">
+                                </div>
+                                <div style="margin-bottom: 0;">
+                                    <label style="font-size: 11px; font-weight: 700; color: #555; margin-bottom: 6px; display: block;">Mật khẩu mới</label>
+                                    <input type="password" id="sbInputPass" placeholder="Để trống nếu không đổi" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-family: 'Inter', sans-serif; font-size: 13px; background: #F9FAFB; box-sizing: border-box;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="btnSbSaveProfile" onclick="saveSidebarProfile()" style="width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #4285F4 0%, #2A64D2 100%); color: #FFF; border: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 6px 15px rgba(66, 133, 244, 0.3); transition: 0.3s; margin-bottom: 10px;">LƯU THAY ĐỔI</button>
+                        
+                        <button onclick="executeLogout()" style="width: 100%; padding: 12px; border-radius: 10px; background: transparent; color: #D93025; border: 1.5px solid #FCA5A5; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='transparent'">ĐĂNG XUẤT</button>                        
+                    </div>
+                </div>
+            `;            
+
+            // Thay thế hàm setTimeout cũ bằng đoạn này:
+            setTimeout(() => {
+                // 🚀 ĐẨY SỐ VERSION VÀO ĐÁY SIDEBAR LAPTOP (CHẠY NGAY KHI TẢI TRANG)
+                const sbVer = document.getElementById('sidebarAppVersion');
+                if (sbVer && window.APP_VERSION) {
+                    sbVer.innerText = window.APP_VERSION;
+                }
+                initSbColorPalette();
+                if (appUser.color) {
+                    if (PROFILE_COLORS.includes(appUser.color)) {
+                        selectSbColor(appUser.color);
+                    } else {
+                        document.getElementById('sbCustomColorInput').value = appUser.color;
+                        selectSbCustomColor(appUser.color);
+                    }
+                }
+            }, 50);
+        }
+    }
+
+    // Hàm xử lý API Đăng nhập riêng cho Form trên Sidebar
+    function executeSidebarLogin() {
+        const phone = document.getElementById('sbLoginPhone').value.trim();
+        const pass = document.getElementById('sbLoginPass').value.trim();
+        const btn = document.getElementById('btnSbLogin');
+        const err = document.getElementById('sbLoginError');
+
+        if(!phone || !pass) { err.innerText = "Vui lòng nhập đủ thông tin!"; return; }
+        
+        btn.innerText = "ĐANG XỬ LÝ..."; btn.disabled = true; err.innerText = "";
+        
+        google.script.run
+            .withFailureHandler(error => { 
+                err.innerText = "Lỗi: " + error; btn.innerText = "XÁC NHẬN"; btn.disabled = false; 
+            })
+            .withSuccessHandler(res => {
+                btn.innerText = "ĐĂNG NHẬP"; btn.disabled = false;
+                if (res.success) {
+                    appUser = res.user;
+                    localStorage.setItem('appUserSession', JSON.stringify(appUser));
+                    
+                    // 🚀 Cập nhật toàn bộ App: Chào mừng, Tắt nút, Biến đổi Sidebar thành Avatar
+                    if (typeof updateProfileWidget === 'function') updateProfileWidget();
+                    renderSidebarAuth(); 
+                    if(typeof initTask_list === 'function') initTask_list(); 
+                    
+                    // 🚀 FIX LỖI F5: Định vị trang hiện tại là Home trước khi kéo thông báo
+                    window.APP_CURRENT_PAGE = "Home";
+                    // 🚀 KÉO THÔNG BÁO VỀ NGAY LÚC VỪA ĐĂNG NHẬP XONG!
+                    syncGlobalNotifications();
+                } else {
+                    err.innerText = res.message;
+                }
+            }).verifyUserLogin(phone, pass);
+    }
+// ========================================================
+    // CÁC HÀM XỬ LÝ PROFILE CHO GIAO DIỆN MỚI TRÊN SIDEBAR
+    // ========================================================
+    var sbTempAvatarBase64 = null;
+    var sbSelectedColor = "";
+    
+    // 1. Hiển thị ảnh Avatar vừa chọn lên Sidebar
+    function previewSidebarAvatar(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Gọi hàm nén thay vì đọc file trực tiếp
+        compressImageToBase64(file, function(compressedBase64) {
+            if (compressedBase64.length > 49000) {
+                alert("Ảnh này sau khi nén vẫn hơi lớn. Vui lòng chọn ảnh khác nhẹ hơn!");
+                return;
+            }
+            sbTempAvatarBase64 = compressedBase64; // Lưu mã Base64 cực nhẹ để chuẩn bị gửi Backend
+            
+            // Vẽ ngay ảnh preview lên giao diện (Sử dụng viền của Lõi)
+            let tempColor = sbSelectedColor || (appUser.color ? appUser.color : "#4285F4");
+            document.getElementById('sbAvatarPreview').innerHTML = `<div style="width: 110px; height: 110px; border-radius: 50%; box-shadow: 0 4px 12px ${tempColor}66; border: 2px solid ${tempColor}; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #FFF;"><img src="${sbTempAvatarBase64}" style="width: 100%; height: 100%; object-fit: cover;"></div>`;
+        });
+    }
+}
+
+    // 2. Vẽ bảng màu riêng cho Sidebar
+    // ==========================================
+    // BẢNG MÀU SIDEBAR
+    // ==========================================
+    function initSbColorPalette() {
+        const palette = document.getElementById('sbColorPalette');
+        if(!palette) return;
+        
+        // Vẽ 10 màu cơ bản
+        let html = PROFILE_COLORS.map(c => `
+            <div onclick="selectSbColor('${c}')" id="sb_color_${c.replace('#','')}" style="width: 26px; height: 26px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid transparent; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: 0.2s;"></div>
+        `).join('');
+        
+        // Nút Cầu vồng để gọi Color Picker (16 triệu màu)
+        html += `
+            <div style="position: relative; width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center;" title="Bấm để pha màu tự do">
+                <input type="color" id="sbCustomColorInput" onchange="selectSbCustomColor(this.value)" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;">
+                <span id="sbCustomColorCheck" style="color: #FFF; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.8); display: none;">✓</span>
+            </div>
+        `;
+        palette.innerHTML = html;
+    }
+
+    // Xử lý khi chọn 1 trong 10 màu có sẵn
+    function selectSbColor(hex) {
+        sbSelectedColor = hex;
+        PROFILE_COLORS.forEach(c => {
+            const el = document.getElementById('sb_color_' + c.replace('#',''));
+            if(!el) return;
+            if(c === hex) {
+                el.style.border = "2px solid #12151C";
+                el.innerHTML = `<span style="color:#FFF; font-size:11px; font-weight: bold;">✓</span>`;
+            } else {
+                el.style.border = "2px solid transparent";
+                el.innerHTML = "";
+            }
+        });
+        // Tắt dấu tick ở ô Custom (nếu có)
+        const customCheck = document.getElementById('sbCustomColorCheck');
+        if(customCheck) customCheck.style.display = 'none';
+    }
+
+    // Xử lý khi tự pha màu mới từ nút Cầu vồng
+    function selectSbCustomColor(hex) {
+        sbSelectedColor = hex;
+        // Xóa dấu tick ở 10 màu cơ bản
+        PROFILE_COLORS.forEach(c => {
+            const el = document.getElementById('sb_color_' + c.replace('#',''));
+            if(el) {
+                el.style.border = "2px solid transparent";
+                el.innerHTML = "";
+            }
+        });
+        // Bật dấu tick lên ô Cầu vồng
+        const customCheck = document.getElementById('sbCustomColorCheck');
+        if(customCheck) customCheck.style.display = 'block';
+    }
+
+    // 3. Đóng mở Accordion Sidebar
+    function toggleSbCard(targetId) {
+        const cards = ['sbCardColor', 'sbCardSecurity'];
+        cards.forEach(id => {
+            const body = document.getElementById(id);
+            const chev = document.getElementById('chev_' + id);
+            const header = document.getElementById('header_' + id);
+            if(!body || !chev || !header) return;
+            
+            if (id === targetId) {
+                const isHidden = body.style.display === 'none';
+                body.style.display = isHidden ? 'block' : 'none';
+                chev.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                header.style.borderRadius = isHidden ? "12px 12px 0 0" : "12px";
+                header.style.background = isHidden ? "#F9FAFB" : "#FFF";
+            } else {
+                body.style.display = 'none';
+                chev.style.transform = 'rotate(0deg)';
+                header.style.borderRadius = "12px";
+                header.style.background = "#FFF";
+            }
+        });
+    }
+
+    // 4. Lưu Thông Tin (Gửi lên App Script)
+    function saveSidebarProfile() {
+        const btn = document.getElementById('btnSbSaveProfile');
+        const newPhone = document.getElementById('sbInputPhone').value.trim();
+        const newPass = document.getElementById('sbInputPass').value.trim();
+        
+        if (!newPhone) { alert("SĐT không được để trống!"); return; }
+
+        const newData = {
+            phone: appUser.phone,        
+            newPhone: newPhone,          
+            password: newPass,
+            color: sbSelectedColor,  
+            avatarBase64: sbTempAvatarBase64
+        };
+        
+        btn.innerText = sbTempAvatarBase64 ? "ĐANG TẢI ẢNH..." : "ĐANG LƯU...";
+        btn.disabled = true;
+
+        google.script.run
+            .withFailureHandler(error => {
+                alert("Lỗi: " + error);
+                btn.innerText = "LƯU THAY ĐỔI"; btn.disabled = false;
+            })
+            .withSuccessHandler(res => {
+                btn.innerText = "LƯU THAY ĐỔI"; btn.disabled = false;
+                if (res.success) {
+                    alert("Cập nhật thành công!");
+                    appUser = res.user;
+                    localStorage.setItem('appUserSession', JSON.stringify(appUser));
+                    
+                    // Reset biến ảnh
+                    sbTempAvatarBase64 = null;
+                    
+                    // Re-render lại giao diện
+                    updateProfileWidget();
+                    renderSidebarAuth(); 
+                    if(typeof initTask_list === 'function') initTask_list();
+                } else {
+                    alert(res.message);
+                }
+            }).updateUserProfile(newData);
+    }
+    // 🚀 HÀM NÉN ẢNH VÀ CHUYỂN SANG BASE64 ĐỂ LƯU VỪA Ô GOOGLE SHEET
+function compressImageToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 150; // Ép kích thước tối đa (dư sức nét cho Avatar)
+            const MAX_HEIGHT = 150;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Nén ra định dạng JPEG với chất lượng 80% (chuỗi Base64 sẽ cực nhẹ, < 10.000 ký tự)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            callback(dataUrl);
+        }
+        img.src = event.target.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+// =========================================================================
+// 🏆 HÀM RENDER TOP 3 TRANG HOME - TỐI GIẢN 3 CỘT & CHỐNG VỠ MOBILE
+// =========================================================================
+function loadTopFreelancerLeaderboard() {
+    var sessionUser = (typeof appUser !== 'undefined' && appUser) ? appUser : (JSON.parse(localStorage.getItem('appUserSession')) || { name: "Khách", role: "Khách" });
+    let containers = document.querySelectorAll('div[id="topFreelancerHomeBox"]');
+    if(containers.length === 0) return;
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            try {
+                let today = new Date(); let currMonth = today.getMonth() + 1; let currYear = today.getFullYear();
+                document.querySelectorAll('#currentMonthTop, #homeTopMonthTitle').forEach(el => el.innerText = currMonth + "/" + currYear);
+                
+                let processed = res.tasks.map(t => {
+                    let b=1, m=1, y=2026;
+                    if (t.ktt && t.ktt.match(/L(\d)\/T(\d+)/i)) {
+                        let match = t.ktt.match(/L(\d)\/T(\d+)/i);
+                        b = parseInt(match[1]); m = parseInt(match[2]);
+                        if (t.complete) { let pts = t.complete.split('/'); if (pts.length===3) y = parseInt(pts[2]); }
+                    } else if (t.complete) {
+                        let pts = t.complete.split('/');
+                        if (pts.length===3) { m = parseInt(pts[1]); y = parseInt(pts[2]); b = parseInt(pts[0])<=17 ? 1:2; }
+                    }
+                    return { ...t, m:m, y:y, b:b };
+                });
+
+                let currentMonthTasks = processed.filter(t => t.m === currMonth && t.y === currYear);
+                let uStats = {};
+                currentMonthTasks.forEach(t => {
+                    if(!uStats[t.assignee]) uStats[t.assignee] = { name: t.assignee, l1:0, l2:0 };
+                    if(t.b===1) uStats[t.assignee].l1 += t.price; else uStats[t.assignee].l2 += t.price;
+                });
+
+                let leaderboard = Object.keys(uStats).map(k => {
+                    let u = uStats[k];
+                    u.bonus = 0;
+                    if (u.l1 >= 750000 && u.l2 >= 750000) u.bonus = 200000;
+                    u.total = u.l1 + u.l2 + u.bonus; 
+                    return u;
+                }).sort((a,b) => b.total - a.total).slice(0, 3);
+
+                let html = '';
+                if (leaderboard.length === 0) {
+                    html = `<div style="text-align:center; padding:30px; color:#999; font-size:13px; background:#F9FAFB; border-radius:16px;">Chưa có dữ liệu tháng ${currMonth}/${currYear}.</div>`;
+                } else {
+                    // 🚀 NÂNG CẤP GIAO DIỆN: Thu gọn 3 cột, Tên chữ màu Solid Blue, Mobile dẹt 1 dòng
+                    html += `
+                        <style>
+                            .ht-header { display: flex; padding: 0 16px 12px 16px; font-size: 12px; font-weight: 800; color: #1A56B5; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; margin-bottom: 12px; }
+                            .home-top-row { display: flex; align-items: center; padding: 16px; background: #F9FAFB; border-radius: 16px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.02); transition: 0.3s; }
+                            
+                            /* 🚀 ÉP DÒNG CUỐI CÙNG KHÔNG SINH THÊM KHOẢNG TRỐNG ĐÁY */
+                            .home-top-row:last-child { margin-bottom: 0 !important; } 
+                            
+                            .home-top-row:hover { background: #FFF; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transform: translateX(4px); }
+                            
+                            .ht-rank { width: 45px; font-size: 20px; text-align: center; flex-shrink: 0; }
+                            .ht-user { flex: 1; display: flex; align-items: center; gap: 12px; overflow: hidden; }
+                            .ht-user img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #FFF; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink:0; }
+                            .ht-name-blue { font-family:'Montserrat',sans-serif; font-weight:900; font-size:15px; color: #1A56B5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                            .ht-total { flex-shrink: 0; text-align: right; font-weight: 900; color: #1A56B5; font-size: 16px; }
+                            
+                            @media (max-width: 768px) {
+                                .ht-header { display: none; }
+                                .home-top-row { padding: 14px 12px; gap: 10px; flex-wrap: nowrap; }
+                                .ht-rank { width: 30px; font-size: 16px; }
+                                .ht-user { width: auto; }
+                                .ht-user img { width: 32px; height: 32px; }
+                                .ht-name-blue { font-size: 13.5px; }
+                                .ht-total { font-size: 14.5px; }
+                            }
+                        </style>
+                        
+                        <div class="ht-header">
+                            <div style="width:45px; text-align:center;">Hạng</div>
+                            <div style="flex:1;">Freelancer</div>
+                            <div style="text-align:right;">Tổng Thu nhập</div>
+                        </div>
+                    `;
+                    
+                    leaderboard.forEach((u, idx) => {
+                        let medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                        let avaUrl = res.avatars[u.name] || 'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)+'&background=random';
+                        
+                        html += `
+                            <div class="home-top-row">
+                                <div class="ht-rank">${medal}</div>
+                                <div class="ht-user">
+                                    <img src="${avaUrl}">
+                                    <span class="ht-name-blue">${u.name}</span>
+                                </div>
+                                <div class="ht-total">${u.total.toLocaleString('vi-VN')} đ</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                containers.forEach(container => { container.innerHTML = html; });
+            } catch (uiError) { console.error("Lỗi vẽ UI Top 3:", uiError); }
+        })
+        .getFreelancerIncomeData(sessionUser);
+}
+
+// 🚀 ĐẢM BẢO CHỈ CHẠY KHI GIAO DIỆN ĐÃ VẼ XONG
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(loadTopFreelancerLeaderboard, 500); 
+});
+
+// Kích hoạt chạy nạp bảng vàng khi load trang Home
+loadTopFreelancerLeaderboard();
+
+</script>
